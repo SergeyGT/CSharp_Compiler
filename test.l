@@ -16,17 +16,38 @@ MSUFFIX  [mM]
 
 %%
 
-public                 { printf("Keyword: %s\n", yytext); }
-protected              { printf("Keyword: %s\n", yytext); }
-private                { printf("Keyword: %s\n", yytext); }
-internal               { printf("Keyword: %s\n", yytext); }
-"protected internal"   { printf("Keyword: %s\n", yytext); }
-"internal protected"   { printf("Keyword: %s\n", yytext); }
+public                 { printf("ACCESS_MODIFIER: %s\n", yytext); }
+protected              { printf("ACCESS_MODIFIER: %s\n", yytext); }
+private                { printf("ACCESS_MODIFIER: %s\n", yytext); }
+internal               { printf("ACCESS_MODIFIER: %s\n", yytext); }
+"protected internal"   { printf("ACCESS_MODIFIER: %s\n", yytext); }
+"internal protected"   { printf("ACCESS_MODIFIER: %s\n", yytext); }
 
-struct               { printf("Keyword: %s\n", yytext); }
-class                { printf("Keyword: %s\n", yytext); }
-static               { printf("Keyword: %s\n", yytext); }
-enum                 { printf("Keyword: %s\n", yytext); }
+struct               { printf("KEYWORD: %s\n", yytext); }
+class                { printf("KEYWORD: %s\n", yytext); }
+static               { printf("KEYWORD: %s\n", yytext); }
+enum                 { printf("KEYWORD: %s\n", yytext); }
+interface            { printf("KEYWORD: %s\n", yytext"); }
+abstract             { printf("KEYWORD: %s\n", yytext"); }
+sealed               { printf("KEYWORD: %s\n", yytext"); }
+virtual              { printf("KEYWORD: %s\n", yytext"); }
+override             { printf("KEYWORD: %s\n", yytext"); }
+new                  { printf("KEYWORD: %s\n", yytext"); }
+this                 { printf("KEYWORD: %s\n", yytext"); }
+base                 { printf("KEYWORD: %s\n", yytext"); }
+for       			 { printf("KEYWORD: for\n"); }
+foreach   { printf("KEYWORD: foreach\n"); }
+while     { printf("KEYWORD: while\n"); }
+do        { printf("KEYWORD: do\n"); }
+continue  { printf("KEYWORD: continue\n"); }
+if        { printf("KEYWORD: if\n"); }
+else      { printf("KEYWORD: else\n"); }
+switch    { printf("KEYWORD: switch\n"); }
+case      { printf("KEYWORD: case\n"); }
+default   { printf("KEYWORD: default\n"); }
+break     { printf("KEYWORD: break\n"); }
+return    { printf("KEYWORD: return\n"); }
+goto      { printf("KEYWORD: goto\n"); }
 
 float     { printf("FLOAT_KEYWORD: %s\n", yytext); }
 double    { printf("DOUBLE_KEYWORD: %s\n", yytext); }
@@ -41,6 +62,15 @@ false     { printf("BOOL_LITERAL: false\n"); }
 "&"       { printf("Operator: %s\n", yytext); }
 "|"       { printf("Operator: %s\n", yytext); }
 "~"       { printf("Operator: %s\n", yytext); }
+
+Console\.WriteLine    { printf("CONSOLE_METHOD: Console.WriteLine\n"); }
+Console\.Write       { printf("CONSOLE_METHOD: Console.Write\n"); }
+Console\.ReadLine    { printf("CONSOLE_METHOD: Console.ReadLine\n"); }
+Console\.Read        { printf("CONSOLE_METHOD: Console.Read\n"); }
+
+"["       { printf("LBRACKET: [\n"); }
+"]"       { printf("RBRACKET: ]\n"); }
+","       { printf("COMMA: ,\n"); }
 
 {DIGIT}+\.{DIGIT}*({FSUFFIX}|{DSUFFIX}|{MSUFFIX})? {
     char* endptr;
