@@ -3,10 +3,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <string>
+using namespace std;
+
+
+std::string currentStringLiteral;
+std::string currentComment;
+int currentInteger;
+std::string currentCharacter;
+double currentFloatingPoint;
+char buffer[10];
+
 %}
 
 %option noyywrap
 %option never-interactive
+%option yylineno
 
 DIGIT    [0-9]
 ID       [a-zA-Z_][a-zA-Z0-9_]*
@@ -14,7 +26,211 @@ FSUFFIX  [fF]
 DSUFFIX  [dD]
 MSUFFIX  [mM]
 
+
+%x MULTILINE_COMMENT
+%x STRING_LITERAL
+%x VERBATIM_STRING_LITERAL
+%x CHARACTER_LITERAL
+
 %%
+
+
+
+"/*"                                    {
+                                            currentComment.clear();
+                                            BEGIN(MULTILINE_COMMENT);
+                                        }
+
+<MULTILINE_COMMENT>[^*\n]*              {
+                                            currentComment += yytext;
+                                        }
+
+<MULTILINE_COMMENT>\*+[^*/\n]*          {
+                                            currentComment += yytext;
+                                        }
+
+<MULTILINE_COMMENT>\n                   {
+                                            currentComment += yytext;
+                                        }
+
+<MULTILINE_COMMENT>\*+\/                {
+                                            printf("%s\n", currentComment.c_str());
+                                            BEGIN(INITIAL);
+                                        }
+
+<MULTILINE_COMMENT><<EOF>>              {
+                                            printf("Error! Expected end of multiline comment but found end of file! Line: %d\n", yylineno);
+                                            BEGIN(INITIAL);
+                                        }
+                                        
+\/\/.*                                  { printf("Found single-line comment: %s", yytext);}
+
+\"                                      {
+                                            currentStringLiteral.clear();
+                                            BEGIN(STRING_LITERAL);
+                                        }
+
+<STRING_LITERAL>[^\\\"\\\n]+            {
+                                            currentStringLiteral += yytext;
+                                        }
+<STRING_LITERAL>\\x[0-9a-fA-F]{1,4}     {
+                                            std::fill(std::begin(buffer), std::end(buffer), 0);
+                                            std::copy(yytext, yytext + yyleng, buffer);
+                                            std::sscanf(buffer + 2, "%x", &currentInteger);
+                                            currentStringLiteral = static_cast<char>(currentInteger);
+                                        }
+<STRING_LITERAL>\\n                     {
+                                            currentStringLiteral += "\n";
+                                        }
+<STRING_LITERAL>\\t                     {
+                                            currentStringLiteral += "\t";
+                                        }
+<STRING_LITERAL>\\a                     {
+                                            currentStringLiteral += "\a";
+                                        }
+<STRING_LITERAL>\\b                     {
+                                            currentStringLiteral += "\b";
+                                        }
+<STRING_LITERAL>\\f                     {
+                                            currentStringLiteral += "\f";
+                                        }
+<STRING_LITERAL>\n                      {
+                                            printf("Error! Expected end of multiline comment but found end of file! Line: %d\n", yylineno);
+                                            BEGIN(INITIAL);
+                                        }
+<STRING_LITERAL><<EOF>>                 {
+                                            printf("Error! Expected end of multiline comment but found end of file! Line: %d\n", yylineno);
+                                            BEGIN(INITIAL);
+                                        }
+<STRING_LITERAL>\\r                     {
+                                            currentStringLiteral += "\r";
+                                        }
+<STRING_LITERAL>\\v                     {
+                                            currentStringLiteral += "\v";
+                                        }
+<STRING_LITERAL>\\?                     {
+                                            currentStringLiteral += "\?";
+                                        }
+<STRING_LITERAL>\\0                     {
+                                            currentStringLiteral += "\0";
+                                        }
+<STRING_LITERAL>\\\\                    {
+                                            currentStringLiteral += "\\";
+                                        }
+<STRING_LITERAL>\\\"                    {
+                                            currentStringLiteral += "\"";
+                                        }
+<STRING_LITERAL>\\\'                    {
+                                            currentStringLiteral += "\'";
+                                        }
+<STRING_LITERAL>\"                      {
+                                            printf("%s\n", currentStringLiteral.c_str());
+                                            BEGIN(INITIAL);
+                                        }
+@\"                                     {
+                                            currentStringLiteral.clear();
+                                            BEGIN(VERBATIM_STRING_LITERAL);
+                                        }
+<VERBATIM_STRING_LITERAL>\"\"           {
+                                            currentStringLiteral += "\"";
+                                        }
+<VERBATIM_STRING_LITERAL>[^"\n]+        {
+                                            currentStringLiteral += yytext;
+                                        }
+<VERBATIM_STRING_LITERAL>\n             {
+                                            currentStringLiteral += "\n";
+                                        }
+<VERBATIM_STRING_LITERAL>\"             {
+                                            printf("%s\n", currentStringLiteral.c_str());
+                                            BEGIN(INITIAL);
+                                        }
+<VERBATIM_STRING_LITERAL><<EOF>>        {
+                                            printf("Error! Expected end of multiline comment but found end of file! Line: %d\n", yylineno);
+                                            BEGIN(INITIAL);
+                                        }
+\'                                      {
+                                            currentCharacter.clear();
+                                            BEGIN(CHARACTER_LITERAL);
+                                        }
+
+<CHARACTER_LITERAL>\'                   {
+                                            if (currentCharacter.size() == 0) 
+                                            {
+                                                printf("Error! Found empty character literal\n");
+                                            }
+                                            else if (currentCharacter.size() > 1)
+                                            {
+                                                printf("Error! Character literal is not allowed to have more then one character\n");
+                                            }
+                                            else 
+                                            {
+                                                printf("%c\n", currentCharacter[0]);
+                                            }
+                                            BEGIN(INITIAL);
+                                        }
+<CHARACTER_LITERAL>[^\'\\]+             {
+                                                currentCharacter += yytext;                                                    
+                                        }
+<CHARACTER_LITERAL>\\x[0-9a-fA-F]{1,4}  {
+                                            std::fill(std::begin(buffer), std::end(buffer), 0);
+                                            std::copy(yytext + 2, yytext + yyleng, buffer);
+                                            std::sscanf(buffer, "%x", &currentInteger);
+                                            currentCharacter += static_cast<char>(currentInteger);
+                                        }
+<CHARACTER_LITERAL>\\n                  {
+                                            currentCharacter += '\n';
+                                        }
+<CHARACTER_LITERAL>\\t                  {
+                                            currentCharacter += '\t';
+                                        }
+<CHARACTER_LITERAL>\\a                  {
+                                            currentCharacter += '\a';
+                                        }
+<CHARACTER_LITERAL>\\b                  {
+                                            currentCharacter += '\b';
+                                        }
+<CHARACTER_LITERAL>\\f                  {
+                                            currentCharacter += '\f';
+                                        }
+<CHARACTER_LITERAL>\\r                  {
+                                            currentCharacter += '\r';
+                                        }
+<CHARACTER_LITERAL>\\v                  {
+                                            currentCharacter += '\v';
+                                        }
+<CHARACTER_LITERAL>\\?                  {
+                                            currentCharacter += '\?';
+                                        }
+<CHARACTER_LITERAL>\\0                  {
+                                            currentCharacter += '\0';
+                                        }
+<CHARACTER_LITERAL>\\\\                 {
+                                            currentCharacter += '\\';
+                                        }
+<CHARACTER_LITERAL>\\\"                 {      
+                                            currentCharacter += '\"';
+                                        }
+<CHARACTER_LITERAL>\\\'                 {
+                                            currentCharacter += '\'';
+                                        }
+
+
+
+
+char                                    { printf("TYPE: %s\n", yytext); }
+int                                     { printf("TYPE: %s\n", yytext); }
+var                                     { printf("TYPE: %s\n", yytext); }
+void                                    { printf("TYPE: %s\n", yytext); }
+string                                  { printf("TYPE: %s\n", yytext); }
+
+
+out                                     { printf("PARAMETER_MODIFIER: %s\n", yytext); }
+ref                                     { printf("PARAMETER_MODIFIER: %s\n", yytext); }
+
+
+namespace                               { printf("KEYWORD: %s\n", yytext); }
+using                                   { printf("KEYWORD: %s\n", yytext); }
+
 
 public                 { printf("ACCESS_MODIFIER: %s\n", yytext); }
 protected              { printf("ACCESS_MODIFIER: %s\n", yytext); }
