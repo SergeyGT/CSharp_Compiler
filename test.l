@@ -52,7 +52,7 @@ new                  { print_token("KEYWORD", yytext); }
 this                 { print_token("KEYWORD", yytext); }
 base                 { print_token("KEYWORD", yytext); }
 
-for                  { print_token_simple("KEYWORD_FOR"); }
+for                  { print_token("KEYWORD", yytext); }
 foreach              { print_token("KEYWORD", yytext); }
 while                { print_token("KEYWORD", yytext); }
 do                   { print_token("KEYWORD", yytext); }
