@@ -1,0 +1,310 @@
+KEYWORD: class
+IDENTIFIER: Program
+LBRACE: {
+KEYWORD: static
+IDENTIFIER: void
+IDENTIFIER: Main
+LPAREN: (
+RPAREN: )
+LBRACE: {
+IDENTIFIER: int
+LBRACKET: [
+RBRACKET: ]
+IDENTIFIER: array
+Operator: =
+KEYWORD: new
+IDENTIFIER: int
+LBRACKET: [
+Unknown character: 1
+Unknown character: 0
+RBRACKET: ]
+SEMICOLON: ;
+IDENTIFIER: int
+LBRACKET: [
+COMMA: ,
+RBRACKET: ]
+IDENTIFIER: matrix
+Operator: =
+KEYWORD: new
+IDENTIFIER: int
+LBRACKET: [
+Unknown character: 5
+COMMA: ,
+Unknown character: 5
+RBRACKET: ]
+SEMICOLON: ;
+KEYWORD: if
+LPAREN: (
+IDENTIFIER: array
+LBRACKET: [
+Unknown character: 0
+RBRACKET: ]
+Operator: ==
+Unknown character: 0
+RPAREN: )
+LBRACE: {
+CONSOLE_METHOD: Console.WriteLine
+LPAREN: (
+Unknown character: "
+IDENTIFIER: First
+IDENTIFIER: element
+IDENTIFIER: is
+IDENTIFIER: zero
+Unknown character: "
+RPAREN: )
+SEMICOLON: ;
+RBRACE: }
+KEYWORD: for
+LPAREN: (
+IDENTIFIER: int
+IDENTIFIER: i
+Operator: =
+Unknown character: 0
+SEMICOLON: ;
+IDENTIFIER: i
+Operator: <
+Unknown character: 1
+Unknown character: 0
+SEMICOLON: ;
+IDENTIFIER: i
+Operator: +
+Operator: +
+RPAREN: )
+LBRACE: {
+IDENTIFIER: array
+LBRACKET: [
+IDENTIFIER: i
+RBRACKET: ]
+Operator: =
+IDENTIFIER: i
+Operator: *
+Unknown character: 2
+SEMICOLON: ;
+RBRACE: }
+KEYWORD: while
+LPAREN: (
+BOOL_LITERAL: true
+RPAREN: )
+LBRACE: {
+IDENTIFIER: string
+IDENTIFIER: input
+Operator: =
+CONSOLE_METHOD: Console.ReadLine
+LPAREN: (
+RPAREN: )
+SEMICOLON: ;
+KEYWORD: if
+LPAREN: (
+IDENTIFIER: input
+Operator: ==
+Unknown character: "
+IDENTIFIER: exit
+Unknown character: "
+RPAREN: )
+KEYWORD: break
+SEMICOLON: ;
+RBRACE: }
+RBRACE: }
+RBRACE: }
+KEYWORD: class
+IDENTIFIER: Program
+LBRACE: {
+KEYWORD: static
+IDENTIFIER: void
+IDENTIFIER: Main
+LPAREN: (
+RPAREN: )
+LBRACE: {
+IDENTIFIER: int
+LBRACKET: [
+RBRACKET: ]
+IDENTIFIER: array
+Operator: =
+KEYWORD: new
+IDENTIFIER: int
+LBRACKET: [
+Unknown character: 1
+Unknown character: 0
+RBRACKET: ]
+SEMICOLON: ;
+IDENTIFIER: int
+LBRACKET: [
+COMMA: ,
+RBRACKET: ]
+IDENTIFIER: matrix
+Operator: =
+KEYWORD: new
+IDENTIFIER: int
+LBRACKET: [
+Unknown character: 5
+COMMA: ,
+Unknown character: 5
+RBRACKET: ]
+SEMICOLON: ;
+KEYWORD: if
+LPAREN: (
+IDENTIFIER: array
+LBRACKET: [
+Unknown character: 0
+RBRACKET: ]
+Operator: ==
+Unknown character: 0
+RPAREN: )
+LBRACE: {
+CONSOLE_METHOD: Console.WriteLine
+LPAREN: (
+STRING_LITERAL: "First element is zero"
+RPAREN: )
+SEMICOLON: ;
+RBRACE: }
+KEYWORD: for
+LPAREN: (
+IDENTIFIER: int
+IDENTIFIER: i
+Operator: =
+Unknown character: 0
+SEMICOLON: ;
+IDENTIFIER: i
+Operator: <
+Unknown character: 1
+Unknown character: 0
+SEMICOLON: ;
+IDENTIFIER: i
+Operator: +
+Operator: +
+RPAREN: )
+LBRACE: {
+IDENTIFIER: array
+LBRACKET: [
+IDENTIFIER: i
+RBRACKET: ]
+Operator: =
+IDENTIFIER: i
+Operator: *
+Unknown character: 2
+SEMICOLON: ;
+RBRACE: }
+KEYWORD: while
+LPAREN: (
+BOOL_LITERAL: true
+RPAREN: )
+LBRACE: {
+IDENTIFIER: string
+IDENTIFIER: input
+Operator: =
+CONSOLE_METHOD: Console.ReadLine
+LPAREN: (
+RPAREN: )
+SEMICOLON: ;
+KEYWORD: if
+LPAREN: (
+IDENTIFIER: input
+Operator: ==
+STRING_LITERAL: "exit"
+RPAREN: )
+KEYWORD: break
+SEMICOLON: ;
+RBRACE: }
+RBRACE: }
+RBRACE: }
+KEYWORD: class
+IDENTIFIER: Program
+LBRACE: {
+KEYWORD: static
+IDENTIFIER: void
+IDENTIFIER: Main
+LPAREN: (
+RPAREN: )
+LBRACE: {
+IDENTIFIER: int
+LBRACKET: [
+RBRACKET: ]
+IDENTIFIER: array
+Operator: =
+KEYWORD: new
+IDENTIFIER: int
+LBRACKET: [
+Unknown character: 1
+Unknown character: 0
+RBRACKET: ]
+SEMICOLON: ;
+IDENTIFIER: int
+LBRACKET: [
+COMMA: ,
+RBRACKET: ]
+IDENTIFIER: matrix
+Operator: =
+KEYWORD: new
+IDENTIFIER: int
+LBRACKET: [
+Unknown character: 5
+COMMA: ,
+Unknown character: 5
+RBRACKET: ]
+SEMICOLON: ;
+KEYWORD: if
+LPAREN: (
+IDENTIFIER: array
+LBRACKET: [
+Unknown character: 0
+RBRACKET: ]
+Operator: ==
+Unknown character: 0
+RPAREN: )
+LBRACE: {
+CONSOLE_METHOD: Console.WriteLine
+LPAREN: (
+STRING_LITERAL: "First element is zero"
+RPAREN: )
+SEMICOLON: ;
+RBRACE: }
+KEYWORD: for
+LPAREN: (
+IDENTIFIER: int
+IDENTIFIER: i
+Operator: =
+Unknown character: 0
+SEMICOLON: ;
+IDENTIFIER: i
+Operator: <
+Unknown character: 1
+Unknown character: 0
+SEMICOLON: ;
+IDENTIFIER: i
+Operator: +
+Operator: +
+RPAREN: )
+LBRACE: {
+IDENTIFIER: array
+LBRACKET: [
+IDENTIFIER: i
+RBRACKET: ]
+Operator: =
+IDENTIFIER: i
+Operator: *
+Unknown character: 2
+SEMICOLON: ;
+RBRACE: }
+KEYWORD: while
+LPAREN: (
+BOOL_LITERAL: true
+RPAREN: )
+LBRACE: {
+IDENTIFIER: string
+IDENTIFIER: input
+Operator: =
+CONSOLE_METHOD: Console.ReadLine
+LPAREN: (
+RPAREN: )
+SEMICOLON: ;
+KEYWORD: if
+LPAREN: (
+IDENTIFIER: input
+Operator: ==
+STRING_LITERAL: "exit"
+RPAREN: )
+KEYWORD: break
+SEMICOLON: ;
+RBRACE: }
+RBRACE: }
+RBRACE: }

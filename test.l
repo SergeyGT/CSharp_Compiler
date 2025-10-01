@@ -36,18 +36,18 @@ new                  { printf("KEYWORD: %s\n", yytext); }
 this                 { printf("KEYWORD: %s\n", yytext); }
 base                 { printf("KEYWORD: %s\n", yytext); }
 for       			 { printf("KEYWORD: for\n"); }
-foreach   { printf("KEYWORD: foreach\n"); }
-while     { printf("KEYWORD: while\n"); }
-do        { printf("KEYWORD: do\n"); }
-continue  { printf("KEYWORD: continue\n"); }
-if        { printf("KEYWORD: if\n"); }
-else      { printf("KEYWORD: else\n"); }
-switch    { printf("KEYWORD: switch\n"); }
-case      { printf("KEYWORD: case\n"); }
-default   { printf("KEYWORD: default\n"); }
-break     { printf("KEYWORD: break\n"); }
-return    { printf("KEYWORD: return\n"); }
-goto      { printf("KEYWORD: goto\n"); }
+foreach   { printf("KEYWORD: %s\n", yytext); }
+while     { printf("KEYWORD: %s\n", yytext); }
+do        { printf("KEYWORD: %s\n", yytext); }
+continue  { printf("KEYWORD: %s\n", yytext); }
+if        { printf("KEYWORD: %s\n", yytext); }
+else      { printf("KEYWORD: %s\n", yytext); }
+switch    { printf("KEYWORD: %s\n", yytext); }
+case      { printf("KEYWORD: %s\n", yytext); }
+default   { printf("KEYWORD: %s\n", yytext); }
+break     { printf("KEYWORD: %s\n", yytext); }
+return    { printf("KEYWORD: %s\n", yytext); }
+goto      { printf("KEYWORD: %s\n", yytext); }
 
 float     { printf("FLOAT_KEYWORD: %s\n", yytext); }
 double    { printf("DOUBLE_KEYWORD: %s\n", yytext); }
@@ -63,14 +63,14 @@ false     { printf("BOOL_LITERAL: false\n"); }
 "|"       { printf("Operator: %s\n", yytext); }
 "~"       { printf("Operator: %s\n", yytext); }
 
-Console\.WriteLine    { printf("CONSOLE_METHOD: Console.WriteLine\n"); }
-Console\.Write       { printf("CONSOLE_METHOD: Console.Write\n"); }
-Console\.ReadLine    { printf("CONSOLE_METHOD: Console.ReadLine\n"); }
-Console\.Read        { printf("CONSOLE_METHOD: Console.Read\n"); }
+Console\.WriteLine    { printf("CONSOLE_METHOD: %s\n", yytext); }
+Console\.Write       { printf("CONSOLE_METHOD:%s\n", yytext); }
+Console\.ReadLine    { printf("CONSOLE_METHOD: %s\n", yytext); }
+Console\.Read        { printf("CONSOLE_METHOD: %s\n", yytext); }
 
-"["       { printf("LBRACKET: [\n"); }
-"]"       { printf("RBRACKET: ]\n"); }
-","       { printf("COMMA: ,\n"); }
+"["       { printf("LBRACKET: %s\n", yytext); }
+"]"       { printf("RBRACKET: %s\n", yytext); }
+","       { printf("COMMA: %s\n", yytext); }
 
 {DIGIT}+\.{DIGIT}*({FSUFFIX}|{DSUFFIX}|{MSUFFIX})? {
     char* endptr;
@@ -136,16 +136,20 @@ Console\.Read        { printf("CONSOLE_METHOD: Console.Read\n"); }
 "%="      { printf("Operator: %s\n", yytext); }
 "|="      { printf("Operator: %s\n", yytext); }
 
-"."       { printf("DOT: .\n"); }
-";"       { printf("SEMICOLON: ;\n"); }
-":"       { printf("COLON: :\n"); }
-"?"       { printf("OPERATOR: ?\n"); }
-"??"      { printf("OPERATOR: ??\n"); }
-"::"      { printf("OPERATOR: ::\n"); }
-"("       { printf("LPAREN: (\n"); }
-")"       { printf("RPAREN: )\n"); }
-"{"       { printf("LBRACE: {\n"); }
-"}"       { printf("RBRACE: }\n"); }
+"."       { printf("DOT: %s\n", yytext); }
+";"       { printf("SEMICOLON: %s\n", yytext); }
+":"       { printf("COLON: %s\n", yytext); }
+"?"       { printf("OPERATOR: %s\n", yytext); }
+"??"      { printf("OPERATOR: %s\n", yytext); }
+"::"      { printf("OPERATOR: %s\n", yytext); }
+"("       { printf("LPAREN: %s\n", yytext); }
+")"       { printf("RPAREN: %s\n", yytext); }
+"{"       { printf("LBRACE: %s\n", yytext); }
+"}"       { printf("RBRACE: %s\n", yytext); }
+
+
+\"(\\.|[^"\\])*\"     { printf("STRING_LITERAL: %s\n", yytext); }
+\'(\\.|[^'\\])?\'     { printf("CHAR_LITERAL: %s\n", yytext); }
 
 {ID}      { printf("IDENTIFIER: %s\n", yytext); }
 
