@@ -3,6 +3,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+void print_token(const char* type, const char* value) {
+    printf("%s: %s\n", type, value);
+}
+
+void print_token_simple(const char* type) {
+    printf("%s\n", type);
+}
+
+void print_literal(const char* type, const char* text, double value) {
+    printf("%s: %s -> %g\n", type, text, value);
+}
+
+void print_decimal_literal(const char* type, const char* text, double value) {
+    printf("%s: %s -> %.15g\n", type, text, value);
+}
 %}
 
 %option noyywrap
@@ -16,61 +32,62 @@ MSUFFIX  [mM]
 
 %%
 
-public                 { printf("ACCESS_MODIFIER: %s\n", yytext); }
-protected              { printf("ACCESS_MODIFIER: %s\n", yytext); }
-private                { printf("ACCESS_MODIFIER: %s\n", yytext); }
-internal               { printf("ACCESS_MODIFIER: %s\n", yytext); }
-"protected internal"   { printf("ACCESS_MODIFIER: %s\n", yytext); }
-"internal protected"   { printf("ACCESS_MODIFIER: %s\n", yytext); }
+public                 { print_token("ACCESS_MODIFIER", yytext); }
+protected              { print_token("ACCESS_MODIFIER", yytext); }
+private                { print_token("ACCESS_MODIFIER", yytext); }
+internal               { print_token("ACCESS_MODIFIER", yytext); }
+"protected internal"   { print_token("ACCESS_MODIFIER", yytext); }
+"internal protected"   { print_token("ACCESS_MODIFIER", yytext); }
 
-struct               { printf("KEYWORD: %s\n", yytext); }
-class                { printf("KEYWORD: %s\n", yytext); }
-static               { printf("KEYWORD: %s\n", yytext); }
-enum                 { printf("KEYWORD: %s\n", yytext); }
-interface            { printf("KEYWORD: %s\n", yytext); }
-abstract             { printf("KEYWORD: %s\n", yytext); }
-sealed               { printf("KEYWORD: %s\n", yytext); }
-virtual              { printf("KEYWORD: %s\n", yytext); }
-override             { printf("KEYWORD: %s\n", yytext); }
-new                  { printf("KEYWORD: %s\n", yytext); }
-this                 { printf("KEYWORD: %s\n", yytext); }
-base                 { printf("KEYWORD: %s\n", yytext); }
-for       			 { printf("KEYWORD: for\n"); }
-foreach   { printf("KEYWORD: %s\n", yytext); }
-while     { printf("KEYWORD: %s\n", yytext); }
-do        { printf("KEYWORD: %s\n", yytext); }
-continue  { printf("KEYWORD: %s\n", yytext); }
-if        { printf("KEYWORD: %s\n", yytext); }
-else      { printf("KEYWORD: %s\n", yytext); }
-switch    { printf("KEYWORD: %s\n", yytext); }
-case      { printf("KEYWORD: %s\n", yytext); }
-default   { printf("KEYWORD: %s\n", yytext); }
-break     { printf("KEYWORD: %s\n", yytext); }
-return    { printf("KEYWORD: %s\n", yytext); }
-goto      { printf("KEYWORD: %s\n", yytext); }
+struct               { print_token("KEYWORD", yytext); }
+class                { print_token("KEYWORD", yytext); }
+static               { print_token("KEYWORD", yytext); }
+enum                 { print_token("KEYWORD", yytext); }
+interface            { print_token("KEYWORD", yytext); }
+abstract             { print_token("KEYWORD", yytext); }
+sealed               { print_token("KEYWORD", yytext); }
+virtual              { print_token("KEYWORD", yytext); }
+override             { print_token("KEYWORD", yytext); }
+new                  { print_token("KEYWORD", yytext); }
+this                 { print_token("KEYWORD", yytext); }
+base                 { print_token("KEYWORD", yytext); }
 
-float     { printf("FLOAT_KEYWORD: %s\n", yytext); }
-double    { printf("DOUBLE_KEYWORD: %s\n", yytext); }
-decimal   { printf("DECIMAL_KEYWORD: %s\n", yytext); }
-bool      { printf("BOOL_KEYWORD: %s\n", yytext); }
-true      { printf("BOOL_LITERAL: true\n"); }
-false     { printf("BOOL_LITERAL: false\n"); }
+for                  { print_token_simple("KEYWORD_FOR"); }
+foreach              { print_token("KEYWORD", yytext); }
+while                { print_token("KEYWORD", yytext); }
+do                   { print_token("KEYWORD", yytext); }
+continue             { print_token("KEYWORD", yytext); }
+if                   { print_token("KEYWORD", yytext); }
+else                 { print_token("KEYWORD", yytext); }
+switch               { print_token("KEYWORD", yytext); }
+case                 { print_token("KEYWORD", yytext); }
+default              { print_token("KEYWORD", yytext); }
+break                { print_token("KEYWORD", yytext); }
+return               { print_token("KEYWORD", yytext); }
+goto                 { print_token("KEYWORD", yytext); }
 
-"&&"      { printf("Operator: %s\n", yytext); }
-"||"      { printf("Operator: %s\n", yytext); }
-"!"       { printf("Operator: %s\n", yytext); }
-"&"       { printf("Operator: %s\n", yytext); }
-"|"       { printf("Operator: %s\n", yytext); }
-"~"       { printf("Operator: %s\n", yytext); }
+float                { print_token("FLOAT_KEYWORD", yytext); }
+double               { print_token("DOUBLE_KEYWORD", yytext); }
+decimal              { print_token("DECIMAL_KEYWORD", yytext); }
+bool                 { print_token("BOOL_KEYWORD", yytext); }
+true                 { print_token_simple("BOOL_LITERAL_TRUE"); }
+false                { print_token_simple("BOOL_LITERAL_FALSE"); }
 
-Console\.WriteLine    { printf("CONSOLE_METHOD: %s\n", yytext); }
-Console\.Write       { printf("CONSOLE_METHOD:%s\n", yytext); }
-Console\.ReadLine    { printf("CONSOLE_METHOD: %s\n", yytext); }
-Console\.Read        { printf("CONSOLE_METHOD: %s\n", yytext); }
+"&&"                 { print_token("OPERATOR", yytext); }
+"||"                 { print_token("OPERATOR", yytext); }
+"!"                  { print_token("OPERATOR", yytext); }
+"&"                  { print_token("OPERATOR", yytext); }
+"|"                  { print_token("OPERATOR", yytext); }
+"~"                  { print_token("OPERATOR", yytext); }
 
-"["       { printf("LBRACKET: %s\n", yytext); }
-"]"       { printf("RBRACKET: %s\n", yytext); }
-","       { printf("COMMA: %s\n", yytext); }
+Console\.WriteLine   { print_token("CONSOLE_METHOD", yytext); }
+Console\.Write       { print_token("CONSOLE_METHOD", yytext); }
+Console\.ReadLine    { print_token("CONSOLE_METHOD", yytext); }
+Console\.Read        { print_token("CONSOLE_METHOD", yytext); }
+
+"["                  { print_token("LBRACKET", yytext); }
+"]"                  { print_token("RBRACKET", yytext); }
+","                  { print_token("COMMA", yytext); }
 
 {DIGIT}+\.{DIGIT}*({FSUFFIX}|{DSUFFIX}|{MSUFFIX})? {
     char* endptr;
@@ -80,86 +97,89 @@ Console\.Read        { printf("CONSOLE_METHOD: %s\n", yytext); }
 
     if (last_char == 'f' || last_char == 'F'){
         input_text[length - 1] = '\0';
-        printf("FLOAT_LITERAL: %s -> %g\n", yytext, strtof(input_text, &endptr));
+        print_literal("FLOAT_LITERAL", yytext, strtof(input_text, &endptr));
     } else if (last_char == 'm' || last_char == 'M'){
         input_text[length - 1] = '\0';
-        printf("DECIMAL_LITERAL: %s -> %.15g\n", yytext, strtod(input_text, &endptr));
+        print_decimal_literal("DECIMAL_LITERAL", yytext, strtod(input_text, &endptr));
     } else if (last_char == 'd' || last_char == 'D'){
         input_text[length - 1] = '\0';
-        printf("DOUBLE_LITERAL: %s -> %g\n", yytext, strtod(input_text, &endptr));
+        print_literal("DOUBLE_LITERAL", yytext, strtod(input_text, &endptr));
     } else{
-        printf("DOUBLE_LITERAL: %s -> %g\n", yytext, strtod(input_text, &endptr));
+        print_literal("DOUBLE_LITERAL", yytext, strtod(input_text, &endptr));
     }
     free(input_text);
 }
 
 {DIGIT}+{FSUFFIX}    {
-       char* endptr;
-       char* input_text = strdup(yytext);
-       input_text[strlen(input_text) - 1] = '\0';
-       printf("FLOAT_LITERAL: %s -> %g\n", yytext, strtof(input_text, &endptr));
-       free(input_text); 
-     }
+    char* endptr;
+    char* input_text = strdup(yytext);
+    input_text[strlen(input_text) - 1] = '\0';
+    print_literal("FLOAT_LITERAL", yytext, strtof(input_text, &endptr));
+    free(input_text); 
+}
 
 {DIGIT}+{DSUFFIX}    { 
     char* endptr;
     char* input_text = strdup(yytext);
     input_text[strlen(input_text) - 1] = '\0';
-    printf("DOUBLE_LITERAL: %s -> %g\n", yytext, strtod(input_text, &endptr));
+    print_literal("DOUBLE_LITERAL", yytext, strtod(input_text, &endptr));
     free(input_text);
-    }
+}
 
 {DIGIT}+{MSUFFIX}    { 
     char* endptr;
     char* input_text = strdup(yytext);
     input_text[strlen(input_text) - 1] = '\0';
-    printf("DECIMAL_LITERAL: %s -> %.15g\n", yytext, strtod(input_text, &endptr));
+    print_decimal_literal("DECIMAL_LITERAL", yytext, strtod(input_text, &endptr));
     free(input_text);
-    }
+}
 
-"+"       { printf("Operator: %s\n", yytext); }
-"-"       { printf("Operator: %s\n", yytext); }
-"*"       { printf("Operator: %s\n", yytext); }
-"/"       { printf("Operator: %s\n", yytext); }
-"%"       { printf("Operator: %s\n", yytext); }
-"=="      { printf("Operator: %s\n", yytext); }
-"!="      { printf("Operator: %s\n", yytext); }
-"<"       { printf("Operator: %s\n", yytext); }
-">"       { printf("Operator: %s\n", yytext); }
-"<="      { printf("Operator: %s\n", yytext); }
-">="      { printf("Operator: %s\n", yytext); }
-"="       { printf("Operator: %s\n", yytext); }
-"+="      { printf("Operator: %s\n", yytext); }
-"-="      { printf("Operator: %s\n", yytext); }
-"*="      { printf("Operator: %s\n", yytext); }
-"/="      { printf("Operator: %s\n", yytext); }
-"%="      { printf("Operator: %s\n", yytext); }
-"|="      { printf("Operator: %s\n", yytext); }
+"+"       { print_token("OPERATOR", yytext); }
+"-"       { print_token("OPERATOR", yytext); }
+"*"       { print_token("OPERATOR", yytext); }
+"/"       { print_token("OPERATOR", yytext); }
+"%"       { print_token("OPERATOR", yytext); }
 
-"."       { printf("DOT: %s\n", yytext); }
-";"       { printf("SEMICOLON: %s\n", yytext); }
-":"       { printf("COLON: %s\n", yytext); }
-"?"       { printf("OPERATOR: %s\n", yytext); }
-"??"      { printf("OPERATOR: %s\n", yytext); }
-"::"      { printf("OPERATOR: %s\n", yytext); }
-"("       { printf("LPAREN: %s\n", yytext); }
-")"       { printf("RPAREN: %s\n", yytext); }
-"{"       { printf("LBRACE: %s\n", yytext); }
-"}"       { printf("RBRACE: %s\n", yytext); }
+"=="      { print_token("OPERATOR", yytext); }
+"!="      { print_token("OPERATOR", yytext); }
+"<"       { print_token("OPERATOR", yytext); }
+">"       { print_token("OPERATOR", yytext); }
+"<="      { print_token("OPERATOR", yytext); }
+">="      { print_token("OPERATOR", yytext); }
 
+"="       { print_token("OPERATOR", yytext); }
+"+="      { print_token("OPERATOR", yytext); }
+"-="      { print_token("OPERATOR", yytext); }
+"*="      { print_token("OPERATOR", yytext); }
+"/="      { print_token("OPERATOR", yytext); }
+"%="      { print_token("OPERATOR", yytext); }
+"|="      { print_token("OPERATOR", yytext); }
 
-\"(\\.|[^"\\])*\"     { printf("STRING_LITERAL: %s\n", yytext); }
-\'(\\.|[^'\\])?\'     { printf("CHAR_LITERAL: %s\n", yytext); }
+"."       { print_token("DOT", yytext); }
+";"       { print_token("SEMICOLON", yytext); }
+":"       { print_token("COLON", yytext); }
+"?"       { print_token("OPERATOR", yytext); }
+"??"      { print_token("OPERATOR", yytext); }
+"::"      { print_token("OPERATOR", yytext); }
+"("       { print_token("LPAREN", yytext); }
+")"       { print_token("RPAREN", yytext); }
+"{"       { print_token("LBRACE", yytext); }
+"}"       { print_token("RBRACE", yytext); }
 
-{ID}      { printf("IDENTIFIER: %s\n", yytext); }
+\"(\\.|[^"\\])*\"     { print_token("STRING_LITERAL", yytext); }
+\'(\\.|[^'\\])?\'     { print_token("CHAR_LITERAL", yytext); }
+
+{ID}      { print_token("IDENTIFIER", yytext); }
 
 [ \t\r\n]+    ;
 
-.         { printf("Unknown character: %s\n", yytext); }
+.         { print_token("UNKNOWN_CHAR", yytext); }
 
 %%
 
 int main() {
+    printf("=== C# Lexer Started ===\n");
     yylex();
+    printf("=== C# Lexer Finished ===\n");
     return 0;
 }

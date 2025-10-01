@@ -541,8 +541,25 @@ char *yytext;
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+// Функция для удобной печати токенов
+void print_token(const char* type, const char* value) {
+    printf("%s: %s\n", type, value);
+}
+
+void print_token_simple(const char* type) {
+    printf("%s\n", type);
+}
+
+void print_literal(const char* type, const char* text, double value) {
+    printf("%s: %s -> %g\n", type, text, value);
+}
+
+void print_decimal_literal(const char* type, const char* text, double value) {
+    printf("%s: %s -> %.15g\n", type, text, value);
+}
 #define YY_NEVER_INTERACTIVE 1
-#line 546 "lex.yy.c"
+#line 563 "lex.yy.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -693,10 +710,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 17 "test.l"
+#line 34 "test.l"
 
 
-#line 700 "lex.yy.c"
+#line 717 "lex.yy.c"
 
 	if ( yy_init )
 		{
@@ -781,257 +798,257 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 19 "test.l"
-{ printf("ACCESS_MODIFIER: %s\n", yytext); }
+#line 36 "test.l"
+{ print_token("ACCESS_MODIFIER", yytext); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 20 "test.l"
-{ printf("ACCESS_MODIFIER: %s\n", yytext); }
+#line 37 "test.l"
+{ print_token("ACCESS_MODIFIER", yytext); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 21 "test.l"
-{ printf("ACCESS_MODIFIER: %s\n", yytext); }
+#line 38 "test.l"
+{ print_token("ACCESS_MODIFIER", yytext); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 22 "test.l"
-{ printf("ACCESS_MODIFIER: %s\n", yytext); }
+#line 39 "test.l"
+{ print_token("ACCESS_MODIFIER", yytext); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 23 "test.l"
-{ printf("ACCESS_MODIFIER: %s\n", yytext); }
+#line 40 "test.l"
+{ print_token("ACCESS_MODIFIER", yytext); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 24 "test.l"
-{ printf("ACCESS_MODIFIER: %s\n", yytext); }
+#line 41 "test.l"
+{ print_token("ACCESS_MODIFIER", yytext); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 26 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 43 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 27 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 44 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 28 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 45 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 29 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 46 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 30 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 47 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 31 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 48 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 32 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 49 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 33 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 50 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 34 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 51 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 35 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 52 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 36 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 53 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 37 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 54 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 38 "test.l"
-{ printf("KEYWORD: for\n"); }
+#line 56 "test.l"
+{ print_token_simple("KEYWORD_FOR"); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 39 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 57 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 40 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 58 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 41 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 59 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 42 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 60 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 43 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 61 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 44 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 62 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 45 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 63 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 46 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 64 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 47 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 65 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 48 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 66 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 49 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 67 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 50 "test.l"
-{ printf("KEYWORD: %s\n", yytext); }
+#line 68 "test.l"
+{ print_token("KEYWORD", yytext); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 52 "test.l"
-{ printf("FLOAT_KEYWORD: %s\n", yytext); }
+#line 70 "test.l"
+{ print_token("FLOAT_KEYWORD", yytext); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 53 "test.l"
-{ printf("DOUBLE_KEYWORD: %s\n", yytext); }
+#line 71 "test.l"
+{ print_token("DOUBLE_KEYWORD", yytext); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 54 "test.l"
-{ printf("DECIMAL_KEYWORD: %s\n", yytext); }
+#line 72 "test.l"
+{ print_token("DECIMAL_KEYWORD", yytext); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 55 "test.l"
-{ printf("BOOL_KEYWORD: %s\n", yytext); }
+#line 73 "test.l"
+{ print_token("BOOL_KEYWORD", yytext); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 56 "test.l"
-{ printf("BOOL_LITERAL: true\n"); }
+#line 74 "test.l"
+{ print_token_simple("BOOL_LITERAL_TRUE"); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 57 "test.l"
-{ printf("BOOL_LITERAL: false\n"); }
+#line 75 "test.l"
+{ print_token_simple("BOOL_LITERAL_FALSE"); }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 59 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 77 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 60 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 78 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 61 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 79 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 62 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 80 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 63 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 81 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 64 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 82 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 66 "test.l"
-{ printf("CONSOLE_METHOD: %s\n", yytext); }
+#line 84 "test.l"
+{ print_token("CONSOLE_METHOD", yytext); }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 67 "test.l"
-{ printf("CONSOLE_METHOD:%s\n", yytext); }
+#line 85 "test.l"
+{ print_token("CONSOLE_METHOD", yytext); }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 68 "test.l"
-{ printf("CONSOLE_METHOD: %s\n", yytext); }
+#line 86 "test.l"
+{ print_token("CONSOLE_METHOD", yytext); }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 69 "test.l"
-{ printf("CONSOLE_METHOD: %s\n", yytext); }
+#line 87 "test.l"
+{ print_token("CONSOLE_METHOD", yytext); }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 71 "test.l"
-{ printf("LBRACKET: [\n"); }
+#line 89 "test.l"
+{ print_token("LBRACKET", yytext); }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 72 "test.l"
-{ printf("RBRACKET: ]\n"); }
+#line 90 "test.l"
+{ print_token("RBRACKET", yytext); }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 73 "test.l"
-{ printf("COMMA: ,\n"); }
+#line 91 "test.l"
+{ print_token("COMMA", yytext); }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 75 "test.l"
+#line 93 "test.l"
 {
     char* endptr;
     char* input_text = strdup(yytext);
@@ -1040,223 +1057,223 @@ YY_RULE_SETUP
 
     if (last_char == 'f' || last_char == 'F'){
         input_text[length - 1] = '\0';
-        printf("FLOAT_LITERAL: %s -> %g\n", yytext, strtof(input_text, &endptr));
+        print_literal("FLOAT_LITERAL", yytext, strtof(input_text, &endptr));
     } else if (last_char == 'm' || last_char == 'M'){
         input_text[length - 1] = '\0';
-        printf("DECIMAL_LITERAL: %s -> %.15g\n", yytext, strtod(input_text, &endptr));
+        print_decimal_literal("DECIMAL_LITERAL", yytext, strtod(input_text, &endptr));
     } else if (last_char == 'd' || last_char == 'D'){
         input_text[length - 1] = '\0';
-        printf("DOUBLE_LITERAL: %s -> %g\n", yytext, strtod(input_text, &endptr));
+        print_literal("DOUBLE_LITERAL", yytext, strtod(input_text, &endptr));
     } else{
-        printf("DOUBLE_LITERAL: %s -> %g\n", yytext, strtod(input_text, &endptr));
+        print_literal("DOUBLE_LITERAL", yytext, strtod(input_text, &endptr));
     }
     free(input_text);
 }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 96 "test.l"
+#line 114 "test.l"
 {
-       char* endptr;
-       char* input_text = strdup(yytext);
-       input_text[strlen(input_text) - 1] = '\0';
-       printf("FLOAT_LITERAL: %s -> %g\n", yytext, strtof(input_text, &endptr));
-       free(input_text); 
-     }
+    char* endptr;
+    char* input_text = strdup(yytext);
+    input_text[strlen(input_text) - 1] = '\0';
+    print_literal("FLOAT_LITERAL", yytext, strtof(input_text, &endptr));
+    free(input_text); 
+}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 104 "test.l"
+#line 122 "test.l"
 { 
     char* endptr;
     char* input_text = strdup(yytext);
     input_text[strlen(input_text) - 1] = '\0';
-    printf("DOUBLE_LITERAL: %s -> %g\n", yytext, strtod(input_text, &endptr));
+    print_literal("DOUBLE_LITERAL", yytext, strtod(input_text, &endptr));
     free(input_text);
-    }
+}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 112 "test.l"
+#line 130 "test.l"
 { 
     char* endptr;
     char* input_text = strdup(yytext);
     input_text[strlen(input_text) - 1] = '\0';
-    printf("DECIMAL_LITERAL: %s -> %.15g\n", yytext, strtod(input_text, &endptr));
+    print_decimal_literal("DECIMAL_LITERAL", yytext, strtod(input_text, &endptr));
     free(input_text);
-    }
+}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 120 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 138 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 121 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 139 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 122 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 140 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 123 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 141 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 124 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 142 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 125 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 144 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 126 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 145 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 127 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 146 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 128 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 147 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 129 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 148 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 130 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 149 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 131 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 151 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 132 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 152 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 133 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 153 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 134 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 154 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 135 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 155 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 136 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 156 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 137 "test.l"
-{ printf("Operator: %s\n", yytext); }
+#line 157 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 139 "test.l"
-{ printf("DOT: %s\n", yytext); }
+#line 159 "test.l"
+{ print_token("DOT", yytext); }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 140 "test.l"
-{ printf("SEMICOLON: %s\n", yytext); }
+#line 160 "test.l"
+{ print_token("SEMICOLON", yytext); }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 141 "test.l"
-{ printf("COLON: %s\n", yytext); }
+#line 161 "test.l"
+{ print_token("COLON", yytext); }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 142 "test.l"
-{ printf("OPERATOR: %s\n", yytext); }
+#line 162 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 143 "test.l"
-{ printf("OPERATOR: %s\n", yytext); }
+#line 163 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 144 "test.l"
-{ printf("OPERATOR: %s\n", yytext); }
+#line 164 "test.l"
+{ print_token("OPERATOR", yytext); }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 145 "test.l"
-{ printf("LPAREN: %s\n", yytext); }
+#line 165 "test.l"
+{ print_token("LPAREN", yytext); }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 146 "test.l"
-{ printf("RPAREN: %s\n", yytext); }
+#line 166 "test.l"
+{ print_token("RPAREN", yytext); }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 147 "test.l"
-{ printf("LBRACE: %s\n", yytext); }
+#line 167 "test.l"
+{ print_token("LBRACE", yytext); }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 148 "test.l"
-{ printf("RBRACE: %s\n", yytext); }
+#line 168 "test.l"
+{ print_token("RBRACE", yytext); }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 151 "test.l"
-{ printf("STRING_LITERAL: %s\n", yytext); }
+#line 170 "test.l"
+{ print_token("STRING_LITERAL", yytext); }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 152 "test.l"
-{ printf("CHAR_LITERAL: %s\n", yytext); }
+#line 171 "test.l"
+{ print_token("CHAR_LITERAL", yytext); }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 154 "test.l"
-{ printf("IDENTIFIER: %s\n", yytext); }
+#line 173 "test.l"
+{ print_token("IDENTIFIER", yytext); }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 156 "test.l"
+#line 175 "test.l"
 ;
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 158 "test.l"
-{ printf("Unknown character: %s\n", yytext); }
+#line 177 "test.l"
+{ print_token("UNKNOWN_CHAR", yytext); }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 160 "test.l"
+#line 179 "test.l"
 ECHO;
 	YY_BREAK
-#line 1260 "lex.yy.c"
+#line 1277 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2142,10 +2159,12 @@ int main()
 	return 0;
 	}
 #endif
-#line 160 "test.l"
+#line 179 "test.l"
 
 
 int main() {
+    printf("=== C# Lexer Started ===\n");
     yylex();
+    printf("=== C# Lexer Finished ===\n");
     return 0;
 }
