@@ -27,14 +27,14 @@ struct               { printf("KEYWORD: %s\n", yytext); }
 class                { printf("KEYWORD: %s\n", yytext); }
 static               { printf("KEYWORD: %s\n", yytext); }
 enum                 { printf("KEYWORD: %s\n", yytext); }
-interface            { printf("KEYWORD: %s\n", yytext"); }
-abstract             { printf("KEYWORD: %s\n", yytext"); }
-sealed               { printf("KEYWORD: %s\n", yytext"); }
-virtual              { printf("KEYWORD: %s\n", yytext"); }
-override             { printf("KEYWORD: %s\n", yytext"); }
-new                  { printf("KEYWORD: %s\n", yytext"); }
-this                 { printf("KEYWORD: %s\n", yytext"); }
-base                 { printf("KEYWORD: %s\n", yytext"); }
+interface            { printf("KEYWORD: %s\n", yytext); }
+abstract             { printf("KEYWORD: %s\n", yytext); }
+sealed               { printf("KEYWORD: %s\n", yytext); }
+virtual              { printf("KEYWORD: %s\n", yytext); }
+override             { printf("KEYWORD: %s\n", yytext); }
+new                  { printf("KEYWORD: %s\n", yytext); }
+this                 { printf("KEYWORD: %s\n", yytext); }
+base                 { printf("KEYWORD: %s\n", yytext); }
 for       			 { printf("KEYWORD: for\n"); }
 foreach   { printf("KEYWORD: foreach\n"); }
 while     { printf("KEYWORD: while\n"); }
@@ -135,6 +135,17 @@ Console\.Read        { printf("CONSOLE_METHOD: Console.Read\n"); }
 "/="      { printf("Operator: %s\n", yytext); }
 "%="      { printf("Operator: %s\n", yytext); }
 "|="      { printf("Operator: %s\n", yytext); }
+
+"."       { printf("DOT: .\n"); }
+";"       { printf("SEMICOLON: ;\n"); }
+":"       { printf("COLON: :\n"); }
+"?"       { printf("OPERATOR: ?\n"); }
+"??"      { printf("OPERATOR: ??\n"); }
+"::"      { printf("OPERATOR: ::\n"); }
+"("       { printf("LPAREN: (\n"); }
+")"       { printf("RPAREN: )\n"); }
+"{"       { printf("LBRACE: {\n"); }
+"}"       { printf("RBRACE: }\n"); }
 
 {ID}      { printf("IDENTIFIER: %s\n", yytext); }
 
