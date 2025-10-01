@@ -54,7 +54,7 @@ MSUFFIX  [mM]
                                         }
 
 <MULTILINE_COMMENT>\*+\/                {
-                                            printf("%s\n", currentComment.c_str());
+                                            printf("MULTILINE_COMMENT: %s\n", currentComment.c_str());
                                             BEGIN(INITIAL);
                                         }
 
@@ -63,7 +63,7 @@ MSUFFIX  [mM]
                                             BEGIN(INITIAL);
                                         }
                                         
-\/\/.*                                  { printf("Found single-line comment: %s", yytext);}
+\/\/.*                                  { printf("Found single-line comment: %s\n", yytext);}
 
 \"                                      {
                                             currentStringLiteral.clear();
