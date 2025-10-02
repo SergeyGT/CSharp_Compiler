@@ -7,15 +7,6 @@
 #define MAX_STRING_LENGTH 1024
 #define MAX_COMMENT_LENGTH 4096
 
-char currentStringLiteral[MAX_STRING_LENGTH];
-char currentComment[MAX_COMMENT_LENGTH];
-char currentCharacter[10];
-int currentInteger;
-double currentFloatingPoint;
-char buffer[10];
-int currentStringIndex = 0;
-int currentCommentIndex = 0;
-int currentCharIndex = 0;
 
 void print_token(const char* type, const char* value) {
     printf("%s: %s\n", type, value);
@@ -71,6 +62,17 @@ MSUFFIX  [mM]
 %x CHARACTER_LITERAL
 
 %%
+%{
+char currentStringLiteral[MAX_STRING_LENGTH];
+char currentComment[MAX_COMMENT_LENGTH];
+char currentCharacter[10];
+int currentInteger;
+double currentFloatingPoint;
+char buffer[10];
+int currentStringIndex = 0;
+int currentCommentIndex = 0;
+int currentCharIndex = 0;
+%}
 
 "/*"                                    {
                                             reset_string(currentComment, &currentCommentIndex);
