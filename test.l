@@ -81,7 +81,7 @@ MSUFFIX  [mM]
                                             append_string(currentComment, &currentCommentIndex, yytext);
                                         }
 
-<MULTILINE_COMMENT>\*+[^*/\n]*          {
+<MULTILINE_COMMENT>\*+[^/\n]*          {
                                             append_string(currentComment, &currentCommentIndex, yytext);
                                         }
 
