@@ -77,17 +77,11 @@ MSUFFIX  [mM]
                                             BEGIN(MULTILINE_COMMENT);
                                         }
 
-<MULTILINE_COMMENT>[^*\n]+              {
-                                            append_string(currentComment, &currentCommentIndex, yytext);
-                                        }
+<MULTILINE_COMMENT>[^*\n]+              { append_string(currentComment, &currentCommentIndex, yytext);}
 
-<MULTILINE_COMMENT>\*+[^/\n]*          {
-                                            append_string(currentComment, &currentCommentIndex, yytext);
-                                        }
+<MULTILINE_COMMENT>\*+[^*/\n]*          { append_string(currentComment, &currentCommentIndex, yytext);}
 
-<MULTILINE_COMMENT>\n                   {
-                                            append_string(currentComment, &currentCommentIndex, yytext);
-                                        }
+<MULTILINE_COMMENT>\n                   { append_string(currentComment, &currentCommentIndex, yytext);}
 
 <MULTILINE_COMMENT>\*+\/                {
                                             printf("MULTILINE_COMMENT: %s\n", currentComment);
@@ -106,9 +100,7 @@ MSUFFIX  [mM]
                                             BEGIN(STRING_LITERAL);
                                         }
 
-<STRING_LITERAL>[^\\\"\n]+              {
-                                            append_string(currentStringLiteral, &currentStringIndex, yytext);
-                                        }
+<STRING_LITERAL>[^\\\"\n]+              { append_string(currentStringLiteral, &currentStringIndex, yytext);}
 
 <STRING_LITERAL>\\x[0-9a-fA-F]{1,4}     {
                                             memset(buffer, 0, sizeof(buffer));
@@ -117,25 +109,15 @@ MSUFFIX  [mM]
                                             append_char(currentStringLiteral, &currentStringIndex, (char)currentInteger);
                                         }
 
-<STRING_LITERAL>\\n                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\n');
-                                        }
+<STRING_LITERAL>\\n                     { append_char(currentStringLiteral, &currentStringIndex, '\n');}
 
-<STRING_LITERAL>\\t                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\t');
-                                        }
+<STRING_LITERAL>\\t                     { append_char(currentStringLiteral, &currentStringIndex, '\t');}
 
-<STRING_LITERAL>\\a                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\a');
-                                        }
+<STRING_LITERAL>\\a                     { append_char(currentStringLiteral, &currentStringIndex, '\a');}
 
-<STRING_LITERAL>\\b                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\b');
-                                        }
+<STRING_LITERAL>\\b                     { append_char(currentStringLiteral, &currentStringIndex, '\b');}
 
-<STRING_LITERAL>\\f                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\f');
-                                        }
+<STRING_LITERAL>\\f                     { append_char(currentStringLiteral, &currentStringIndex, '\f');}
 
 <STRING_LITERAL>\n                      {
                                             printf("Error! Unterminated string literal at line: %d\n", yylineno);
@@ -147,33 +129,19 @@ MSUFFIX  [mM]
                                             BEGIN(INITIAL);
                                         }
 
-<STRING_LITERAL>\\r                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\r');
-                                        }
+<STRING_LITERAL>\\r                     { append_char(currentStringLiteral, &currentStringIndex, '\r');}
 
-<STRING_LITERAL>\\v                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\v');
-                                        }
+<STRING_LITERAL>\\v                     { append_char(currentStringLiteral, &currentStringIndex, '\v');}
 
-<STRING_LITERAL>\\?                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\?');
-                                        }
+<STRING_LITERAL>\\?                     { append_char(currentStringLiteral, &currentStringIndex, '\?');}
 
-<STRING_LITERAL>\\0                     {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\0');
-                                        }
+<STRING_LITERAL>\\0                     { append_char(currentStringLiteral, &currentStringIndex, '\0');}
 
-<STRING_LITERAL>\\\\                    {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\\');
-                                        }
+<STRING_LITERAL>\\\\                    { append_char(currentStringLiteral, &currentStringIndex, '\\');}
 
-<STRING_LITERAL>\\\"                    {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\"');
-                                        }
+<STRING_LITERAL>\\\"                    { append_char(currentStringLiteral, &currentStringIndex, '\"');}
 
-<STRING_LITERAL>\\\'                    {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\'');
-                                        }
+<STRING_LITERAL>\\\'                    { append_char(currentStringLiteral, &currentStringIndex, '\'');}
 
 <STRING_LITERAL>\"                      {
                                             printf("STRING_LITERAL: %s\n", currentStringLiteral);
@@ -185,17 +153,11 @@ MSUFFIX  [mM]
                                             BEGIN(VERBATIM_STRING_LITERAL);
                                         }
 
-<VERBATIM_STRING_LITERAL>\"\"           {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\"');
-                                        }
+<VERBATIM_STRING_LITERAL>\"\"           { append_char(currentStringLiteral, &currentStringIndex, '\"');}
 
-<VERBATIM_STRING_LITERAL>[^"\n]+        {
-                                            append_string(currentStringLiteral, &currentStringIndex, yytext);
-                                        }
+<VERBATIM_STRING_LITERAL>[^"\n]+        { append_string(currentStringLiteral, &currentStringIndex, yytext);}
 
-<VERBATIM_STRING_LITERAL>\n             {
-                                            append_char(currentStringLiteral, &currentStringIndex, '\n');
-                                        }
+<VERBATIM_STRING_LITERAL>\n             { append_char(currentStringLiteral, &currentStringIndex, '\n');}
 
 <VERBATIM_STRING_LITERAL>\"             {
                                             printf("VERBATIM_STRING_LITERAL: %s\n", currentStringLiteral);
@@ -228,9 +190,7 @@ MSUFFIX  [mM]
                                             BEGIN(INITIAL);
                                         }
 
-<CHARACTER_LITERAL>[^\'\\]+             {
-                                            append_string(currentCharacter, &currentCharIndex, yytext);                                                    
-                                        }
+<CHARACTER_LITERAL>[^\'\\]+             { append_string(currentCharacter, &currentCharIndex, yytext);}
 
 <CHARACTER_LITERAL>\\x[0-9a-fA-F]{1,4}  {
                                             memset(buffer, 0, sizeof(buffer));
@@ -239,53 +199,29 @@ MSUFFIX  [mM]
                                             append_char(currentCharacter, &currentCharIndex, (char)currentInteger);
                                         }
 
-<CHARACTER_LITERAL>\\n                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\n');
-                                        }
+<CHARACTER_LITERAL>\\n                  { append_char(currentCharacter, &currentCharIndex, '\n');}
 
-<CHARACTER_LITERAL>\\t                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\t');
-                                        }
+<CHARACTER_LITERAL>\\t                  { append_char(currentCharacter, &currentCharIndex, '\t');}
 
-<CHARACTER_LITERAL>\\a                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\a');
-                                        }
+<CHARACTER_LITERAL>\\a                  { append_char(currentCharacter, &currentCharIndex, '\a');}
 
-<CHARACTER_LITERAL>\\b                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\b');
-                                        }
+<CHARACTER_LITERAL>\\b                  { append_char(currentCharacter, &currentCharIndex, '\b');}
 
-<CHARACTER_LITERAL>\\f                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\f');
-                                        }
+<CHARACTER_LITERAL>\\f                  { append_char(currentCharacter, &currentCharIndex, '\f');}
 
-<CHARACTER_LITERAL>\\r                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\r');
-                                        }
+<CHARACTER_LITERAL>\\r                  { append_char(currentCharacter, &currentCharIndex, '\r');}
 
-<CHARACTER_LITERAL>\\v                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\v');
-                                        }
+<CHARACTER_LITERAL>\\v                  { append_char(currentCharacter, &currentCharIndex, '\v');}
 
-<CHARACTER_LITERAL>\\?                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\?');
-                                        }
+<CHARACTER_LITERAL>\\?                  { append_char(currentCharacter, &currentCharIndex, '\?');}
 
-<CHARACTER_LITERAL>\\0                  {
-                                            append_char(currentCharacter, &currentCharIndex, '\0');
-                                        }
+<CHARACTER_LITERAL>\\0                  { append_char(currentCharacter, &currentCharIndex, '\0');}
 
-<CHARACTER_LITERAL>\\\\                 {
-                                            append_char(currentCharacter, &currentCharIndex, '\\');
-                                        }
+<CHARACTER_LITERAL>\\\\                 { append_char(currentCharacter, &currentCharIndex, '\\');}
 
-<CHARACTER_LITERAL>\\\"                 {      
-                                            append_char(currentCharacter, &currentCharIndex, '\"');
-                                        }
+<CHARACTER_LITERAL>\\\"                 { append_char(currentCharacter, &currentCharIndex, '\"');}
 
-<CHARACTER_LITERAL>\\\'                 {
-                                            append_char(currentCharacter, &currentCharIndex, '\'');
-                                        }
+<CHARACTER_LITERAL>\\\'                 { append_char(currentCharacter, &currentCharIndex, '\'');}
 
 
 
