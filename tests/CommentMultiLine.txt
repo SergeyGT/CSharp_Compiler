@@ -3,12 +3,12 @@ class Program {
         int[] array = new int[10];
         int[,] matrix = new int[5,5];
         
-	float = 5_0;
-
         if (array[0] == 0) {
             Console.WriteLine("First element is zero");
         }
-        
+        /*
+
+		vkl;kl;fk;lkfl;kl;kl; ******************/
         for (int i = 0; i < 10; i++) {
             array[i] = i * 2;
         }

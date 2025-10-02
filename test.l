@@ -77,7 +77,7 @@ MSUFFIX  [mM]
                                             BEGIN(MULTILINE_COMMENT);
                                         }
 
-<MULTILINE_COMMENT>[^*\n]*              {
+<MULTILINE_COMMENT>[^*\n]+              {
                                             append_string(currentComment, &currentCommentIndex, yytext);
                                         }
 
@@ -308,8 +308,6 @@ public                 { print_token("ACCESS_MODIFIER", yytext); }
 protected              { print_token("ACCESS_MODIFIER", yytext); }
 private                { print_token("ACCESS_MODIFIER", yytext); }
 internal               { print_token("ACCESS_MODIFIER", yytext); }
-"protected internal"   { print_token("ACCESS_MODIFIER", yytext); }
-"internal protected"   { print_token("ACCESS_MODIFIER", yytext); }
 
 struct               { print_token("KEYWORD", yytext); }
 class                { print_token("KEYWORD", yytext); }
@@ -352,10 +350,10 @@ false                { print_token_simple("BOOL_LITERAL_FALSE"); }
 "|"                  { print_token("OPERATOR", yytext); }
 "~"                  { print_token("OPERATOR", yytext); }
 
-Console\.WriteLine   { print_token("CONSOLE_METHOD", yytext); }
-Console\.Write       { print_token("CONSOLE_METHOD", yytext); }
-Console\.ReadLine    { print_token("CONSOLE_METHOD", yytext); }
-Console\.Read        { print_token("CONSOLE_METHOD", yytext); }
+{ID}\.{ID}  { print_token("CONSOLE_METHOD", yytext); }
+{ID}\.{ID}      { print_token("CONSOLE_METHOD", yytext); }
+{ID}\.{ID}  { print_token("CONSOLE_METHOD", yytext); }
+{ID}\.{ID}      { print_token("CONSOLE_METHOD", yytext); }
 
 "["                  { print_token("LBRACKET", yytext); }
 "]"                  { print_token("RBRACKET", yytext); }
@@ -444,9 +442,6 @@ Console\.Read        { print_token("CONSOLE_METHOD", yytext); }
 ")"       { print_token("RPAREN", yytext); }
 "{"       { print_token("LBRACE", yytext); }
 "}"       { print_token("RBRACE", yytext); }
-
-\"(\\.|[^"\\])*\"     { print_token("STRING_LITERAL", yytext); }
-\'(\\.|[^'\\])?\'     { print_token("CHAR_LITERAL", yytext); }
 
 {ID}      { print_token("IDENTIFIER", yytext); }
 [ \t\r\n]+    ;
