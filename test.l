@@ -405,6 +405,13 @@ Console\.Read        { print_token("CONSOLE_METHOD", yytext); }
     print_decimal_literal("DECIMAL_LITERAL", yytext, strtod(input_text, &endptr));
     free(input_text);
 }
+{DIGIT}+             { 
+    char* endptr;
+    long value = strtol(yytext, &endptr, 10);
+    printf("INTEGER_LITERAL: %s -> %ld\n", yytext, value);
+}
+
+{DIGIT}              { print_token("DIGIT", yytext); }
 
 "+"       { print_token("OPERATOR", yytext); }
 "-"       { print_token("OPERATOR", yytext); }
@@ -442,7 +449,6 @@ Console\.Read        { print_token("CONSOLE_METHOD", yytext); }
 \'(\\.|[^'\\])?\'     { print_token("CHAR_LITERAL", yytext); }
 
 {ID}      { print_token("IDENTIFIER", yytext); }
-
 [ \t\r\n]+    ;
 
 .         { print_token("UNKNOWN_CHAR", yytext); }
