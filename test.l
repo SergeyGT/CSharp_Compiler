@@ -77,11 +77,13 @@ MSUFFIX  [mM]
                                             BEGIN(MULTILINE_COMMENT);
                                         }
 
-<MULTILINE_COMMENT>[^*\n]+              { append_string(currentComment, &currentCommentIndex, yytext);}
+<MULTILINE_COMMENT>[^*\n]+              {append_string(currentComment, &currentCommentIndex, yytext);}
 
-<MULTILINE_COMMENT>\*+[^*/\n]*          { append_string(currentComment, &currentCommentIndex, yytext);}
+<MULTILINE_COMMENT>\*[^/\n]             {append_string(currentComment, &currentCommentIndex, yytext);}
 
-<MULTILINE_COMMENT>\n                   { append_string(currentComment, &currentCommentIndex, yytext);}
+<MULTILINE_COMMENT>\*+$                 {append_string(currentComment, &currentCommentIndex, yytext);}
+
+<MULTILINE_COMMENT>\n                   {append_string(currentComment, &currentCommentIndex, yytext);}
 
 <MULTILINE_COMMENT>\*+\/                {
                                             printf("MULTILINE_COMMENT: %s\n", currentComment);
