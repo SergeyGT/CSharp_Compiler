@@ -53,6 +53,22 @@ void append_string(char* str, int* index, const char* src) {
     }
 }
 
+void process_numeric_literal(const char* type, const char* text) {
+    char cleaned[256];
+    int j = 0;
+
+    for (int i = 0; text[i] != '\0' && j < 255; i++) {
+        if (text[i] != '_') {
+            cleaned[j++] = text[i];
+        }
+    }
+    cleaned[j] = '\0';
+    
+    char* endptr;
+    long int_value = strtol(cleaned, &endptr, 10);
+    printf("%s: %s -> %ld\n", type, text, int_value);
+}
+
 %}
 
 %option noyywrap
@@ -119,15 +135,9 @@ MSUFFIX  [mM]
 
 <STRING_LITERAL>\\f                     { append_char(currentStringLiteral, &currentStringIndex, '\f');}
 
-<STRING_LITERAL>\n                      {
-                                            printf("Error! Unterminated string literal at line: %d\n", yylineno);
-                                            BEGIN(INITIAL);
-                                        }
+<STRING_LITERAL>\n                      { printf("Error! Unterminated string literal at line: %d\n", yylineno); BEGIN(INITIAL);}
 
-<STRING_LITERAL><<EOF>>                 {
-                                            printf("Error! Unterminated string literal at line: %d\n", yylineno);
-                                            BEGIN(INITIAL);
-                                        }
+<STRING_LITERAL><<EOF>>                 { printf("Error! Unterminated string literal at line: %d\n", yylineno); BEGIN(INITIAL);}
 
 <STRING_LITERAL>\\r                     { append_char(currentStringLiteral, &currentStringIndex, '\r');}
 
@@ -143,15 +153,9 @@ MSUFFIX  [mM]
 
 <STRING_LITERAL>\\\'                    { append_char(currentStringLiteral, &currentStringIndex, '\'');}
 
-<STRING_LITERAL>\"                      {
-                                            printf("STRING_LITERAL: %s\n", currentStringLiteral);
-                                            BEGIN(INITIAL);
-                                        }
+<STRING_LITERAL>\"                      { printf("STRING_LITERAL: %s\n", currentStringLiteral); BEGIN(INITIAL);}
 
-@\"                                     {
-                                            reset_string(currentStringLiteral, &currentStringIndex);
-                                            BEGIN(VERBATIM_STRING_LITERAL);
-                                        }
+@\"                                     { reset_string(currentStringLiteral, &currentStringIndex); BEGIN(VERBATIM_STRING_LITERAL); }
 
 <VERBATIM_STRING_LITERAL>\"\"           { append_char(currentStringLiteral, &currentStringIndex, '\"');}
 
@@ -159,20 +163,11 @@ MSUFFIX  [mM]
 
 <VERBATIM_STRING_LITERAL>\n             { append_char(currentStringLiteral, &currentStringIndex, '\n');}
 
-<VERBATIM_STRING_LITERAL>\"             {
-                                            printf("VERBATIM_STRING_LITERAL: %s\n", currentStringLiteral);
-                                            BEGIN(INITIAL);
-                                        }
+<VERBATIM_STRING_LITERAL>\"             { printf("VERBATIM_STRING_LITERAL: %s\n", currentStringLiteral); BEGIN(INITIAL);}
 
-<VERBATIM_STRING_LITERAL><<EOF>>        {
-                                            printf("Error! Unterminated verbatim string literal at line: %d\n", yylineno);
-                                            BEGIN(INITIAL);
-                                        }
+<VERBATIM_STRING_LITERAL><<EOF>>        { printf("Error! Unterminated verbatim string literal at line: %d\n", yylineno); BEGIN(INITIAL);}
 
-\'                                      {
-                                            reset_string(currentCharacter, &currentCharIndex);
-                                            BEGIN(CHARACTER_LITERAL);
-                                        }
+\'                                      { reset_string(currentCharacter, &currentCharIndex); BEGIN(CHARACTER_LITERAL);}
 
 <CHARACTER_LITERAL>\'                   {
                                             if (strlen(currentCharacter) == 0) 
@@ -339,10 +334,8 @@ false                { print_token_simple("BOOL_LITERAL_FALSE"); }
     print_decimal_literal("DECIMAL_LITERAL", yytext, strtod(input_text, &endptr));
     free(input_text);
 }
-{DIGIT}+             { 
-    char* endptr;
-    long value = strtol(yytext, &endptr, 10);
-    printf("INTEGER_LITERAL: %s -> %ld\n", yytext, value);
+{DIGIT}({DIGIT}|_)*{DIGIT}             { 
+    process_numeric_literal("INTEGER_LITERAL", yytext);
 }
 
 {DIGIT}              { print_token("DIGIT", yytext); }
