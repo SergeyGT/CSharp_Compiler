@@ -147,8 +147,6 @@ int currentCharIndex = 0;
 
 <STRING_LITERAL>\\v                     { append_char(currentStringLiteral, &currentStringIndex, '\v');}
 
-<STRING_LITERAL>\\?                     { append_char(currentStringLiteral, &currentStringIndex, '\?');}
-
 <STRING_LITERAL>\\0                     { append_char(currentStringLiteral, &currentStringIndex, '\0');}
 
 <STRING_LITERAL>\\\\                    { append_char(currentStringLiteral, &currentStringIndex, '\\');}
@@ -158,6 +156,8 @@ int currentCharIndex = 0;
 <STRING_LITERAL>\\\'                    { append_char(currentStringLiteral, &currentStringIndex, '\'');}
 
 <STRING_LITERAL>\"                      { printf("STRING_LITERAL: %s\n", currentStringLiteral); BEGIN(INITIAL);}
+
+<STRING_LITERAL>\\.                     { printf("Error escape sequence in string: %s\n", currentStringLiteral);}
 
 @\"                                     { reset_string(currentStringLiteral, &currentStringIndex); BEGIN(VERBATIM_STRING_LITERAL); }
 
@@ -285,11 +285,6 @@ false                { print_token_simple("BOOL_LITERAL_FALSE"); }
 "|"                  { print_token("OPERATOR", yytext); }
 "~"                  { print_token("OPERATOR", yytext); }
 
-{ID}\.{ID}  { print_token("CONSOLE_METHOD", yytext); }
-{ID}\.{ID}      { print_token("CONSOLE_METHOD", yytext); }
-{ID}\.{ID}  { print_token("CONSOLE_METHOD", yytext); }
-{ID}\.{ID}      { print_token("CONSOLE_METHOD", yytext); }
-
 "["                  { print_token("LBRACKET", yytext); }
 "]"                  { print_token("RBRACKET", yytext); }
 ","                  { print_token("COMMA", yytext); }
@@ -344,7 +339,9 @@ false                { print_token_simple("BOOL_LITERAL_FALSE"); }
 
 {DIGIT}              { print_token("DIGIT", yytext); }
 
+"++"       { print_token("OPERATOR", yytext); }
 "+"       { print_token("OPERATOR", yytext); }
+"--"       { print_token("OPERATOR", yytext); }
 "-"       { print_token("OPERATOR", yytext); }
 "*"       { print_token("OPERATOR", yytext); }
 "/"       { print_token("OPERATOR", yytext); }

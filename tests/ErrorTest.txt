@@ -2,7 +2,7 @@ class Program {
     static void Main() {
         int[] array = new int[10];
         int[,] matrix = new int[5,5];
-        string a = "hello/n" +
+        string a = "hello\n"
 	"world";
         if (array[0] == 0) {
             Console.WriteLine("First element is zero");

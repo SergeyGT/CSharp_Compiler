@@ -28,30 +28,29 @@ OPERATOR: =
 KEYWORD: new
 TYPE: int
 LBRACKET: [
-INTEGER_LITERAL: 5 -> 5
+DIGIT: 5
 COMMA: ,
-INTEGER_LITERAL: 5 -> 5
+DIGIT: 5
 RBRACKET: ]
 SEMICOLON: ;
-TYPE: string
-IDENTIFIER: a
+FLOAT_KEYWORD: float
 OPERATOR: =
-STRING_LITERAL: "
-	"
+INTEGER_LITERAL: 5_0 -> 50
 SEMICOLON: ;
 KEYWORD: if
 LPAREN: (
 IDENTIFIER: array
 LBRACKET: [
-INTEGER_LITERAL: 0 -> 0
+DIGIT: 0
 RBRACKET: ]
 OPERATOR: ==
-INTEGER_LITERAL: 0 -> 0
+DIGIT: 0
 RPAREN: )
 LBRACE: {
 CONSOLE_METHOD: Console.WriteLine
 LPAREN: (
-STRING_LITERAL: "First element is zero"
+Error escape sequence in string: First eleme
+STRING_LITERAL: First eleme5464 nt is zero
 RPAREN: )
 SEMICOLON: ;
 RBRACE: }
@@ -60,15 +59,14 @@ LPAREN: (
 TYPE: int
 IDENTIFIER: i
 OPERATOR: =
-INTEGER_LITERAL: 0 -> 0
+DIGIT: 0
 SEMICOLON: ;
 IDENTIFIER: i
 OPERATOR: <
 INTEGER_LITERAL: 10 -> 10
 SEMICOLON: ;
 IDENTIFIER: i
-OPERATOR: +
-OPERATOR: +
+OPERATOR: ++
 RPAREN: )
 LBRACE: {
 IDENTIFIER: array
@@ -78,7 +76,7 @@ RBRACKET: ]
 OPERATOR: =
 IDENTIFIER: i
 OPERATOR: *
-INTEGER_LITERAL: 2 -> 2
+DIGIT: 2
 SEMICOLON: ;
 RBRACE: }
 KEYWORD: while
@@ -97,7 +95,7 @@ KEYWORD: if
 LPAREN: (
 IDENTIFIER: input
 OPERATOR: ==
-STRING_LITERAL: "exit"
+Error! Character literal is not allowed to have more than one character
 RPAREN: )
 KEYWORD: break
 SEMICOLON: ;
@@ -156,7 +154,8 @@ RPAREN: )
 LBRACE: {
 CONSOLE_METHOD: Console.WriteLine
 LPAREN: (
-STRING_LITERAL: First element is zero
+Error escape sequence in string: First eleme
+STRING_LITERAL: First eleme5464 nt is zero
 RPAREN: )
 SEMICOLON: ;
 RBRACE: }
@@ -172,8 +171,7 @@ OPERATOR: <
 INTEGER_LITERAL: 10 -> 10
 SEMICOLON: ;
 IDENTIFIER: i
-OPERATOR: +
-OPERATOR: +
+OPERATOR: ++
 RPAREN: )
 LBRACE: {
 IDENTIFIER: array
@@ -202,7 +200,8 @@ KEYWORD: if
 LPAREN: (
 IDENTIFIER: input
 OPERATOR: ==
-STRING_LITERAL: exit
+Error escape sequence in string: 1
+STRING_LITERAL: 1131231
 RPAREN: )
 KEYWORD: break
 SEMICOLON: ;
