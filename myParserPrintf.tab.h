@@ -177,8 +177,10 @@ union YYSTYPE
     struct StructMembersNode* _structMembers;
 	
 	//struct QualifiedTypeName* _qualifiedTypeName;
+	struct ClassNameNode* _className;
+    struct MethodNameNode* _methodName;
 
-#line 182 "myParserPrintf.tab.h"
+#line 184 "myParserPrintf.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

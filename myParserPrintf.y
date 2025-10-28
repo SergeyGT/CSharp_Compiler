@@ -78,7 +78,12 @@ extern struct Program* treeRoot;
     struct StructMembersNode* _structMembers;
 	
 	//struct QualifiedTypeName* _qualifiedTypeName;
+	struct ClassNameNode* _className;
+    struct MethodNameNode* _methodName;
 }
+
+%type <_className> class_name
+%type <_methodName> method_name
 
 %type <_accessExpr> access_expr
 %type <_expr> expr expr_optional
@@ -409,6 +414,16 @@ operator_overload:    visibility_modifier STATIC type OPERATOR '+'              
 ;
 
 // ============================================================================
+// ИМЕНА КЛАССОВ И МЕТОДОВ (для семантического различения)
+// ============================================================================
+
+class_name: IDENTIFIER { Print("class_name -> IDENTIFIER"); }
+;
+
+method_name: IDENTIFIER { Print("method_name -> IDENTIFIER"); }
+;
+
+// ============================================================================
 // МЕТОДЫ, КОНСТРУКТОРЫ И ДЕСТРУКТОРЫ
 // ============================================================================
 
@@ -435,15 +450,15 @@ operator_overload:    visibility_modifier STATIC type OPERATOR '+'              
 //           | 	visibility_modifier IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'					{ Print("constructor_decl -> visibility_modifier IDENTIFIER"); }
 //;
 
-constructor_decl: 	visibility_modifier IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("constructor_decl -> visibility_modifier IDENTIFIER"); }
+constructor_decl: 	visibility_modifier class_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("constructor_decl -> visibility_modifier class_name"); }
 ;
 
-method_decl: visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'    		{ Print("method_decl -> visibility_modifier type IDENTIFIER"); }
-		   | visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'   		{ Print("method_decl -> visibility_modifier VOID_KW IDENTIFIER"); }
-           | visibility_modifier STATIC type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("method_decl -> visibility_modifier STATIC type IDENTIFIER"); }
-           | visibility_modifier STATIC VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ Print("method_decl -> visibility_modifier STATIC VOID_KW IDENTIFIER"); }
-           | STATIC visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("method_decl -> STATIC visibility_modifier type IDENTIFIER"); }
-           | STATIC visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ Print("method_decl -> STATIC visibility_modifier VOID_KW IDENTIFIER"); }
+method_decl: visibility_modifier type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'    		{ Print("method_decl -> visibility_modifier type IDENTIFIER"); }
+		   | visibility_modifier VOID_KW method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'   		{ Print("method_decl -> visibility_modifier VOID_KW IDENTIFIER"); }
+           | visibility_modifier STATIC type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("method_decl -> visibility_modifier STATIC type IDENTIFIER"); }
+           | visibility_modifier STATIC VOID_KW method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ Print("method_decl -> visibility_modifier STATIC VOID_KW IDENTIFIER"); }
+           | STATIC visibility_modifier type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("method_decl -> STATIC visibility_modifier type IDENTIFIER"); }
+           | STATIC visibility_modifier VOID_KW method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ Print("method_decl -> STATIC visibility_modifier VOID_KW IDENTIFIER"); }
 ;
 
 
@@ -452,11 +467,12 @@ method_decl: visibility_modifier type IDENTIFIER '(' method_arguments_optional '
 
 
 // Статический конструктор
-static_constructor_decl: STATIC IDENTIFIER '(' ')' '{' stmt_seq_optional '}' 
+static_constructor_decl: STATIC class_name '(' ')' '{' stmt_seq_optional '}' 
     { Print("STATIC IDENTIFIER"); }
+;
 
 // Деструктор
-destructor_decl: TILDE IDENTIFIER '(' ')' '{' stmt_seq_optional '}' 
+destructor_decl: TILDE class_name '(' ')' '{' stmt_seq_optional '}' 
     { Print("TILDE IDENTIFIER"); }
 ;
 
@@ -510,7 +526,7 @@ struct_members_optional:                       { Print("struct_members_optional 
 ;
 
 // Объявление структуры
-struct_decl: PUBLIC STRUCT IDENTIFIER '{' struct_members_optional '}' 
+struct_decl: PUBLIC STRUCT class_name '{' struct_members_optional '}' 
     { Print("public", $3); }
 ;
 
@@ -518,11 +534,11 @@ struct_decl: PUBLIC STRUCT IDENTIFIER '{' struct_members_optional '}'
 // ПЕРЕЧИСЛЕНИЯ (enum)
 // ============================================================================
 
-enumerators: IDENTIFIER                     { Print("enumerators -> IDENTIFIER", $1); }
+enumerators: IDENTIFIER                     { Print("enumerators -> IDENTIFIER"); }
             | enumerators ',' IDENTIFIER    { Print("enumerators -> enumerators , IDENTIFIER"); }
 ;
 
-enum_decl: PUBLIC ENUM IDENTIFIER '{' enumerators '}' 
+enum_decl: PUBLIC ENUM class_name '{' enumerators '}' 
     { Print("public", $3); }
 ;
 
@@ -530,9 +546,9 @@ enum_decl: PUBLIC ENUM IDENTIFIER '{' enumerators '}'
 // КЛАССЫ
 // ============================================================================
 
-class_decl: PUBLIC CLASS IDENTIFIER '{' class_members_optional '}'                  { Print("public", $3); }
-          | PUBLIC CLASS IDENTIFIER ':' using_arg '{' class_members_optional '}'    { Print("class_decl -> PUBLIC CLASS IDENTIFIER : using_arg { class_members_optional }", $5); }
-          | PUBLIC CLASS IDENTIFIER ':' OBJECT '{' class_members_optional '}'       { Print("class_decl -> PUBLIC CLASS IDENTIFIER : OBJECT { class_members_optional }"); }
+class_decl: PUBLIC CLASS class_name '{' class_members_optional '}'                  { Print("PUBLIC CLASS class_name -> class_members_optional"); }
+          | PUBLIC CLASS class_name ':' using_arg '{' class_members_optional '}'    { Print("class_decl -> PUBLIC CLASS IDENTIFIER : using_arg { class_members_optional }"); }
+          | PUBLIC CLASS class_name ':' OBJECT '{' class_members_optional '}'       { Print("class_decl -> PUBLIC CLASS IDENTIFIER : OBJECT { class_members_optional }"); }
 ;
                 
 // ============================================================================
