@@ -102,6 +102,11 @@ MSUFFIX  [mM]
     BEGIN(INITIAL);
 }
 
+Console\.WriteLine                      { return CONSOLE_WRITELINE; }
+Console\.Write                          { return CONSOLE_WRITE; }
+Console\.ReadLine                       { return CONSOLE_READLINE; }
+Console\.Read                           { return CONSOLE_READ; }
+
 int                                     { return INT_TYPE; }
 float                                   { return FLOAT_TYPE; }
 double                                  { return DOUBLE_TYPE; }
@@ -109,22 +114,46 @@ bool                                    { return BOOL_TYPE; }
 char                                    { return CHAR_TYPE; }
 string                                  { return STRING_TYPE; }
 void                                    { return VOID; }
+var                                     { return VAR; }
+decimal                                 { return DECIMAL_TYPE; }
+protected                               { return PROTECTED; }
+internal                                { return INTERNAL; }
+virtual                                 { return VIRTUAL; }
+override                                { return OVERRIDE; }
+abstract                                { return ABSTRACT; }
+sealed                                  { return SEALED; }
+base                                    { return BASE; }
+
+get                                     { return GET; }
+set                                     { return SET; }
+
+in                                      { return IN; }
 
 class                                   { return CLASS; }
+struct                                  { return STRUCT; }
+interface                               { return INTERFACE; }
+enum                                    { return ENUM; }
 public                                  { return PUBLIC; }
 private                                 { return PRIVATE; }
 static                                  { return STATIC; }
 new                                     { return NEW; }
 this                                    { return THIS; }
 namespace                               { return NAMESPACE; }
+using                                   { return USING; }
 
 if                                      { return IF; }
 else                                    { return ELSE; }
 while                                   { return WHILE; }
 for                                     { return FOR; }
+foreach                                 { return FOREACH; }
+do                                      { return DO; }
+switch                                  { return SWITCH; }
+case                                    { return CASE; }
+default                                 { return DEFAULT; }
 return                                  { return RETURN; }
 break                                   { return BREAK; }
 continue                                { return CONTINUE; }
+goto                                    { return GOTO; }
 
 true                                    { 
     yylval.bool_value = 1;
@@ -134,6 +163,9 @@ false                                   {
     yylval.bool_value = 0;
     return BOOL_LITERAL_FALSE; 
 }
+
+null                                    { return NULL_LITERAL; }
+
 
 {DIGIT}+             { 
     yylval.int_value = atoi(yytext);
@@ -145,6 +177,12 @@ false                                   {
     return DOUBLE_LITERAL;
 }
 
+{DIGIT}+\.{DIGIT}*[fF] {
+    char* endptr;
+    yylval.float_value = strtof(yytext, &endptr);
+    return FLOAT_LITERAL;
+}
+
 {ID}                 { 
     yylval.string_value = strdup(yytext);
     return IDENTIFIER; 
@@ -152,8 +190,12 @@ false                                   {
 
 "+"                  { return '+'; }
 "-"                  { return '-'; }
+"++"                 { return INCREMENT; }
+"--"                 { return DECREMENT; }
 "*"                  { return '*'; }
 "/"                  { return '/'; }
+"%="                 { return MOD_ASSIGNMENT; }
+"%"                  { return '%'; }
 "="                  { return '='; }
 "=="                 { return EQUAL; }
 "!="                 { return NOT_EQUAL; }
@@ -164,6 +206,18 @@ false                                   {
 "&&"                 { return AND; }
 "||"                 { return OR; }
 "!"                  { return '!'; }
+"&"                  { return '&'; }
+"|"                  { return '|'; }
+"~"                  { return '~'; }
+"?"                  { return '?'; }
+"??"                 { return NULL_COALESCING; }
+"::"                 { return NAMESPACE_ACCESS; }
+
+"+="                 { return PLUS_ASSIGNMENT; }
+"-="                 { return MINUS_ASSIGNMENT; }
+"*="                 { return MUL_ASSIGNMENT; }
+"/="                 { return DIV_ASSIGNMENT; }
+"|="                 { return OR_ASSIGNMENT; }
 
 "["                  { return '['; }
 "]"                  { return ']'; }
@@ -175,7 +229,6 @@ false                                   {
 ")"                  { return ')'; }
 "{"                  { return '{'; }
 "}"                  { return '}'; }
-
 
 [ \t\r\n]+           {  }
 

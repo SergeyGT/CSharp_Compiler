@@ -1,0 +1,4 @@
+Enter C# code (Ctrl+D to end):
+ Default  Type: int  Integer: 5
+ Field with init: x
+ Default  Type: void 
