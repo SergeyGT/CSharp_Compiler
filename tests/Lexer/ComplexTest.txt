@@ -6,7 +6,7 @@ class Program {
 	float = 5_0;
 
         if (array[0] == 0) {
-            Console.WriteLine("First element is zero");
+            Console.WriteLine("First eleme\65464 nt is zero");
         }
         
         for (int i = 0; i < 10; i++) {
@@ -15,7 +15,7 @@ class Program {
         
         while (true) {
             string input = Console.ReadLine();
-            if (input == "exit") break;
+            if (input == "1\2131231") break;
         }
     }
 }
