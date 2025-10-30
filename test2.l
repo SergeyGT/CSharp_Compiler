@@ -4,181 +4,87 @@
 #include <string.h>
 #include "myParserPrintf.tab.h"
 
-char currentStringLiteral[1024];
-int currentStringIndex = 0;
-char currentCharacter[10];
-int currentCharIndex = 0;
-
-void reset_string(char* str, int* index) {
-    str[0] = '\0';
-    *index = 0;
-}
-
-void append_char(char* str, int* index, char c) {
-    if (*index < 1024 - 1) {
-        str[(*index)++] = c;
-        str[*index] = '\0';
-    }
-}
-
-void append_string(char* str, int* index, const char* src) {
-    int len = strlen(src);
-    if (*index + len < 1024 - 1) {
-        strcpy(str + *index, src);
-        *index += len;
-    }
-}
+void yyerror(const char* s);
 %}
 
 %option noyywrap
-%option never-interactive
-%option yylineno
 
 DIGIT    [0-9]
 ID       [a-zA-Z_][a-zA-Z0-9_]*
-FSUFFIX  [fF]
-DSUFFIX  [dD]
-MSUFFIX  [mM]
-
-%x MULTILINE_COMMENT
-%x STRING_LITERAL
-%x VERBATIM_STRING_LITERAL
-%x CHARACTER_LITERAL
+WS       [ \t\n\r]
 
 %%
 
-"/*"                                    { BEGIN(MULTILINE_COMMENT); }
-<MULTILINE_COMMENT>[^*\n]+              { /* ignore */ }
-<MULTILINE_COMMENT>\*[^/\n]             { /* ignore */ }
-<MULTILINE_COMMENT>\*+\/                { BEGIN(INITIAL); }
-<MULTILINE_COMMENT><<EOF>>              { BEGIN(INITIAL); }
-                                        
-\/\/.*                                  { /* ignore single-line comments */ }
+{WS}+    { /* skip whitespace */ }
 
-\"                                      {
-    reset_string(currentStringLiteral, &currentStringIndex);
-    BEGIN(STRING_LITERAL);
-}
-<STRING_LITERAL>[^\\\"\n]+              { append_string(currentStringLiteral, &currentStringIndex, yytext); }
-<STRING_LITERAL>\\x[0-9a-fA-F]{1,4}     {
-    int hexValue;
-    sscanf(yytext + 2, "%x", &hexValue);
-    append_char(currentStringLiteral, &currentStringIndex, (char)hexValue);
-}
-<STRING_LITERAL>\\n                     { append_char(currentStringLiteral, &currentStringIndex, '\n'); }
-<STRING_LITERAL>\\t                     { append_char(currentStringLiteral, &currentStringIndex, '\t'); }
-<STRING_LITERAL>\\r                     { append_char(currentStringLiteral, &currentStringIndex, '\r'); }
-<STRING_LITERAL>\\\\                    { append_char(currentStringLiteral, &currentStringIndex, '\\'); }
-<STRING_LITERAL>\\\"                    { append_char(currentStringLiteral, &currentStringIndex, '\"'); }
-<STRING_LITERAL>\"                      {
-    yylval.string_value = strdup(currentStringLiteral);
-    BEGIN(INITIAL);
-    return STRING_LITERAL;
-}
+"public"    { return PUBLIC; }
+"protected" { return PROTECTED; }
+"private"   { return PRIVATE; }
+"internal"  { return INTERNAL; }
+"static"    { return STATIC; }
+"struct"    { return STRUCT; }
+"enum"      { return ENUM; }
+"bool"      { return BOOL_KW; }
+"float"     { return FLOAT_KW; }
+"double"    { return DOUBLE_KW; }
+"decimal"   { return DECIMAL_KW; }
+"true"      { return TRUE_KW; }
+"false"     { return FALSE_KW; }
+"null"      { return NULL_KW; }
 
-\'                                      {
-    reset_string(currentCharacter, &currentCharIndex);
-    BEGIN(CHARACTER_LITERAL);
-}
-<CHARACTER_LITERAL>[^\'\\]              { 
-    append_string(currentCharacter, &currentCharIndex, yytext);
-}
-<CHARACTER_LITERAL>\\x[0-9a-fA-F]{1,4}  {
-    int hexValue;
-    sscanf(yytext + 2, "%x", &hexValue);
-    append_char(currentCharacter, &currentCharIndex, (char)hexValue);
-}
-<CHARACTER_LITERAL>\\n                  { append_char(currentCharacter, &currentCharIndex, '\n'); }
-<CHARACTER_LITERAL>\\t                  { append_char(currentCharacter, &currentCharIndex, '\t'); }
-<CHARACTER_LITERAL>\\r                  { append_char(currentCharacter, &currentCharIndex, '\r'); }
-<CHARACTER_LITERAL>\\\\                 { append_char(currentCharacter, &currentCharIndex, '\\'); }
-<CHARACTER_LITERAL>\\\'                 { append_char(currentCharacter, &currentCharIndex, '\''); }
-<CHARACTER_LITERAL>\'                   {
-    if (strlen(currentCharacter) == 1) {
-        yylval.char_value = currentCharacter[0];
-        BEGIN(INITIAL);
-        return CHAR_LITERAL;
-    }
-    BEGIN(INITIAL);
+{ID}        { yylval._identifier = strdup(yytext); return IDENTIFIER; }
+{DIGIT}+    { yylval._integer = atoi(yytext); return INTEGER; }
+
+{DIGIT}+\.{DIGIT}*([eE][-+]?{DIGIT}+)?   { yylval._floatingPoint = atof(yytext); return FLOATING_POINT; }
+{DIGIT}+\.{DIGIT}*[fF]                    { yylval._floatValue = atof(yytext); return FLOAT_LITERAL; }
+{DIGIT}+\.{DIGIT}*[mM]                    { yylval._floatingPoint = atof(yytext); return DECIMAL_LITERAL; }
+
+\"([^"\\]|\\.)*\"   { 
+    //yylval._string = strdup(yytext); 
+    return STRING; 
 }
 
-int                                     { return INT_TYPE; }
-float                                   { return FLOAT_TYPE; }
-double                                  { return DOUBLE_TYPE; }
-bool                                    { return BOOL_TYPE; }
-char                                    { return CHAR_TYPE; }
-string                                  { return STRING_TYPE; }
-void                                    { return VOID; }
-
-class                                   { return CLASS; }
-public                                  { return PUBLIC; }
-private                                 { return PRIVATE; }
-static                                  { return STATIC; }
-new                                     { return NEW; }
-this                                    { return THIS; }
-namespace                               { return NAMESPACE; }
-
-if                                      { return IF; }
-else                                    { return ELSE; }
-while                                   { return WHILE; }
-for                                     { return FOR; }
-return                                  { return RETURN; }
-break                                   { return BREAK; }
-continue                                { return CONTINUE; }
-
-true                                    { 
-    yylval.bool_value = 1;
-    return BOOL_LITERAL_TRUE; 
-}
-false                                   { 
-    yylval.bool_value = 0;
-    return BOOL_LITERAL_FALSE; 
+'([^'\\]|\\.)'   { 
+    yylval._character = yytext[1]; 
+    return CHARACTER; 
 }
 
-{DIGIT}+             { 
-    yylval.int_value = atoi(yytext);
-    return INTEGER_LITERAL;
-}
+"~"         { return TILDE; }
 
-{DIGIT}+\.{DIGIT}*   {
-    yylval.double_value = atof(yytext);
-    return DOUBLE_LITERAL;
-}
+"=="        { return EQUAL; }
+"!="        { return NOT_EQUAL; }
+"<="        { return LESS_OR_EQUAL; }
+">="        { return GREATER_OR_EQUAL; }
+"&&"        { return AND; }
+"||"        { return OR; }
+"&"         { return BITWISE_AND; }
+"|"         { return BITWISE_OR; }
 
-{ID}                 { 
-    yylval.string_value = strdup(yytext);
-    return IDENTIFIER; 
-}
+"+="        { return PLUS_ASSIGN; }
+"-="        { return MINUS_ASSIGN; }
+"*="        { return MULTIPLY_ASSIGN; }
+"/="        { return DIVISION_ASSIGN; }
+"++"        { return INCREMENT; }
+"--"        { return DECREMENT; }
 
-"+"                  { return '+'; }
-"-"                  { return '-'; }
-"*"                  { return '*'; }
-"/"                  { return '/'; }
-"="                  { return '='; }
-"=="                 { return EQUAL; }
-"!="                 { return NOT_EQUAL; }
-"<"                  { return '<'; }
-">"                  { return '>'; }
-"<="                 { return LESS_EQUAL; }
-">="                 { return GREATER_EQUAL; }
-"&&"                 { return AND; }
-"||"                 { return OR; }
-"!"                  { return '!'; }
+"+"         { return '+'; }
+"-"         { return '-'; }
+"*"         { return '*'; }
+"/"         { return '/'; }
+"="         { return '='; }
+"<"         { return '<'; }
+">"         { return '>'; }
+"!"         { return '!'; }
+"."         { return '.'; }
+","         { return ','; }
+";"         { return ';'; }
+"("         { return '('; }
+")"         { return ')'; }
+"{"         { return '{'; }
+"}"         { return '}'; }
+"["         { return '['; }
+"]"         { return ']'; }
 
-"["                  { return '['; }
-"]"                  { return ']'; }
-","                  { return ','; }
-"."                  { return '.'; }
-";"                  { return ';'; }
-":"                  { return ':'; }
-"("                  { return '('; }
-")"                  { return ')'; }
-"{"                  { return '{'; }
-"}"                  { return '}'; }
-
-
-[ \t\r\n]+           {  }
-
-.                    { return yytext[0]; }
+.           { printf("Unknown character: %s\n", yytext); }
 
 %%

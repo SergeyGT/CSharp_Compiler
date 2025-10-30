@@ -39,11 +39,12 @@ typedef struct { int dummy; } MethodNameNode;
 
 %union {
     int _integer;
-    char* _string;
+    char* string_value;
     char* _identifier;
     double _floatingPoint;
     float _floatValue;
     char _character;
+	char char_value;
 	int _bool;
 	
 	int bool_value;
@@ -54,14 +55,14 @@ typedef struct { int dummy; } MethodNameNode;
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
-    enum StandardType _standardType;
+    //enum StandardType _standardType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
     struct StmtSeqNode* _stmtSeq;
     struct StmtNode* _stmt;
     
-    enum VisibilityModifier _visibiltyModifier;
+    //enum VisibilityModifier _visibiltyModifier;
     struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
     struct MethodDeclNode* _methodDecl;
@@ -84,12 +85,12 @@ typedef struct { int dummy; } MethodNameNode;
 %type <_accessExpr> access_expr
 %type <_expr> expr
 %type <_exprSeq> expr_seq expr_seq_optional
-%type <_standardType> standard_type
+//%type <_standardType> standard_type
 %type <_type> type
 %type <_varDecl> var_decl
 %type <_stmtSeq> stmt_seq stmt_seq_optional
 %type <_stmt> stmt
-%type <_visibiltyModifier> visibility_modifier
+//%type <_visibiltyModifier> visibility_modifier
 %type <_fieldDecl> field_decl
 %type <_methodArguments> method_arguments method_arguments_optional
 %type <_methodDecl> method_decl
@@ -116,11 +117,11 @@ typedef struct { int dummy; } MethodNameNode;
 %token INTERPOLATED_STRING_START INTERPOLATED_STRING_END
 %token INTERPOLATED_STRING_TEXT INTERPOLATED_STRING_EXPR
 
-%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
-%token VOID CLASS NEW THIS NAMESPACE
-%token IF ELSE WHILE FOR RETURN BREAK CONTINUE
-%token CHAR_LITERAL BOOL_LITERAL_TRUE BOOL_LITERAL_FALSE INTEGER_LITERAL DOUBLE_LITERAL
-%token LESS_EQUAL GREATER_EQUAL
+//%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
+//%token VOID CLASS NEW THIS NAMESPACE
+//%token IF ELSE WHILE FOR RETURN BREAK CONTINUE
+//%token CHAR_LITERAL BOOL_LITERAL_TRUE BOOL_LITERAL_FALSE INTEGER_LITERAL DOUBLE_LITERAL
+//%token LESS_EQUAL GREATER_EQUAL
 
 %token PLUS_ASSIGN MINUS_ASSIGN MULTIPLY_ASSIGN DIVISION_ASSIGN
 %token INCREMENT DECREMENT

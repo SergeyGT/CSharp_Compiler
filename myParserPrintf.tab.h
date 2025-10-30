@@ -81,49 +81,24 @@ extern int yydebug;
     INTERPOLATED_STRING_END = 282, /* INTERPOLATED_STRING_END  */
     INTERPOLATED_STRING_TEXT = 283, /* INTERPOLATED_STRING_TEXT  */
     INTERPOLATED_STRING_EXPR = 284, /* INTERPOLATED_STRING_EXPR  */
-    INT_TYPE = 285,                /* INT_TYPE  */
-    FLOAT_TYPE = 286,              /* FLOAT_TYPE  */
-    DOUBLE_TYPE = 287,             /* DOUBLE_TYPE  */
-    BOOL_TYPE = 288,               /* BOOL_TYPE  */
-    CHAR_TYPE = 289,               /* CHAR_TYPE  */
-    STRING_TYPE = 290,             /* STRING_TYPE  */
-    VOID = 291,                    /* VOID  */
-    CLASS = 292,                   /* CLASS  */
-    NEW = 293,                     /* NEW  */
-    THIS = 294,                    /* THIS  */
-    NAMESPACE = 295,               /* NAMESPACE  */
-    IF = 296,                      /* IF  */
-    ELSE = 297,                    /* ELSE  */
-    WHILE = 298,                   /* WHILE  */
-    FOR = 299,                     /* FOR  */
-    RETURN = 300,                  /* RETURN  */
-    BREAK = 301,                   /* BREAK  */
-    CONTINUE = 302,                /* CONTINUE  */
-    CHAR_LITERAL = 303,            /* CHAR_LITERAL  */
-    BOOL_LITERAL_TRUE = 304,       /* BOOL_LITERAL_TRUE  */
-    BOOL_LITERAL_FALSE = 305,      /* BOOL_LITERAL_FALSE  */
-    INTEGER_LITERAL = 306,         /* INTEGER_LITERAL  */
-    DOUBLE_LITERAL = 307,          /* DOUBLE_LITERAL  */
-    LESS_EQUAL = 308,              /* LESS_EQUAL  */
-    GREATER_EQUAL = 309,           /* GREATER_EQUAL  */
-    PLUS_ASSIGN = 310,             /* PLUS_ASSIGN  */
-    MINUS_ASSIGN = 311,            /* MINUS_ASSIGN  */
-    MULTIPLY_ASSIGN = 312,         /* MULTIPLY_ASSIGN  */
-    DIVISION_ASSIGN = 313,         /* DIVISION_ASSIGN  */
-    INCREMENT = 314,               /* INCREMENT  */
-    DECREMENT = 315,               /* DECREMENT  */
-    LESS = 316,                    /* LESS  */
-    GREATER = 317,                 /* GREATER  */
-    EQUAL = 318,                   /* EQUAL  */
-    NOT_EQUAL = 319,               /* NOT_EQUAL  */
-    GREATER_OR_EQUAL = 320,        /* GREATER_OR_EQUAL  */
-    LESS_OR_EQUAL = 321,           /* LESS_OR_EQUAL  */
-    OR = 322,                      /* OR  */
-    AND = 323,                     /* AND  */
-    BITWISE_OR = 324,              /* BITWISE_OR  */
-    BITWISE_AND = 325,             /* BITWISE_AND  */
-    UNARY_MINUS = 326,             /* UNARY_MINUS  */
-    UNARY_PLUS = 327               /* UNARY_PLUS  */
+    PLUS_ASSIGN = 285,             /* PLUS_ASSIGN  */
+    MINUS_ASSIGN = 286,            /* MINUS_ASSIGN  */
+    MULTIPLY_ASSIGN = 287,         /* MULTIPLY_ASSIGN  */
+    DIVISION_ASSIGN = 288,         /* DIVISION_ASSIGN  */
+    INCREMENT = 289,               /* INCREMENT  */
+    DECREMENT = 290,               /* DECREMENT  */
+    LESS = 291,                    /* LESS  */
+    GREATER = 292,                 /* GREATER  */
+    EQUAL = 293,                   /* EQUAL  */
+    NOT_EQUAL = 294,               /* NOT_EQUAL  */
+    GREATER_OR_EQUAL = 295,        /* GREATER_OR_EQUAL  */
+    LESS_OR_EQUAL = 296,           /* LESS_OR_EQUAL  */
+    OR = 297,                      /* OR  */
+    AND = 298,                     /* AND  */
+    BITWISE_OR = 299,              /* BITWISE_OR  */
+    BITWISE_AND = 300,             /* BITWISE_AND  */
+    UNARY_MINUS = 301,             /* UNARY_MINUS  */
+    UNARY_PLUS = 302               /* UNARY_PLUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -135,11 +110,12 @@ union YYSTYPE
 #line 40 "myParserPrintf.y"
 
     int _integer;
-    char* _string;
+    char* string_value;
     char* _identifier;
     double _floatingPoint;
     float _floatValue;
     char _character;
+	char char_value;
 	int _bool;
 	
 	int bool_value;
@@ -150,14 +126,14 @@ union YYSTYPE
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
-    enum StandardType _standardType;
+    //enum StandardType _standardType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
     struct StmtSeqNode* _stmtSeq;
     struct StmtNode* _stmt;
     
-    enum VisibilityModifier _visibiltyModifier;
+    //enum VisibilityModifier _visibiltyModifier;
     struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
     struct MethodDeclNode* _methodDecl;
@@ -174,7 +150,7 @@ union YYSTYPE
     struct ClassNameNode* _className;
     struct MethodNameNode* _methodName;
 
-#line 178 "myParserPrintf.tab.h"
+#line 154 "myParserPrintf.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
