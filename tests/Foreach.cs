@@ -1,14 +1,15 @@
-class ForEachTest {
-    void TestForEach() {
-        int[] numbers = new int[] {1, 2, 3};
-        string[] names = new string[] {"Alice", "Bob"};
+class Program {
+    public static void Main() {
+        int[] numbers = new int[5];
         
         foreach (int number in numbers) {
-            int squared = number * number;
+            Console.WriteLine(number);
         }
         
-        foreach (string name in names) {
-            string greeting = "Hello";
-        }
+        
+        var names = new string[3];
+        foreach (var name in names) {
+            Console.WriteLine(name);
+        }	
     }
 }
