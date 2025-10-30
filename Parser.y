@@ -9,7 +9,7 @@ extern char* yytext;
 
 void yyerror(const char *s) {
     fprintf(stderr, "Syntax Error at line %d near '%s': %s\n", yylineno, yytext, s);
-    fprintf(stderr, "DEBUG PARSER: Current token: %s\n", yytext); // ДОБАВЬ ЭТУ СТРОКУ
+    fprintf(stderr, "DEBUG PARSER: Current token: %s\n", yytext);
 }
 %}
 
@@ -35,23 +35,6 @@ void yyerror(const char *s) {
 %token <bool_value> BOOL_LITERAL_TRUE BOOL_LITERAL_FALSE
 %token <string_value> IDENTIFIER
 
-<<<<<<< HEAD
-%token IF ELSE WHILE FOR DO RETURN
-%token CLASS PUBLIC PRIVATE PROTECTED STATIC 
-%token NEW THIS
-%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VOID VAR
-%token AND OR EQUAL NOT_EQUAL LESS_EQUAL GREATER_EQUAL
-%token NAMESPACE USING
-%token FOREACH IN
-%token PLUS_ASSIGNMENT MINUS_ASSIGNMENT MUL_ASSIGNMENT DIV_ASSIGNMENT MOD_ASSIGNMENT OR_ASSIGNMENT
-%token NULL_LITERAL
-%token INCREMENT DECREMENT
-
-%token CONSOLE_WRITELINE CONSOLE_WRITE CONSOLE_READLINE CONSOLE_READ
-%token DECIMAL_TYPE INTERNAL VIRTUAL OVERRIDE ABSTRACT SEALED BASE
-%token GET SET STRUCT INTERFACE ENUM SWITCH CASE DEFAULT BREAK CONTINUE GOTO
-%token NULL_COALESCING NAMESPACE_ACCESS
-=======
 %type <type_value> type return_type
 
 // Operators
@@ -61,7 +44,7 @@ void yyerror(const char *s) {
 %token PLUS_ASSIGNMENT MINUS_ASSIGNMENT MUL_ASSIGNMENT DIV_ASSIGNMENT MOD_ASSIGNMENT
 
 // Keywords
-%token IF ELSE WHILE FOR RETURN BREAK CONTINUE FOREACH DO
+%token IF ELSE WHILE FOR RETURN BREAK CONTINUE DO
 %token CLASS STRUCT ENUM INTERFACE 
 %token PUBLIC PRIVATE INTERNAL PROTECTED 
 %token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VAR_TYPE VOID_TYPE DECIMAL_TYPE
@@ -71,18 +54,16 @@ void yyerror(const char *s) {
 %token ABSTRACT STATIC SEALED VIRTUAL OVERRIDE BASE
 %token SWITCH CASE DEFAULT GOTO
 %token NULL_LITERAL CONSOLE_METHOD OPERATOR
->>>>>>> feat/parser
+
+// Additional tokens from both branches
+%token FOREACH IN
+%token CONSOLE_WRITELINE CONSOLE_WRITE CONSOLE_READLINE CONSOLE_READ
 
 // Precedence
 %nonassoc LOWEST
-<<<<<<< HEAD
-%right '=' PLUS_ASSIGNMENT MINUS_ASSIGNMENT MUL_ASSIGNMENT DIV_ASSIGNMENT MOD_ASSIGNMENT OR_ASSIGNMENT
-%left INCREMENT DECREMENT
-=======
 %nonassoc THEN
 %nonassoc ELSE
-%right '='
->>>>>>> feat/parser
+%right '=' PLUS_ASSIGNMENT MINUS_ASSIGNMENT MUL_ASSIGNMENT DIV_ASSIGNMENT MOD_ASSIGNMENT OR_ASSIGNMENT
 %left OR
 %left AND
 %left EQUAL NOT_EQUAL
@@ -92,252 +73,14 @@ void yyerror(const char *s) {
 %left '!' UMINUS
 %left '.' '[' ']'
 %nonassoc '(' ')' '{' '}' ',' ';' ':'
-%left NULL_COALESCING
-%left NAMESPACE_ACCESS
+%left NULL_COALESCE
+%left SCOPE
 
 %start program
 
 %%
 
 program: 
-<<<<<<< HEAD
-    | program class_declaration 
-    | program statement 
-    ;
-
-class_declaration: 
-    CLASS IDENTIFIER '{' class_members '}'  { printf("Class: %s\n", $2); }
-    ;
-
-class_members:
-    | class_members class_member
-    ;
-
-class_member: 
-    field_declaration { printf("Class field\n"); }
-    | method_declaration { printf("Class method\n"); }
-    ;
-
-field_declaration: 
-    visibility_modifier type IDENTIFIER ';' { printf("Field: %s\n", $3); }
-    | visibility_modifier type IDENTIFIER '=' expression ';' { printf("Field with init: %s\n", $3); }
-    | visibility_modifier array_type IDENTIFIER ';' { printf("Array field: %s\n", $3); }
-    | visibility_modifier array_type IDENTIFIER '=' expression ';' { printf("Array field with init: %s\n", $3); }
-    ;
-
-visibility_modifier: 
-    PUBLIC { printf("Public "); }
-    | PRIVATE { printf("Private "); }
-    | PROTECTED { printf("Protected "); }
-    | INTERNAL { printf("Internal "); }
-    | /* empty */ { printf("Default "); }
-    ;
-
-type: 
-    INT_TYPE { printf("int "); }
-    | FLOAT_TYPE { printf("float "); }
-    | DOUBLE_TYPE { printf("double "); }
-    | BOOL_TYPE { printf("bool "); }
-    | CHAR_TYPE { printf("char "); }
-    | STRING_TYPE { printf("string "); }
-    | DECIMAL_TYPE { printf("decimal "); }
-    | VOID { printf("void "); }
-    | IDENTIFIER { printf("user_type:%s ", $1); }
-    ;
-
-array_type:
-    type '[' ']' { printf("1D array of "); }
-    | type '[' ',' ']' { printf("2D array of "); }
-    ;
-
-method_declaration: 
-    visibility_modifier type IDENTIFIER '(' parameters ')' block { printf("Method: %s\n", $3); }
-    | visibility_modifier VOID IDENTIFIER '(' parameters ')' block { printf("Method: void %s\n", $3); }
-    | visibility_modifier STATIC type IDENTIFIER '(' parameters ')' block { printf("Static method: %s\n", $4); }
-    | visibility_modifier STATIC VOID IDENTIFIER '(' parameters ')' block { printf("Static void method: %s\n", $4); }
-    | visibility_modifier VIRTUAL type IDENTIFIER '(' parameters ')' block { printf("Virtual method: %s\n", $4); }
-    | visibility_modifier OVERRIDE type IDENTIFIER '(' parameters ')' block { printf("Override method: %s\n", $4); }
-    ;
-
-parameters:
-    | parameter_list
-    | /* empty */ { printf("No parameters "); }
-    ;
-
-parameter_list:
-    parameter { printf("Parameter "); }
-    | parameter_list ',' parameter 	{ printf("Additional parameter "); }
-    ;
-
-parameter:
-    type IDENTIFIER { printf("param:%s ", $2); }
-    | array_type IDENTIFIER { printf("array param:%s ", $2); }
-    ;
-
-block: '{' statements '}' { printf("Block\n"); }
-    ;
-
-statements:
-    | statements statement
-    ;
-
-statement: 
-    expression ';' { printf("Expression statement\n"); }
-    | if_statement 
-    | while_statement 
-    | for_statement
-    | foreach_statement
-    | do_while_statement
-    | switch_statement
-    | return_statement 
-    | break_statement
-    | continue_statement
-    | console_statement
-    | variable_declaration
-    | block 
-    | ';' { printf("Empty statement\n"); }
-    ;
-
-if_statement: 
-    IF '(' expression ')' statement { printf("If statement\n"); }
-    | IF '(' expression ')' statement ELSE statement { printf("If-else statement\n"); }
-    ;
-
-while_statement: 
-    WHILE '(' expression ')' statement { printf("While statement\n"); }
-    ;
-
-for_statement:
-    FOR '(' for_initializer ';' expression ';' for_iterator ')' statement { printf("For statement\n"); }
-    ;
-
-foreach_statement:
-    FOREACH '(' type IDENTIFIER IN expression ')' statement { printf("Foreach statement\n"); }
-    | FOREACH '(' array_type IDENTIFIER IN expression ')' statement { printf("Foreach array statement\n"); }
-    | FOREACH '(' VAR IDENTIFIER IN expression ')' statement { printf("Foreach statement with var\n"); }
-    ;
-
-do_while_statement:
-    DO statement WHILE '(' expression ')' ';' { printf("Do-while statement\n"); }
-    ;
-
-switch_statement:
-    SWITCH '(' expression ')' '{' case_entries '}' { printf("Switch statement\n"); }
-    ;
-
-case_entries:
-    | case_entries case_entry
-    ;
-
-case_entry:
-    CASE expression ':' statements { printf("Case entry\n"); }
-    | DEFAULT ':' statements { printf("Default entry\n"); }
-    ;
-
-return_statement: 
-    RETURN ';' { printf("Return;\n"); }
-    | RETURN expression ';' { printf("Return with value\n"); }
-    ;
-
-break_statement:
-    BREAK ';' { printf("Break;\n"); }
-    ;
-
-continue_statement:
-    CONTINUE ';' { printf("Continue;\n"); }
-    ;
-
-console_statement:
-    CONSOLE_WRITELINE '(' expression ')' ';' { printf("Console.WriteLine\n"); }
-    | CONSOLE_WRITE '(' expression ')' ';' { printf("Console.Write\n"); }
-    | CONSOLE_READLINE '(' ')' ';' { printf("Console.ReadLine\n"); }
-    | CONSOLE_READ '(' ')' ';' { printf("Console.Read\n"); }
-    ;
-
-variable_declaration:
-    type IDENTIFIER ';' { printf("Variable: %s\n", $2); }
-    | type IDENTIFIER '=' expression ';' { printf("Variable with init: %s\n", $2); }
-    | array_type IDENTIFIER ';' { printf("Array variable: %s\n", $2); }
-    | array_type IDENTIFIER '=' expression ';' { printf("Array variable with init: %s\n", $2); }
-    | VAR IDENTIFIER '=' expression ';' { printf("Var variable: %s\n", $2); }
-    ;
-
-for_initializer:
-    | variable_declaration_no_semicolon
-    | expression
-    | /* empty */ { printf("No for initializer "); }
-    ;
-
-for_iterator:
-    | expression
-    | /* empty */ { printf("No for iterator "); }
-    ;
-
-variable_declaration_no_semicolon:
-    type IDENTIFIER '=' expression { printf("For loop variable: %s ", $2); }
-    | array_type IDENTIFIER '=' expression { printf("For loop array variable: %s ", $2); }
-    | VAR IDENTIFIER '=' expression { printf("For loop var variable: %s ", $2); }
-    ;
-
-expression: 
-    primary 
-    | expression '+' expression { printf("Addition\n"); }
-    | expression '-' expression { printf("Subtraction\n"); }
-    | expression '*' expression { printf("Multiplication\n"); }
-    | expression '/' expression { printf("Division\n"); }
-    | expression '%' expression { printf("Modulo\n"); }
-    | expression '<' expression { printf("Less than\n"); }
-    | expression '>' expression { printf("Greater than\n"); }
-    | expression EQUAL expression { printf("Equals\n"); }
-    | expression NOT_EQUAL expression { printf("Not equals\n"); }
-    | expression LESS_EQUAL expression { printf("Less or equal\n"); }
-    | expression GREATER_EQUAL expression { printf("Greater or equal\n"); }
-    | expression AND expression { printf("Logical AND\n"); }
-    | expression OR expression { printf("Logical OR\n"); }
-    | expression '[' expression ']' { printf("Array access\n"); }
-    | expression '[' expression ',' expression ']' { printf("2D array access\n"); }
-    | expression '.' IDENTIFIER { printf("Member access: %s\n", $3); }
-    | expression '.' IDENTIFIER '(' argument_list ')' { printf("Method call: %s\n", $3); }
-    | expression '=' expression { printf("Assignment\n"); }
-    | expression PLUS_ASSIGNMENT expression { printf("Plus assignment\n"); }
-    | expression MINUS_ASSIGNMENT expression { printf("Minus assignment\n"); }
-    | expression MUL_ASSIGNMENT expression { printf("Multiply assignment\n"); }
-    | expression DIV_ASSIGNMENT expression { printf("Divide assignment\n"); }
-    | expression MOD_ASSIGNMENT expression { printf("Modulo assignment\n"); }
-    | expression OR_ASSIGNMENT expression { printf("Or assignment\n"); }
-    | '!' expression { printf("Logical NOT\n"); }
-    | '-' expression %prec UMINUS { printf("Unary minus\n"); }
-    | INCREMENT expression { printf("Pre-increment\n"); }           
-    | DECREMENT expression { printf("Pre-decrement\n"); }          
-    | expression INCREMENT { printf("Post-increment\n"); }          
-    | expression DECREMENT { printf("Post-decrement\n"); }   
-    | NEW type '(' argument_list ')' { printf("New object\n"); }
-    | NEW type '[' expression ']' { printf("New 1D array\n"); }
-    | NEW type '[' expression ',' expression ']' { printf("New 2D array\n"); }
-    | BASE '.' IDENTIFIER '(' argument_list ')' { printf("Base method call\n"); }
-    | '(' expression ')' { printf("Parenthesized expression\n"); }
-    | expression NULL_COALESCING expression { printf("Null coalescing\n"); }
-    | expression NAMESPACE_ACCESS IDENTIFIER { printf("Namespace access\n"); }
-    ;
-
-primary: 
-    IDENTIFIER { printf("Identifier: %s\n", $1); }
-    | INTEGER_LITERAL { printf("Integer: %d\n", $1); }
-    | FLOAT_LITERAL { printf("Float: %f\n", $1); }
-    | DOUBLE_LITERAL { printf("Double: %f\n", $1); }
-    | STRING_LITERAL { printf("String: %s\n", $1); }
-    | CHAR_LITERAL { printf("Char: %c\n", $1); }
-    | BOOL_LITERAL_TRUE { printf("Boolean: true\n"); }
-    | BOOL_LITERAL_FALSE { printf("Boolean: false\n"); }
-    | NULL_LITERAL { printf("Null literal\n"); }
-    | THIS { printf("This\n"); }
-    | BASE { printf("Base\n"); }
-    ;
-
-argument_list: 
-    | expression { printf("Argument "); }
-    | argument_list ',' expression { printf("Additional argument "); }
-=======
     | program top_level_declaration
     ;
 
@@ -432,6 +175,7 @@ type:
     | BOOL_TYPE { printf("bool "); $$ = 4; }
     | CHAR_TYPE { printf("char "); $$ = 5; }
     | STRING_TYPE { printf("string "); $$ = 6; }
+    | DECIMAL_TYPE { printf("decimal "); $$ = 7; }
     ;
 
 return_type:
@@ -445,6 +189,8 @@ method_declaration:
     { printf("Method: %s\n", $2); }
     | return_type IDENTIFIER '(' parameter_list ')' block
     { printf("Method with params: %s\n", $2); }
+    | access_modifier STATIC return_type IDENTIFIER '(' parameter_list ')' block
+    { printf("Static method: %s\n", $4); }
     ;
 
 parameter_list:
@@ -487,7 +233,11 @@ statement:
     | local_variable_declaration
     | if_statement 
     | while_statement 
+    | for_statement
+    | foreach_statement
     | return_statement 
+    | break_statement
+    | continue_statement
     | block 
     ;
 
@@ -517,11 +267,53 @@ while_statement:
     { printf("While\n"); }
     ;
 
+for_statement:
+    FOR '(' for_initializer ';' expression ';' for_iterator ')' statement 
+    { printf("For statement\n"); }
+    ;
+
+foreach_statement:
+    FOREACH '(' type IDENTIFIER IN expression ')' statement 
+    { printf("Foreach statement\n"); }
+    | FOREACH '(' VAR_TYPE IDENTIFIER IN expression ')' statement 
+    { printf("Foreach statement with var\n"); }
+    ;
+
 return_statement: 
     RETURN ';' 
     { printf("Return void\n"); }
     | RETURN expression ';' 
     { printf("Return value\n"); }
+    ;
+
+break_statement:
+    BREAK ';' 
+    { printf("Break;\n"); }
+    ;
+
+continue_statement:
+    CONTINUE ';' 
+    { printf("Continue;\n"); }
+    ;
+
+for_initializer:
+    | /* empty */ 
+    { printf("No for initializer "); }
+    | local_variable_declaration_no_semicolon
+    | expression
+    ;
+
+for_iterator:
+    | expression
+    | /* empty */ 
+    { printf("No for iterator "); }
+    ;
+
+local_variable_declaration_no_semicolon:
+    type IDENTIFIER '=' expression 
+    { printf("For loop variable: %s ", $2); }
+    | VAR_TYPE IDENTIFIER '=' expression 
+    { printf("For loop var variable: %s ", $2); }
     ;
 
 // Expressions
@@ -533,6 +325,10 @@ assignment_expression:
     conditional_expression
     | IDENTIFIER '=' expression
     { printf("Assignment\n"); }
+    | IDENTIFIER PLUS_ASSIGNMENT expression
+    { printf("Plus assignment\n"); }
+    | IDENTIFIER MINUS_ASSIGNMENT expression
+    { printf("Minus assignment\n"); }
     ;
 
 conditional_expression:
@@ -585,6 +381,8 @@ multiplicative_expression:
     { printf("Multiplication\n"); }
     | multiplicative_expression '/' unary_expression
     { printf("Division\n"); }
+    | multiplicative_expression '%' unary_expression
+    { printf("Modulo\n"); }
     ;
 
 unary_expression:
@@ -597,11 +395,15 @@ unary_expression:
 
 postfix_expression:
     primary_expression
-    | member_expression  // ДОБАВЬТЕ ЭТУ СТРОКУ
+    | member_expression
     | postfix_expression '.' IDENTIFIER
     { printf("Member access: %s\n", $3); }
     | postfix_expression '(' argument_list ')'
     { printf("Method call\n"); }
+    | postfix_expression PLUSPLUS
+    { printf("Post-increment\n"); }
+    | postfix_expression MINUSMINUS
+    { printf("Post-decrement\n"); }
     ;
 
 member_expression:
@@ -625,7 +427,7 @@ primary_expression:
     | DECIMAL_LITERAL 
     { printf("Decimal: %f\n", $1); }
     | STRING_LITERAL 
-    { printf("String: %s\n", $1); }  // УБЕДИСЬ ЧТО ЭТО ЕСТЬ
+    { printf("String: %s\n", $1); }
     | CHAR_LITERAL 
     { printf("Char: %c\n", $1); }
     | BOOL_LITERAL_TRUE 
@@ -634,11 +436,11 @@ primary_expression:
     { printf("Boolean: false\n"); }
     | THIS 
     { printf("This\n"); }
+    | NULL_LITERAL
+    { printf("Null literal\n"); }
     | '(' expression ')'
     { printf("Parenthesized expression\n"); }
     ;
-
-
 
 argument_list:
     /* empty */
@@ -649,7 +451,6 @@ argument_list:
 expression_list:
     expression
     | expression_list ',' expression
->>>>>>> feat/parser
     ;
 
 %%

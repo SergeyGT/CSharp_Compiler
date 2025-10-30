@@ -1,0 +1,4061 @@
+Terminals unused in grammar
+
+   OR_ASSIGNMENT
+   NULL_COALESCE
+   SCOPE
+   MUL_ASSIGNMENT
+   DIV_ASSIGNMENT
+   MOD_ASSIGNMENT
+   DO
+   STRUCT
+   ENUM
+   NEW
+   OUT
+   REF
+   ABSTRACT
+   SEALED
+   VIRTUAL
+   OVERRIDE
+   BASE
+   SWITCH
+   CASE
+   DEFAULT
+   GOTO
+   CONSOLE_METHOD
+   OPERATOR
+   CONSOLE_WRITELINE
+   CONSOLE_WRITE
+   CONSOLE_READLINE
+   CONSOLE_READ
+   LOWEST
+   '['
+   ']'
+   ':'
+
+
+Rules useless in parser due to conflicts
+
+   85 for_initializer: /* пусто */
+
+   88 for_iterator: /* пусто */
+
+
+Состояние 1 конфликты: 8 сдвига/вывода
+Состояние 11 конфликты: 1 сдвига/вывода
+Состояние 49 конфликты: 1 сдвига/вывода
+Состояние 75 конфликты: 2 сдвига/вывода
+Состояние 83 конфликты: 1 вывода/вывода
+Состояние 94 конфликты: 1 сдвига/вывода
+Состояние 181 конфликты: 8 сдвига/вывода
+Состояние 205 конфликты: 7 сдвига/вывода
+Состояние 233 конфликты: 1 вывода/вывода
+
+
+Грамматика
+
+    0 $accept: program $end
+
+    1 program: /* пусто */
+    2        | program top_level_declaration
+
+    3 top_level_declaration: namespace_declaration
+    4                      | using_directive
+    5                      | type_declaration
+    6                      | field_declaration
+    7                      | method_declaration
+    8                      | statement
+
+    9 namespace_declaration: NAMESPACE IDENTIFIER '{' namespace_body '}'
+
+   10 namespace_body: /* пусто */
+   11               | namespace_body using_directive
+   12               | namespace_body type_declaration
+
+   13 type_declaration: class_declaration
+   14                 | interface_declaration
+
+   15 using_directive: USING IDENTIFIER ';'
+   16                | USING IDENTIFIER '=' IDENTIFIER ';'
+
+   17 class_declaration: CLASS IDENTIFIER '{' class_body '}'
+
+   18 class_body: /* пусто */
+   19           | class_body class_member
+
+   20 class_member: field_declaration
+   21             | method_declaration
+   22             | constructor_declaration
+   23             | static_member_declaration
+
+   24 static_member_declaration: STATIC field_declaration
+   25                          | STATIC method_declaration
+
+   26 constructor_declaration: access_modifier IDENTIFIER '(' ')' block
+   27                        | access_modifier IDENTIFIER '(' parameter_list ')' block
+
+   28 access_modifier: /* пусто */
+   29                | PUBLIC
+   30                | PRIVATE
+   31                | PROTECTED
+   32                | INTERNAL
+
+   33 field_declaration: access_modifier type IDENTIFIER ';'
+   34                  | access_modifier type IDENTIFIER '=' expression ';'
+   35                  | access_modifier VAR_TYPE IDENTIFIER '=' expression ';'
+
+   36 type: INT_TYPE
+   37     | FLOAT_TYPE
+   38     | DOUBLE_TYPE
+   39     | BOOL_TYPE
+   40     | CHAR_TYPE
+   41     | STRING_TYPE
+   42     | DECIMAL_TYPE
+
+   43 return_type: type
+   44            | VOID_TYPE
+
+   45 method_declaration: return_type IDENTIFIER '(' ')' block
+   46                   | return_type IDENTIFIER '(' parameter_list ')' block
+   47                   | access_modifier STATIC return_type IDENTIFIER '(' parameter_list ')' block
+
+   48 parameter_list: parameter
+   49               | parameter_list ',' parameter
+
+   50 parameter: type IDENTIFIER
+
+   51 interface_declaration: INTERFACE IDENTIFIER '{' interface_body '}' ';'
+
+   52 interface_body: /* пусто */
+   53               | interface_body interface_member
+
+   54 interface_member: return_type IDENTIFIER '(' parameter_list ')' ';'
+
+   55 block: '{' statement_list '}'
+
+   56 statement_list: /* пусто */
+   57               | statement_list statement
+
+   58 statement: expression_statement
+   59          | local_variable_declaration
+   60          | if_statement
+   61          | while_statement
+   62          | for_statement
+   63          | foreach_statement
+   64          | return_statement
+   65          | break_statement
+   66          | continue_statement
+   67          | block
+
+   68 expression_statement: expression ';'
+
+   69 local_variable_declaration: type IDENTIFIER ';'
+   70                           | type IDENTIFIER '=' expression ';'
+   71                           | VAR_TYPE IDENTIFIER '=' expression ';'
+
+   72 if_statement: IF '(' expression ')' statement
+   73             | IF '(' expression ')' statement ELSE statement
+
+   74 while_statement: WHILE '(' expression ')' statement
+
+   75 for_statement: FOR '(' for_initializer ';' expression ';' for_iterator ')' statement
+
+   76 foreach_statement: FOREACH '(' type IDENTIFIER IN expression ')' statement
+   77                  | FOREACH '(' VAR_TYPE IDENTIFIER IN expression ')' statement
+
+   78 return_statement: RETURN ';'
+   79                 | RETURN expression ';'
+
+   80 break_statement: BREAK ';'
+
+   81 continue_statement: CONTINUE ';'
+
+   82 for_initializer: /* пусто */
+   83                | local_variable_declaration_no_semicolon
+   84                | expression
+   85                | /* пусто */
+
+   86 for_iterator: /* пусто */
+   87             | expression
+   88             | /* пусто */
+
+   89 local_variable_declaration_no_semicolon: type IDENTIFIER '=' expression
+   90                                        | VAR_TYPE IDENTIFIER '=' expression
+
+   91 expression: assignment_expression
+
+   92 assignment_expression: conditional_expression
+   93                      | IDENTIFIER '=' expression
+   94                      | IDENTIFIER PLUS_ASSIGNMENT expression
+   95                      | IDENTIFIER MINUS_ASSIGNMENT expression
+
+   96 conditional_expression: logical_or_expression
+
+   97 logical_or_expression: logical_and_expression
+   98                      | logical_or_expression OR logical_and_expression
+
+   99 logical_and_expression: equality_expression
+  100                       | logical_and_expression AND equality_expression
+
+  101 equality_expression: relational_expression
+  102                    | equality_expression EQUAL relational_expression
+  103                    | equality_expression NOT_EQUAL relational_expression
+
+  104 relational_expression: additive_expression
+  105                      | relational_expression '<' additive_expression
+  106                      | relational_expression '>' additive_expression
+  107                      | relational_expression LESS_EQUAL additive_expression
+  108                      | relational_expression GREATER_EQUAL additive_expression
+
+  109 additive_expression: multiplicative_expression
+  110                    | additive_expression '+' multiplicative_expression
+  111                    | additive_expression '-' multiplicative_expression
+
+  112 multiplicative_expression: unary_expression
+  113                          | multiplicative_expression '*' unary_expression
+  114                          | multiplicative_expression '/' unary_expression
+  115                          | multiplicative_expression '%' unary_expression
+
+  116 unary_expression: postfix_expression
+  117                 | '-' unary_expression
+  118                 | '!' unary_expression
+
+  119 postfix_expression: primary_expression
+  120                   | member_expression
+  121                   | postfix_expression '.' IDENTIFIER
+  122                   | postfix_expression '(' argument_list ')'
+  123                   | postfix_expression PLUSPLUS
+  124                   | postfix_expression MINUSMINUS
+
+  125 member_expression: IDENTIFIER '.' IDENTIFIER
+  126                  | member_expression '.' IDENTIFIER
+  127                  | member_expression '(' argument_list ')'
+
+  128 primary_expression: IDENTIFIER
+  129                   | INTEGER_LITERAL
+  130                   | FLOAT_LITERAL
+  131                   | DOUBLE_LITERAL
+  132                   | DECIMAL_LITERAL
+  133                   | STRING_LITERAL
+  134                   | CHAR_LITERAL
+  135                   | BOOL_LITERAL_TRUE
+  136                   | BOOL_LITERAL_FALSE
+  137                   | THIS
+  138                   | NULL_LITERAL
+  139                   | '(' expression ')'
+
+  140 argument_list: /* пусто */
+  141              | expression_list
+
+  142 expression_list: expression
+  143                | expression_list ',' expression
+
+
+Терминальные символы с правилами, в которых они появляются
+
+$end (0) 0
+'!' (33) 118
+'%' (37) 115
+'(' (40) 26 27 45 46 47 54 72 73 74 75 76 77 122 127 139
+')' (41) 26 27 45 46 47 54 72 73 74 75 76 77 122 127 139
+'*' (42) 113
+'+' (43) 110
+',' (44) 49 143
+'-' (45) 111 117
+'.' (46) 121 125 126
+'/' (47) 114
+':' (58)
+';' (59) 15 16 33 34 35 51 54 68 69 70 71 75 78 79 80 81
+'<' (60) 105
+'=' (61) 16 34 35 70 71 89 90 93
+'>' (62) 106
+'[' (91)
+']' (93)
+'{' (123) 9 17 51 55
+'}' (125) 9 17 51 55
+error (256)
+INTEGER_LITERAL (258) 129
+FLOAT_LITERAL (259) 130
+DOUBLE_LITERAL (260) 131
+DECIMAL_LITERAL (261) 132
+STRING_LITERAL (262) 133
+CHAR_LITERAL (263) 134
+BOOL_LITERAL_TRUE (264) 135
+BOOL_LITERAL_FALSE (265) 136
+IDENTIFIER (266) 9 15 16 17 26 27 33 34 35 45 46 47 50 51 54 69 70
+    71 76 77 89 90 93 94 95 121 125 126 128
+PLUSPLUS (267) 123
+MINUSMINUS (268) 124
+OR_ASSIGNMENT (269)
+NULL_COALESCE (270)
+SCOPE (271)
+AND (272) 100
+OR (273) 98
+EQUAL (274) 102
+NOT_EQUAL (275) 103
+LESS_EQUAL (276) 107
+GREATER_EQUAL (277) 108
+PLUS_ASSIGNMENT (278) 94
+MINUS_ASSIGNMENT (279) 95
+MUL_ASSIGNMENT (280)
+DIV_ASSIGNMENT (281)
+MOD_ASSIGNMENT (282)
+IF (283) 72 73
+ELSE (284) 73
+WHILE (285) 74
+FOR (286) 75
+RETURN (287) 78 79
+BREAK (288) 80
+CONTINUE (289) 81
+FOREACH (290) 76 77
+DO (291)
+CLASS (292) 17
+STRUCT (293)
+ENUM (294)
+INTERFACE (295) 51
+PUBLIC (296) 29
+PRIVATE (297) 30
+INTERNAL (298) 32
+PROTECTED (299) 31
+INT_TYPE (300) 36
+FLOAT_TYPE (301) 37
+DOUBLE_TYPE (302) 38
+BOOL_TYPE (303) 39
+CHAR_TYPE (304) 40
+STRING_TYPE (305) 41
+VAR_TYPE (306) 35 71 77 90
+VOID_TYPE (307) 44
+DECIMAL_TYPE (308) 42
+NEW (309)
+THIS (310) 137
+OUT (311)
+REF (312)
+NAMESPACE (313) 9
+USING (314) 15 16
+ABSTRACT (315)
+STATIC (316) 24 25 47
+SEALED (317)
+VIRTUAL (318)
+OVERRIDE (319)
+BASE (320)
+SWITCH (321)
+CASE (322)
+DEFAULT (323)
+GOTO (324)
+NULL_LITERAL (325) 138
+CONSOLE_METHOD (326)
+OPERATOR (327)
+IN (328) 76 77
+CONSOLE_WRITELINE (329)
+CONSOLE_WRITE (330)
+CONSOLE_READLINE (331)
+CONSOLE_READ (332)
+LOWEST (333)
+THEN (334)
+UMINUS (335)
+
+
+Нетерминальные символы с правилами, в которых они появляются
+
+$accept (100)
+    налево: 0
+program (101)
+    налево: 1 2, направо: 0 2
+top_level_declaration (102)
+    налево: 3 4 5 6 7 8, направо: 2
+namespace_declaration (103)
+    налево: 9, направо: 3
+namespace_body (104)
+    налево: 10 11 12, направо: 9 11 12
+type_declaration (105)
+    налево: 13 14, направо: 5 12
+using_directive (106)
+    налево: 15 16, направо: 4 11
+class_declaration (107)
+    налево: 17, направо: 13
+class_body (108)
+    налево: 18 19, направо: 17 19
+class_member (109)
+    налево: 20 21 22 23, направо: 19
+static_member_declaration (110)
+    налево: 24 25, направо: 23
+constructor_declaration (111)
+    налево: 26 27, направо: 22
+access_modifier (112)
+    налево: 28 29 30 31 32, направо: 26 27 33 34 35 47
+field_declaration (113)
+    налево: 33 34 35, направо: 6 20 24
+type (114)
+    налево: 36 37 38 39 40 41 42, направо: 33 34 43 50 69 70 76 89
+return_type (115)
+    налево: 43 44, направо: 45 46 47 54
+method_declaration (116)
+    налево: 45 46 47, направо: 7 21 25
+parameter_list (117)
+    налево: 48 49, направо: 27 46 47 49 54
+parameter (118)
+    налево: 50, направо: 48 49
+interface_declaration (119)
+    налево: 51, направо: 14
+interface_body (120)
+    налево: 52 53, направо: 51 53
+interface_member (121)
+    налево: 54, направо: 53
+block (122)
+    налево: 55, направо: 26 27 45 46 47 67
+statement_list (123)
+    налево: 56 57, направо: 55 57
+statement (124)
+    налево: 58 59 60 61 62 63 64 65 66 67, направо: 8 57 72 73 74 75
+    76 77
+expression_statement (125)
+    налево: 68, направо: 58
+local_variable_declaration (126)
+    налево: 69 70 71, направо: 59
+if_statement (127)
+    налево: 72 73, направо: 60
+while_statement (128)
+    налево: 74, направо: 61
+for_statement (129)
+    налево: 75, направо: 62
+foreach_statement (130)
+    налево: 76 77, направо: 63
+return_statement (131)
+    налево: 78 79, направо: 64
+break_statement (132)
+    налево: 80, направо: 65
+continue_statement (133)
+    налево: 81, направо: 66
+for_initializer (134)
+    налево: 82 83 84 85, направо: 75
+for_iterator (135)
+    налево: 86 87 88, направо: 75
+local_variable_declaration_no_semicolon (136)
+    налево: 89 90, направо: 83
+expression (137)
+    налево: 91, направо: 34 35 68 70 71 72 73 74 75 76 77 79 84 87
+    89 90 93 94 95 139 142 143
+assignment_expression (138)
+    налево: 92 93 94 95, направо: 91
+conditional_expression (139)
+    налево: 96, направо: 92
+logical_or_expression (140)
+    налево: 97 98, направо: 96 98
+logical_and_expression (141)
+    налево: 99 100, направо: 97 98 100
+equality_expression (142)
+    налево: 101 102 103, направо: 99 100 102 103
+relational_expression (143)
+    налево: 104 105 106 107 108, направо: 101 102 103 105 106 107 108
+additive_expression (144)
+    налево: 109 110 111, направо: 104 105 106 107 108 110 111
+multiplicative_expression (145)
+    налево: 112 113 114 115, направо: 109 110 111 113 114 115
+unary_expression (146)
+    налево: 116 117 118, направо: 112 113 114 115 117 118
+postfix_expression (147)
+    налево: 119 120 121 122 123 124, направо: 116 121 122 123 124
+member_expression (148)
+    налево: 125 126 127, направо: 120 126 127
+primary_expression (149)
+    налево: 128 129 130 131 132 133 134 135 136 137 138 139, направо:
+    119
+argument_list (150)
+    налево: 140 141, направо: 122 127
+expression_list (151)
+    налево: 142 143, направо: 141 143
+
+
+состояние 0
+
+    0 $accept: . program $end
+
+    $default  вывод с использованием правила 1 (program)
+
+    program  переход в состояние 1
+
+
+состояние 1
+
+    0 $accept: program . $end
+    2 program: program . top_level_declaration
+
+    $end                сдвиг, и переход в состояние 2
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    IF                  сдвиг, и переход в состояние 12
+    WHILE               сдвиг, и переход в состояние 13
+    FOR                 сдвиг, и переход в состояние 14
+    RETURN              сдвиг, и переход в состояние 15
+    BREAK               сдвиг, и переход в состояние 16
+    CONTINUE            сдвиг, и переход в состояние 17
+    FOREACH             сдвиг, и переход в состояние 18
+    CLASS               сдвиг, и переход в состояние 19
+    INTERFACE           сдвиг, и переход в состояние 20
+    PUBLIC              сдвиг, и переход в состояние 21
+    PRIVATE             сдвиг, и переход в состояние 22
+    INTERNAL            сдвиг, и переход в состояние 23
+    PROTECTED           сдвиг, и переход в состояние 24
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 31
+    VOID_TYPE           сдвиг, и переход в состояние 32
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NAMESPACE           сдвиг, и переход в состояние 35
+    USING               сдвиг, и переход в состояние 36
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    '{'                 сдвиг, и переход в состояние 41
+
+    INT_TYPE      [вывод с использованием правила 28 (access_modifier)]
+    FLOAT_TYPE    [вывод с использованием правила 28 (access_modifier)]
+    DOUBLE_TYPE   [вывод с использованием правила 28 (access_modifier)]
+    BOOL_TYPE     [вывод с использованием правила 28 (access_modifier)]
+    CHAR_TYPE     [вывод с использованием правила 28 (access_modifier)]
+    STRING_TYPE   [вывод с использованием правила 28 (access_modifier)]
+    VAR_TYPE      [вывод с использованием правила 28 (access_modifier)]
+    DECIMAL_TYPE  [вывод с использованием правила 28 (access_modifier)]
+    $default      вывод с использованием правила 28 (access_modifier)
+
+    top_level_declaration       переход в состояние 42
+    namespace_declaration       переход в состояние 43
+    type_declaration            переход в состояние 44
+    using_directive             переход в состояние 45
+    class_declaration           переход в состояние 46
+    access_modifier             переход в состояние 47
+    field_declaration           переход в состояние 48
+    type                        переход в состояние 49
+    return_type                 переход в состояние 50
+    method_declaration          переход в состояние 51
+    interface_declaration       переход в состояние 52
+    block                       переход в состояние 53
+    statement                   переход в состояние 54
+    expression_statement        переход в состояние 55
+    local_variable_declaration  переход в состояние 56
+    if_statement                переход в состояние 57
+    while_statement             переход в состояние 58
+    for_statement               переход в состояние 59
+    foreach_statement           переход в состояние 60
+    return_statement            переход в состояние 61
+    break_statement             переход в состояние 62
+    continue_statement          переход в состояние 63
+    expression                  переход в состояние 64
+    assignment_expression       переход в состояние 65
+    conditional_expression      переход в состояние 66
+    logical_or_expression       переход в состояние 67
+    logical_and_expression      переход в состояние 68
+    equality_expression         переход в состояние 69
+    relational_expression       переход в состояние 70
+    additive_expression         переход в состояние 71
+    multiplicative_expression   переход в состояние 72
+    unary_expression            переход в состояние 73
+    postfix_expression          переход в состояние 74
+    member_expression           переход в состояние 75
+    primary_expression          переход в состояние 76
+
+
+состояние 2
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+состояние 3
+
+  129 primary_expression: INTEGER_LITERAL .
+
+    $default  вывод с использованием правила 129 (primary_expression)
+
+
+состояние 4
+
+  130 primary_expression: FLOAT_LITERAL .
+
+    $default  вывод с использованием правила 130 (primary_expression)
+
+
+состояние 5
+
+  131 primary_expression: DOUBLE_LITERAL .
+
+    $default  вывод с использованием правила 131 (primary_expression)
+
+
+состояние 6
+
+  132 primary_expression: DECIMAL_LITERAL .
+
+    $default  вывод с использованием правила 132 (primary_expression)
+
+
+состояние 7
+
+  133 primary_expression: STRING_LITERAL .
+
+    $default  вывод с использованием правила 133 (primary_expression)
+
+
+состояние 8
+
+  134 primary_expression: CHAR_LITERAL .
+
+    $default  вывод с использованием правила 134 (primary_expression)
+
+
+состояние 9
+
+  135 primary_expression: BOOL_LITERAL_TRUE .
+
+    $default  вывод с использованием правила 135 (primary_expression)
+
+
+состояние 10
+
+  136 primary_expression: BOOL_LITERAL_FALSE .
+
+    $default  вывод с использованием правила 136 (primary_expression)
+
+
+состояние 11
+
+   93 assignment_expression: IDENTIFIER . '=' expression
+   94                      | IDENTIFIER . PLUS_ASSIGNMENT expression
+   95                      | IDENTIFIER . MINUS_ASSIGNMENT expression
+  125 member_expression: IDENTIFIER . '.' IDENTIFIER
+  128 primary_expression: IDENTIFIER .
+
+    PLUS_ASSIGNMENT   сдвиг, и переход в состояние 77
+    MINUS_ASSIGNMENT  сдвиг, и переход в состояние 78
+    '='               сдвиг, и переход в состояние 79
+    '.'               сдвиг, и переход в состояние 80
+
+    '.'       [вывод с использованием правила 128 (primary_expression)]
+    $default  вывод с использованием правила 128 (primary_expression)
+
+
+состояние 12
+
+   72 if_statement: IF . '(' expression ')' statement
+   73             | IF . '(' expression ')' statement ELSE statement
+
+    '('  сдвиг, и переход в состояние 81
+
+
+состояние 13
+
+   74 while_statement: WHILE . '(' expression ')' statement
+
+    '('  сдвиг, и переход в состояние 82
+
+
+состояние 14
+
+   75 for_statement: FOR . '(' for_initializer ';' expression ';' for_iterator ')' statement
+
+    '('  сдвиг, и переход в состояние 83
+
+
+состояние 15
+
+   78 return_statement: RETURN . ';'
+   79                 | RETURN . expression ';'
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    ';'                 сдвиг, и переход в состояние 84
+
+    expression                 переход в состояние 85
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 16
+
+   80 break_statement: BREAK . ';'
+
+    ';'  сдвиг, и переход в состояние 86
+
+
+состояние 17
+
+   81 continue_statement: CONTINUE . ';'
+
+    ';'  сдвиг, и переход в состояние 87
+
+
+состояние 18
+
+   76 foreach_statement: FOREACH . '(' type IDENTIFIER IN expression ')' statement
+   77                  | FOREACH . '(' VAR_TYPE IDENTIFIER IN expression ')' statement
+
+    '('  сдвиг, и переход в состояние 88
+
+
+состояние 19
+
+   17 class_declaration: CLASS . IDENTIFIER '{' class_body '}'
+
+    IDENTIFIER  сдвиг, и переход в состояние 89
+
+
+состояние 20
+
+   51 interface_declaration: INTERFACE . IDENTIFIER '{' interface_body '}' ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 90
+
+
+состояние 21
+
+   29 access_modifier: PUBLIC .
+
+    $default  вывод с использованием правила 29 (access_modifier)
+
+
+состояние 22
+
+   30 access_modifier: PRIVATE .
+
+    $default  вывод с использованием правила 30 (access_modifier)
+
+
+состояние 23
+
+   32 access_modifier: INTERNAL .
+
+    $default  вывод с использованием правила 32 (access_modifier)
+
+
+состояние 24
+
+   31 access_modifier: PROTECTED .
+
+    $default  вывод с использованием правила 31 (access_modifier)
+
+
+состояние 25
+
+   36 type: INT_TYPE .
+
+    $default  вывод с использованием правила 36 (type)
+
+
+состояние 26
+
+   37 type: FLOAT_TYPE .
+
+    $default  вывод с использованием правила 37 (type)
+
+
+состояние 27
+
+   38 type: DOUBLE_TYPE .
+
+    $default  вывод с использованием правила 38 (type)
+
+
+состояние 28
+
+   39 type: BOOL_TYPE .
+
+    $default  вывод с использованием правила 39 (type)
+
+
+состояние 29
+
+   40 type: CHAR_TYPE .
+
+    $default  вывод с использованием правила 40 (type)
+
+
+состояние 30
+
+   41 type: STRING_TYPE .
+
+    $default  вывод с использованием правила 41 (type)
+
+
+состояние 31
+
+   71 local_variable_declaration: VAR_TYPE . IDENTIFIER '=' expression ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 91
+
+
+состояние 32
+
+   44 return_type: VOID_TYPE .
+
+    $default  вывод с использованием правила 44 (return_type)
+
+
+состояние 33
+
+   42 type: DECIMAL_TYPE .
+
+    $default  вывод с использованием правила 42 (type)
+
+
+состояние 34
+
+  137 primary_expression: THIS .
+
+    $default  вывод с использованием правила 137 (primary_expression)
+
+
+состояние 35
+
+    9 namespace_declaration: NAMESPACE . IDENTIFIER '{' namespace_body '}'
+
+    IDENTIFIER  сдвиг, и переход в состояние 92
+
+
+состояние 36
+
+   15 using_directive: USING . IDENTIFIER ';'
+   16                | USING . IDENTIFIER '=' IDENTIFIER ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 93
+
+
+состояние 37
+
+  138 primary_expression: NULL_LITERAL .
+
+    $default  вывод с использованием правила 138 (primary_expression)
+
+
+состояние 38
+
+  117 unary_expression: '-' . unary_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    unary_expression    переход в состояние 95
+    postfix_expression  переход в состояние 74
+    member_expression   переход в состояние 75
+    primary_expression  переход в состояние 76
+
+
+состояние 39
+
+  118 unary_expression: '!' . unary_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    unary_expression    переход в состояние 96
+    postfix_expression  переход в состояние 74
+    member_expression   переход в состояние 75
+    primary_expression  переход в состояние 76
+
+
+состояние 40
+
+  139 primary_expression: '(' . expression ')'
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 97
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 41
+
+   55 block: '{' . statement_list '}'
+
+    $default  вывод с использованием правила 56 (statement_list)
+
+    statement_list  переход в состояние 98
+
+
+состояние 42
+
+    2 program: program top_level_declaration .
+
+    $default  вывод с использованием правила 2 (program)
+
+
+состояние 43
+
+    3 top_level_declaration: namespace_declaration .
+
+    $default  вывод с использованием правила 3 (top_level_declaration)
+
+
+состояние 44
+
+    5 top_level_declaration: type_declaration .
+
+    $default  вывод с использованием правила 5 (top_level_declaration)
+
+
+состояние 45
+
+    4 top_level_declaration: using_directive .
+
+    $default  вывод с использованием правила 4 (top_level_declaration)
+
+
+состояние 46
+
+   13 type_declaration: class_declaration .
+
+    $default  вывод с использованием правила 13 (type_declaration)
+
+
+состояние 47
+
+   33 field_declaration: access_modifier . type IDENTIFIER ';'
+   34                  | access_modifier . type IDENTIFIER '=' expression ';'
+   35                  | access_modifier . VAR_TYPE IDENTIFIER '=' expression ';'
+   47 method_declaration: access_modifier . STATIC return_type IDENTIFIER '(' parameter_list ')' block
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    VAR_TYPE      сдвиг, и переход в состояние 99
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+    STATIC        сдвиг, и переход в состояние 100
+
+    type  переход в состояние 101
+
+
+состояние 48
+
+    6 top_level_declaration: field_declaration .
+
+    $default  вывод с использованием правила 6 (top_level_declaration)
+
+
+состояние 49
+
+   43 return_type: type .
+   69 local_variable_declaration: type . IDENTIFIER ';'
+   70                           | type . IDENTIFIER '=' expression ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 102
+
+    IDENTIFIER  [вывод с использованием правила 43 (return_type)]
+
+
+состояние 50
+
+   45 method_declaration: return_type . IDENTIFIER '(' ')' block
+   46                   | return_type . IDENTIFIER '(' parameter_list ')' block
+
+    IDENTIFIER  сдвиг, и переход в состояние 103
+
+
+состояние 51
+
+    7 top_level_declaration: method_declaration .
+
+    $default  вывод с использованием правила 7 (top_level_declaration)
+
+
+состояние 52
+
+   14 type_declaration: interface_declaration .
+
+    $default  вывод с использованием правила 14 (type_declaration)
+
+
+состояние 53
+
+   67 statement: block .
+
+    $default  вывод с использованием правила 67 (statement)
+
+
+состояние 54
+
+    8 top_level_declaration: statement .
+
+    $default  вывод с использованием правила 8 (top_level_declaration)
+
+
+состояние 55
+
+   58 statement: expression_statement .
+
+    $default  вывод с использованием правила 58 (statement)
+
+
+состояние 56
+
+   59 statement: local_variable_declaration .
+
+    $default  вывод с использованием правила 59 (statement)
+
+
+состояние 57
+
+   60 statement: if_statement .
+
+    $default  вывод с использованием правила 60 (statement)
+
+
+состояние 58
+
+   61 statement: while_statement .
+
+    $default  вывод с использованием правила 61 (statement)
+
+
+состояние 59
+
+   62 statement: for_statement .
+
+    $default  вывод с использованием правила 62 (statement)
+
+
+состояние 60
+
+   63 statement: foreach_statement .
+
+    $default  вывод с использованием правила 63 (statement)
+
+
+состояние 61
+
+   64 statement: return_statement .
+
+    $default  вывод с использованием правила 64 (statement)
+
+
+состояние 62
+
+   65 statement: break_statement .
+
+    $default  вывод с использованием правила 65 (statement)
+
+
+состояние 63
+
+   66 statement: continue_statement .
+
+    $default  вывод с использованием правила 66 (statement)
+
+
+состояние 64
+
+   68 expression_statement: expression . ';'
+
+    ';'  сдвиг, и переход в состояние 104
+
+
+состояние 65
+
+   91 expression: assignment_expression .
+
+    $default  вывод с использованием правила 91 (expression)
+
+
+состояние 66
+
+   92 assignment_expression: conditional_expression .
+
+    $default  вывод с использованием правила 92 (assignment_expression)
+
+
+состояние 67
+
+   96 conditional_expression: logical_or_expression .
+   98 logical_or_expression: logical_or_expression . OR logical_and_expression
+
+    OR  сдвиг, и переход в состояние 105
+
+    $default  вывод с использованием правила 96 (conditional_expression)
+
+
+состояние 68
+
+   97 logical_or_expression: logical_and_expression .
+  100 logical_and_expression: logical_and_expression . AND equality_expression
+
+    AND  сдвиг, и переход в состояние 106
+
+    $default  вывод с использованием правила 97 (logical_or_expression)
+
+
+состояние 69
+
+   99 logical_and_expression: equality_expression .
+  102 equality_expression: equality_expression . EQUAL relational_expression
+  103                    | equality_expression . NOT_EQUAL relational_expression
+
+    EQUAL      сдвиг, и переход в состояние 107
+    NOT_EQUAL  сдвиг, и переход в состояние 108
+
+    $default  вывод с использованием правила 99 (logical_and_expression)
+
+
+состояние 70
+
+  101 equality_expression: relational_expression .
+  105 relational_expression: relational_expression . '<' additive_expression
+  106                      | relational_expression . '>' additive_expression
+  107                      | relational_expression . LESS_EQUAL additive_expression
+  108                      | relational_expression . GREATER_EQUAL additive_expression
+
+    LESS_EQUAL     сдвиг, и переход в состояние 109
+    GREATER_EQUAL  сдвиг, и переход в состояние 110
+    '<'            сдвиг, и переход в состояние 111
+    '>'            сдвиг, и переход в состояние 112
+
+    $default  вывод с использованием правила 101 (equality_expression)
+
+
+состояние 71
+
+  104 relational_expression: additive_expression .
+  110 additive_expression: additive_expression . '+' multiplicative_expression
+  111                    | additive_expression . '-' multiplicative_expression
+
+    '+'  сдвиг, и переход в состояние 113
+    '-'  сдвиг, и переход в состояние 114
+
+    $default  вывод с использованием правила 104 (relational_expression)
+
+
+состояние 72
+
+  109 additive_expression: multiplicative_expression .
+  113 multiplicative_expression: multiplicative_expression . '*' unary_expression
+  114                          | multiplicative_expression . '/' unary_expression
+  115                          | multiplicative_expression . '%' unary_expression
+
+    '*'  сдвиг, и переход в состояние 115
+    '/'  сдвиг, и переход в состояние 116
+    '%'  сдвиг, и переход в состояние 117
+
+    $default  вывод с использованием правила 109 (additive_expression)
+
+
+состояние 73
+
+  112 multiplicative_expression: unary_expression .
+
+    $default  вывод с использованием правила 112 (multiplicative_expression)
+
+
+состояние 74
+
+  116 unary_expression: postfix_expression .
+  121 postfix_expression: postfix_expression . '.' IDENTIFIER
+  122                   | postfix_expression . '(' argument_list ')'
+  123                   | postfix_expression . PLUSPLUS
+  124                   | postfix_expression . MINUSMINUS
+
+    PLUSPLUS    сдвиг, и переход в состояние 118
+    MINUSMINUS  сдвиг, и переход в состояние 119
+    '.'         сдвиг, и переход в состояние 120
+    '('         сдвиг, и переход в состояние 121
+
+    $default  вывод с использованием правила 116 (unary_expression)
+
+
+состояние 75
+
+  120 postfix_expression: member_expression .
+  126 member_expression: member_expression . '.' IDENTIFIER
+  127                  | member_expression . '(' argument_list ')'
+
+    '.'  сдвиг, и переход в состояние 122
+    '('  сдвиг, и переход в состояние 123
+
+    '.'       [вывод с использованием правила 120 (postfix_expression)]
+    '('       [вывод с использованием правила 120 (postfix_expression)]
+    $default  вывод с использованием правила 120 (postfix_expression)
+
+
+состояние 76
+
+  119 postfix_expression: primary_expression .
+
+    $default  вывод с использованием правила 119 (postfix_expression)
+
+
+состояние 77
+
+   94 assignment_expression: IDENTIFIER PLUS_ASSIGNMENT . expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 124
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 78
+
+   95 assignment_expression: IDENTIFIER MINUS_ASSIGNMENT . expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 125
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 79
+
+   93 assignment_expression: IDENTIFIER '=' . expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 126
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 80
+
+  125 member_expression: IDENTIFIER '.' . IDENTIFIER
+
+    IDENTIFIER  сдвиг, и переход в состояние 127
+
+
+состояние 81
+
+   72 if_statement: IF '(' . expression ')' statement
+   73             | IF '(' . expression ')' statement ELSE statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 128
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 82
+
+   74 while_statement: WHILE '(' . expression ')' statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 129
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 83
+
+   75 for_statement: FOR '(' . for_initializer ';' expression ';' for_iterator ')' statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 130
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    ';'       вывод с использованием правила 82 (for_initializer)
+    ';'       [вывод с использованием правила 85 (for_initializer)]
+    $default  вывод с использованием правила 82 (for_initializer)
+
+    type                                     переход в состояние 131
+    for_initializer                          переход в состояние 132
+    local_variable_declaration_no_semicolon  переход в состояние 133
+    expression                               переход в состояние 134
+    assignment_expression                    переход в состояние 65
+    conditional_expression                   переход в состояние 66
+    logical_or_expression                    переход в состояние 67
+    logical_and_expression                   переход в состояние 68
+    equality_expression                      переход в состояние 69
+    relational_expression                    переход в состояние 70
+    additive_expression                      переход в состояние 71
+    multiplicative_expression                переход в состояние 72
+    unary_expression                         переход в состояние 73
+    postfix_expression                       переход в состояние 74
+    member_expression                        переход в состояние 75
+    primary_expression                       переход в состояние 76
+
+
+состояние 84
+
+   78 return_statement: RETURN ';' .
+
+    $default  вывод с использованием правила 78 (return_statement)
+
+
+состояние 85
+
+   79 return_statement: RETURN expression . ';'
+
+    ';'  сдвиг, и переход в состояние 135
+
+
+состояние 86
+
+   80 break_statement: BREAK ';' .
+
+    $default  вывод с использованием правила 80 (break_statement)
+
+
+состояние 87
+
+   81 continue_statement: CONTINUE ';' .
+
+    $default  вывод с использованием правила 81 (continue_statement)
+
+
+состояние 88
+
+   76 foreach_statement: FOREACH '(' . type IDENTIFIER IN expression ')' statement
+   77                  | FOREACH '(' . VAR_TYPE IDENTIFIER IN expression ')' statement
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    VAR_TYPE      сдвиг, и переход в состояние 136
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+
+    type  переход в состояние 137
+
+
+состояние 89
+
+   17 class_declaration: CLASS IDENTIFIER . '{' class_body '}'
+
+    '{'  сдвиг, и переход в состояние 138
+
+
+состояние 90
+
+   51 interface_declaration: INTERFACE IDENTIFIER . '{' interface_body '}' ';'
+
+    '{'  сдвиг, и переход в состояние 139
+
+
+состояние 91
+
+   71 local_variable_declaration: VAR_TYPE IDENTIFIER . '=' expression ';'
+
+    '='  сдвиг, и переход в состояние 140
+
+
+состояние 92
+
+    9 namespace_declaration: NAMESPACE IDENTIFIER . '{' namespace_body '}'
+
+    '{'  сдвиг, и переход в состояние 141
+
+
+состояние 93
+
+   15 using_directive: USING IDENTIFIER . ';'
+   16                | USING IDENTIFIER . '=' IDENTIFIER ';'
+
+    '='  сдвиг, и переход в состояние 142
+    ';'  сдвиг, и переход в состояние 143
+
+
+состояние 94
+
+  125 member_expression: IDENTIFIER . '.' IDENTIFIER
+  128 primary_expression: IDENTIFIER .
+
+    '.'  сдвиг, и переход в состояние 80
+
+    '.'       [вывод с использованием правила 128 (primary_expression)]
+    $default  вывод с использованием правила 128 (primary_expression)
+
+
+состояние 95
+
+  117 unary_expression: '-' unary_expression .
+
+    $default  вывод с использованием правила 117 (unary_expression)
+
+
+состояние 96
+
+  118 unary_expression: '!' unary_expression .
+
+    $default  вывод с использованием правила 118 (unary_expression)
+
+
+состояние 97
+
+  139 primary_expression: '(' expression . ')'
+
+    ')'  сдвиг, и переход в состояние 144
+
+
+состояние 98
+
+   55 block: '{' statement_list . '}'
+   57 statement_list: statement_list . statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    IF                  сдвиг, и переход в состояние 12
+    WHILE               сдвиг, и переход в состояние 13
+    FOR                 сдвиг, и переход в состояние 14
+    RETURN              сдвиг, и переход в состояние 15
+    BREAK               сдвиг, и переход в состояние 16
+    CONTINUE            сдвиг, и переход в состояние 17
+    FOREACH             сдвиг, и переход в состояние 18
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 31
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    '{'                 сдвиг, и переход в состояние 41
+    '}'                 сдвиг, и переход в состояние 145
+
+    type                        переход в состояние 146
+    block                       переход в состояние 53
+    statement                   переход в состояние 147
+    expression_statement        переход в состояние 55
+    local_variable_declaration  переход в состояние 56
+    if_statement                переход в состояние 57
+    while_statement             переход в состояние 58
+    for_statement               переход в состояние 59
+    foreach_statement           переход в состояние 60
+    return_statement            переход в состояние 61
+    break_statement             переход в состояние 62
+    continue_statement          переход в состояние 63
+    expression                  переход в состояние 64
+    assignment_expression       переход в состояние 65
+    conditional_expression      переход в состояние 66
+    logical_or_expression       переход в состояние 67
+    logical_and_expression      переход в состояние 68
+    equality_expression         переход в состояние 69
+    relational_expression       переход в состояние 70
+    additive_expression         переход в состояние 71
+    multiplicative_expression   переход в состояние 72
+    unary_expression            переход в состояние 73
+    postfix_expression          переход в состояние 74
+    member_expression           переход в состояние 75
+    primary_expression          переход в состояние 76
+
+
+состояние 99
+
+   35 field_declaration: access_modifier VAR_TYPE . IDENTIFIER '=' expression ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 148
+
+
+состояние 100
+
+   47 method_declaration: access_modifier STATIC . return_type IDENTIFIER '(' parameter_list ')' block
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    VOID_TYPE     сдвиг, и переход в состояние 32
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+
+    type         переход в состояние 149
+    return_type  переход в состояние 150
+
+
+состояние 101
+
+   33 field_declaration: access_modifier type . IDENTIFIER ';'
+   34                  | access_modifier type . IDENTIFIER '=' expression ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 151
+
+
+состояние 102
+
+   69 local_variable_declaration: type IDENTIFIER . ';'
+   70                           | type IDENTIFIER . '=' expression ';'
+
+    '='  сдвиг, и переход в состояние 152
+    ';'  сдвиг, и переход в состояние 153
+
+
+состояние 103
+
+   45 method_declaration: return_type IDENTIFIER . '(' ')' block
+   46                   | return_type IDENTIFIER . '(' parameter_list ')' block
+
+    '('  сдвиг, и переход в состояние 154
+
+
+состояние 104
+
+   68 expression_statement: expression ';' .
+
+    $default  вывод с использованием правила 68 (expression_statement)
+
+
+состояние 105
+
+   98 logical_or_expression: logical_or_expression OR . logical_and_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    logical_and_expression     переход в состояние 155
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 106
+
+  100 logical_and_expression: logical_and_expression AND . equality_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    equality_expression        переход в состояние 156
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 107
+
+  102 equality_expression: equality_expression EQUAL . relational_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    relational_expression      переход в состояние 157
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 108
+
+  103 equality_expression: equality_expression NOT_EQUAL . relational_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    relational_expression      переход в состояние 158
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 109
+
+  107 relational_expression: relational_expression LESS_EQUAL . additive_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    additive_expression        переход в состояние 159
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 110
+
+  108 relational_expression: relational_expression GREATER_EQUAL . additive_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    additive_expression        переход в состояние 160
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 111
+
+  105 relational_expression: relational_expression '<' . additive_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    additive_expression        переход в состояние 161
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 112
+
+  106 relational_expression: relational_expression '>' . additive_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    additive_expression        переход в состояние 162
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 113
+
+  110 additive_expression: additive_expression '+' . multiplicative_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    multiplicative_expression  переход в состояние 163
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 114
+
+  111 additive_expression: additive_expression '-' . multiplicative_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    multiplicative_expression  переход в состояние 164
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 115
+
+  113 multiplicative_expression: multiplicative_expression '*' . unary_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    unary_expression    переход в состояние 165
+    postfix_expression  переход в состояние 74
+    member_expression   переход в состояние 75
+    primary_expression  переход в состояние 76
+
+
+состояние 116
+
+  114 multiplicative_expression: multiplicative_expression '/' . unary_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    unary_expression    переход в состояние 166
+    postfix_expression  переход в состояние 74
+    member_expression   переход в состояние 75
+    primary_expression  переход в состояние 76
+
+
+состояние 117
+
+  115 multiplicative_expression: multiplicative_expression '%' . unary_expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 94
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    unary_expression    переход в состояние 167
+    postfix_expression  переход в состояние 74
+    member_expression   переход в состояние 75
+    primary_expression  переход в состояние 76
+
+
+состояние 118
+
+  123 postfix_expression: postfix_expression PLUSPLUS .
+
+    $default  вывод с использованием правила 123 (postfix_expression)
+
+
+состояние 119
+
+  124 postfix_expression: postfix_expression MINUSMINUS .
+
+    $default  вывод с использованием правила 124 (postfix_expression)
+
+
+состояние 120
+
+  121 postfix_expression: postfix_expression '.' . IDENTIFIER
+
+    IDENTIFIER  сдвиг, и переход в состояние 168
+
+
+состояние 121
+
+  122 postfix_expression: postfix_expression '(' . argument_list ')'
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    $default  вывод с использованием правила 140 (argument_list)
+
+    expression                 переход в состояние 169
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+    argument_list              переход в состояние 170
+    expression_list            переход в состояние 171
+
+
+состояние 122
+
+  126 member_expression: member_expression '.' . IDENTIFIER
+
+    IDENTIFIER  сдвиг, и переход в состояние 172
+
+
+состояние 123
+
+  127 member_expression: member_expression '(' . argument_list ')'
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    $default  вывод с использованием правила 140 (argument_list)
+
+    expression                 переход в состояние 169
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+    argument_list              переход в состояние 173
+    expression_list            переход в состояние 171
+
+
+состояние 124
+
+   94 assignment_expression: IDENTIFIER PLUS_ASSIGNMENT expression .
+
+    $default  вывод с использованием правила 94 (assignment_expression)
+
+
+состояние 125
+
+   95 assignment_expression: IDENTIFIER MINUS_ASSIGNMENT expression .
+
+    $default  вывод с использованием правила 95 (assignment_expression)
+
+
+состояние 126
+
+   93 assignment_expression: IDENTIFIER '=' expression .
+
+    $default  вывод с использованием правила 93 (assignment_expression)
+
+
+состояние 127
+
+  125 member_expression: IDENTIFIER '.' IDENTIFIER .
+
+    $default  вывод с использованием правила 125 (member_expression)
+
+
+состояние 128
+
+   72 if_statement: IF '(' expression . ')' statement
+   73             | IF '(' expression . ')' statement ELSE statement
+
+    ')'  сдвиг, и переход в состояние 174
+
+
+состояние 129
+
+   74 while_statement: WHILE '(' expression . ')' statement
+
+    ')'  сдвиг, и переход в состояние 175
+
+
+состояние 130
+
+   90 local_variable_declaration_no_semicolon: VAR_TYPE . IDENTIFIER '=' expression
+
+    IDENTIFIER  сдвиг, и переход в состояние 176
+
+
+состояние 131
+
+   89 local_variable_declaration_no_semicolon: type . IDENTIFIER '=' expression
+
+    IDENTIFIER  сдвиг, и переход в состояние 177
+
+
+состояние 132
+
+   75 for_statement: FOR '(' for_initializer . ';' expression ';' for_iterator ')' statement
+
+    ';'  сдвиг, и переход в состояние 178
+
+
+состояние 133
+
+   83 for_initializer: local_variable_declaration_no_semicolon .
+
+    $default  вывод с использованием правила 83 (for_initializer)
+
+
+состояние 134
+
+   84 for_initializer: expression .
+
+    $default  вывод с использованием правила 84 (for_initializer)
+
+
+состояние 135
+
+   79 return_statement: RETURN expression ';' .
+
+    $default  вывод с использованием правила 79 (return_statement)
+
+
+состояние 136
+
+   77 foreach_statement: FOREACH '(' VAR_TYPE . IDENTIFIER IN expression ')' statement
+
+    IDENTIFIER  сдвиг, и переход в состояние 179
+
+
+состояние 137
+
+   76 foreach_statement: FOREACH '(' type . IDENTIFIER IN expression ')' statement
+
+    IDENTIFIER  сдвиг, и переход в состояние 180
+
+
+состояние 138
+
+   17 class_declaration: CLASS IDENTIFIER '{' . class_body '}'
+
+    $default  вывод с использованием правила 18 (class_body)
+
+    class_body  переход в состояние 181
+
+
+состояние 139
+
+   51 interface_declaration: INTERFACE IDENTIFIER '{' . interface_body '}' ';'
+
+    $default  вывод с использованием правила 52 (interface_body)
+
+    interface_body  переход в состояние 182
+
+
+состояние 140
+
+   71 local_variable_declaration: VAR_TYPE IDENTIFIER '=' . expression ';'
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 183
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 141
+
+    9 namespace_declaration: NAMESPACE IDENTIFIER '{' . namespace_body '}'
+
+    $default  вывод с использованием правила 10 (namespace_body)
+
+    namespace_body  переход в состояние 184
+
+
+состояние 142
+
+   16 using_directive: USING IDENTIFIER '=' . IDENTIFIER ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 185
+
+
+состояние 143
+
+   15 using_directive: USING IDENTIFIER ';' .
+
+    $default  вывод с использованием правила 15 (using_directive)
+
+
+состояние 144
+
+  139 primary_expression: '(' expression ')' .
+
+    $default  вывод с использованием правила 139 (primary_expression)
+
+
+состояние 145
+
+   55 block: '{' statement_list '}' .
+
+    $default  вывод с использованием правила 55 (block)
+
+
+состояние 146
+
+   69 local_variable_declaration: type . IDENTIFIER ';'
+   70                           | type . IDENTIFIER '=' expression ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 102
+
+
+состояние 147
+
+   57 statement_list: statement_list statement .
+
+    $default  вывод с использованием правила 57 (statement_list)
+
+
+состояние 148
+
+   35 field_declaration: access_modifier VAR_TYPE IDENTIFIER . '=' expression ';'
+
+    '='  сдвиг, и переход в состояние 186
+
+
+состояние 149
+
+   43 return_type: type .
+
+    $default  вывод с использованием правила 43 (return_type)
+
+
+состояние 150
+
+   47 method_declaration: access_modifier STATIC return_type . IDENTIFIER '(' parameter_list ')' block
+
+    IDENTIFIER  сдвиг, и переход в состояние 187
+
+
+состояние 151
+
+   33 field_declaration: access_modifier type IDENTIFIER . ';'
+   34                  | access_modifier type IDENTIFIER . '=' expression ';'
+
+    '='  сдвиг, и переход в состояние 188
+    ';'  сдвиг, и переход в состояние 189
+
+
+состояние 152
+
+   70 local_variable_declaration: type IDENTIFIER '=' . expression ';'
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 190
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 153
+
+   69 local_variable_declaration: type IDENTIFIER ';' .
+
+    $default  вывод с использованием правила 69 (local_variable_declaration)
+
+
+состояние 154
+
+   45 method_declaration: return_type IDENTIFIER '(' . ')' block
+   46                   | return_type IDENTIFIER '(' . parameter_list ')' block
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+    ')'           сдвиг, и переход в состояние 191
+
+    type            переход в состояние 192
+    parameter_list  переход в состояние 193
+    parameter       переход в состояние 194
+
+
+состояние 155
+
+   98 logical_or_expression: logical_or_expression OR logical_and_expression .
+  100 logical_and_expression: logical_and_expression . AND equality_expression
+
+    AND  сдвиг, и переход в состояние 106
+
+    $default  вывод с использованием правила 98 (logical_or_expression)
+
+
+состояние 156
+
+  100 logical_and_expression: logical_and_expression AND equality_expression .
+  102 equality_expression: equality_expression . EQUAL relational_expression
+  103                    | equality_expression . NOT_EQUAL relational_expression
+
+    EQUAL      сдвиг, и переход в состояние 107
+    NOT_EQUAL  сдвиг, и переход в состояние 108
+
+    $default  вывод с использованием правила 100 (logical_and_expression)
+
+
+состояние 157
+
+  102 equality_expression: equality_expression EQUAL relational_expression .
+  105 relational_expression: relational_expression . '<' additive_expression
+  106                      | relational_expression . '>' additive_expression
+  107                      | relational_expression . LESS_EQUAL additive_expression
+  108                      | relational_expression . GREATER_EQUAL additive_expression
+
+    LESS_EQUAL     сдвиг, и переход в состояние 109
+    GREATER_EQUAL  сдвиг, и переход в состояние 110
+    '<'            сдвиг, и переход в состояние 111
+    '>'            сдвиг, и переход в состояние 112
+
+    $default  вывод с использованием правила 102 (equality_expression)
+
+
+состояние 158
+
+  103 equality_expression: equality_expression NOT_EQUAL relational_expression .
+  105 relational_expression: relational_expression . '<' additive_expression
+  106                      | relational_expression . '>' additive_expression
+  107                      | relational_expression . LESS_EQUAL additive_expression
+  108                      | relational_expression . GREATER_EQUAL additive_expression
+
+    LESS_EQUAL     сдвиг, и переход в состояние 109
+    GREATER_EQUAL  сдвиг, и переход в состояние 110
+    '<'            сдвиг, и переход в состояние 111
+    '>'            сдвиг, и переход в состояние 112
+
+    $default  вывод с использованием правила 103 (equality_expression)
+
+
+состояние 159
+
+  107 relational_expression: relational_expression LESS_EQUAL additive_expression .
+  110 additive_expression: additive_expression . '+' multiplicative_expression
+  111                    | additive_expression . '-' multiplicative_expression
+
+    '+'  сдвиг, и переход в состояние 113
+    '-'  сдвиг, и переход в состояние 114
+
+    $default  вывод с использованием правила 107 (relational_expression)
+
+
+состояние 160
+
+  108 relational_expression: relational_expression GREATER_EQUAL additive_expression .
+  110 additive_expression: additive_expression . '+' multiplicative_expression
+  111                    | additive_expression . '-' multiplicative_expression
+
+    '+'  сдвиг, и переход в состояние 113
+    '-'  сдвиг, и переход в состояние 114
+
+    $default  вывод с использованием правила 108 (relational_expression)
+
+
+состояние 161
+
+  105 relational_expression: relational_expression '<' additive_expression .
+  110 additive_expression: additive_expression . '+' multiplicative_expression
+  111                    | additive_expression . '-' multiplicative_expression
+
+    '+'  сдвиг, и переход в состояние 113
+    '-'  сдвиг, и переход в состояние 114
+
+    $default  вывод с использованием правила 105 (relational_expression)
+
+
+состояние 162
+
+  106 relational_expression: relational_expression '>' additive_expression .
+  110 additive_expression: additive_expression . '+' multiplicative_expression
+  111                    | additive_expression . '-' multiplicative_expression
+
+    '+'  сдвиг, и переход в состояние 113
+    '-'  сдвиг, и переход в состояние 114
+
+    $default  вывод с использованием правила 106 (relational_expression)
+
+
+состояние 163
+
+  110 additive_expression: additive_expression '+' multiplicative_expression .
+  113 multiplicative_expression: multiplicative_expression . '*' unary_expression
+  114                          | multiplicative_expression . '/' unary_expression
+  115                          | multiplicative_expression . '%' unary_expression
+
+    '*'  сдвиг, и переход в состояние 115
+    '/'  сдвиг, и переход в состояние 116
+    '%'  сдвиг, и переход в состояние 117
+
+    $default  вывод с использованием правила 110 (additive_expression)
+
+
+состояние 164
+
+  111 additive_expression: additive_expression '-' multiplicative_expression .
+  113 multiplicative_expression: multiplicative_expression . '*' unary_expression
+  114                          | multiplicative_expression . '/' unary_expression
+  115                          | multiplicative_expression . '%' unary_expression
+
+    '*'  сдвиг, и переход в состояние 115
+    '/'  сдвиг, и переход в состояние 116
+    '%'  сдвиг, и переход в состояние 117
+
+    $default  вывод с использованием правила 111 (additive_expression)
+
+
+состояние 165
+
+  113 multiplicative_expression: multiplicative_expression '*' unary_expression .
+
+    $default  вывод с использованием правила 113 (multiplicative_expression)
+
+
+состояние 166
+
+  114 multiplicative_expression: multiplicative_expression '/' unary_expression .
+
+    $default  вывод с использованием правила 114 (multiplicative_expression)
+
+
+состояние 167
+
+  115 multiplicative_expression: multiplicative_expression '%' unary_expression .
+
+    $default  вывод с использованием правила 115 (multiplicative_expression)
+
+
+состояние 168
+
+  121 postfix_expression: postfix_expression '.' IDENTIFIER .
+
+    $default  вывод с использованием правила 121 (postfix_expression)
+
+
+состояние 169
+
+  142 expression_list: expression .
+
+    $default  вывод с использованием правила 142 (expression_list)
+
+
+состояние 170
+
+  122 postfix_expression: postfix_expression '(' argument_list . ')'
+
+    ')'  сдвиг, и переход в состояние 195
+
+
+состояние 171
+
+  141 argument_list: expression_list .
+  143 expression_list: expression_list . ',' expression
+
+    ','  сдвиг, и переход в состояние 196
+
+    $default  вывод с использованием правила 141 (argument_list)
+
+
+состояние 172
+
+  126 member_expression: member_expression '.' IDENTIFIER .
+
+    $default  вывод с использованием правила 126 (member_expression)
+
+
+состояние 173
+
+  127 member_expression: member_expression '(' argument_list . ')'
+
+    ')'  сдвиг, и переход в состояние 197
+
+
+состояние 174
+
+   72 if_statement: IF '(' expression ')' . statement
+   73             | IF '(' expression ')' . statement ELSE statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    IF                  сдвиг, и переход в состояние 12
+    WHILE               сдвиг, и переход в состояние 13
+    FOR                 сдвиг, и переход в состояние 14
+    RETURN              сдвиг, и переход в состояние 15
+    BREAK               сдвиг, и переход в состояние 16
+    CONTINUE            сдвиг, и переход в состояние 17
+    FOREACH             сдвиг, и переход в состояние 18
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 31
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    '{'                 сдвиг, и переход в состояние 41
+
+    type                        переход в состояние 146
+    block                       переход в состояние 53
+    statement                   переход в состояние 198
+    expression_statement        переход в состояние 55
+    local_variable_declaration  переход в состояние 56
+    if_statement                переход в состояние 57
+    while_statement             переход в состояние 58
+    for_statement               переход в состояние 59
+    foreach_statement           переход в состояние 60
+    return_statement            переход в состояние 61
+    break_statement             переход в состояние 62
+    continue_statement          переход в состояние 63
+    expression                  переход в состояние 64
+    assignment_expression       переход в состояние 65
+    conditional_expression      переход в состояние 66
+    logical_or_expression       переход в состояние 67
+    logical_and_expression      переход в состояние 68
+    equality_expression         переход в состояние 69
+    relational_expression       переход в состояние 70
+    additive_expression         переход в состояние 71
+    multiplicative_expression   переход в состояние 72
+    unary_expression            переход в состояние 73
+    postfix_expression          переход в состояние 74
+    member_expression           переход в состояние 75
+    primary_expression          переход в состояние 76
+
+
+состояние 175
+
+   74 while_statement: WHILE '(' expression ')' . statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    IF                  сдвиг, и переход в состояние 12
+    WHILE               сдвиг, и переход в состояние 13
+    FOR                 сдвиг, и переход в состояние 14
+    RETURN              сдвиг, и переход в состояние 15
+    BREAK               сдвиг, и переход в состояние 16
+    CONTINUE            сдвиг, и переход в состояние 17
+    FOREACH             сдвиг, и переход в состояние 18
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 31
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    '{'                 сдвиг, и переход в состояние 41
+
+    type                        переход в состояние 146
+    block                       переход в состояние 53
+    statement                   переход в состояние 199
+    expression_statement        переход в состояние 55
+    local_variable_declaration  переход в состояние 56
+    if_statement                переход в состояние 57
+    while_statement             переход в состояние 58
+    for_statement               переход в состояние 59
+    foreach_statement           переход в состояние 60
+    return_statement            переход в состояние 61
+    break_statement             переход в состояние 62
+    continue_statement          переход в состояние 63
+    expression                  переход в состояние 64
+    assignment_expression       переход в состояние 65
+    conditional_expression      переход в состояние 66
+    logical_or_expression       переход в состояние 67
+    logical_and_expression      переход в состояние 68
+    equality_expression         переход в состояние 69
+    relational_expression       переход в состояние 70
+    additive_expression         переход в состояние 71
+    multiplicative_expression   переход в состояние 72
+    unary_expression            переход в состояние 73
+    postfix_expression          переход в состояние 74
+    member_expression           переход в состояние 75
+    primary_expression          переход в состояние 76
+
+
+состояние 176
+
+   90 local_variable_declaration_no_semicolon: VAR_TYPE IDENTIFIER . '=' expression
+
+    '='  сдвиг, и переход в состояние 200
+
+
+состояние 177
+
+   89 local_variable_declaration_no_semicolon: type IDENTIFIER . '=' expression
+
+    '='  сдвиг, и переход в состояние 201
+
+
+состояние 178
+
+   75 for_statement: FOR '(' for_initializer ';' . expression ';' for_iterator ')' statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 202
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 179
+
+   77 foreach_statement: FOREACH '(' VAR_TYPE IDENTIFIER . IN expression ')' statement
+
+    IN  сдвиг, и переход в состояние 203
+
+
+состояние 180
+
+   76 foreach_statement: FOREACH '(' type IDENTIFIER . IN expression ')' statement
+
+    IN  сдвиг, и переход в состояние 204
+
+
+состояние 181
+
+   17 class_declaration: CLASS IDENTIFIER '{' class_body . '}'
+   19 class_body: class_body . class_member
+
+    PUBLIC        сдвиг, и переход в состояние 21
+    PRIVATE       сдвиг, и переход в состояние 22
+    INTERNAL      сдвиг, и переход в состояние 23
+    PROTECTED     сдвиг, и переход в состояние 24
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    VOID_TYPE     сдвиг, и переход в состояние 32
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+    STATIC        сдвиг, и переход в состояние 205
+    '}'           сдвиг, и переход в состояние 206
+
+    INT_TYPE      [вывод с использованием правила 28 (access_modifier)]
+    FLOAT_TYPE    [вывод с использованием правила 28 (access_modifier)]
+    DOUBLE_TYPE   [вывод с использованием правила 28 (access_modifier)]
+    BOOL_TYPE     [вывод с использованием правила 28 (access_modifier)]
+    CHAR_TYPE     [вывод с использованием правила 28 (access_modifier)]
+    STRING_TYPE   [вывод с использованием правила 28 (access_modifier)]
+    DECIMAL_TYPE  [вывод с использованием правила 28 (access_modifier)]
+    STATIC        [вывод с использованием правила 28 (access_modifier)]
+    $default      вывод с использованием правила 28 (access_modifier)
+
+    class_member               переход в состояние 207
+    static_member_declaration  переход в состояние 208
+    constructor_declaration    переход в состояние 209
+    access_modifier            переход в состояние 210
+    field_declaration          переход в состояние 211
+    type                       переход в состояние 149
+    return_type                переход в состояние 50
+    method_declaration         переход в состояние 212
+
+
+состояние 182
+
+   51 interface_declaration: INTERFACE IDENTIFIER '{' interface_body . '}' ';'
+   53 interface_body: interface_body . interface_member
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    VOID_TYPE     сдвиг, и переход в состояние 32
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+    '}'           сдвиг, и переход в состояние 213
+
+    type              переход в состояние 149
+    return_type       переход в состояние 214
+    interface_member  переход в состояние 215
+
+
+состояние 183
+
+   71 local_variable_declaration: VAR_TYPE IDENTIFIER '=' expression . ';'
+
+    ';'  сдвиг, и переход в состояние 216
+
+
+состояние 184
+
+    9 namespace_declaration: NAMESPACE IDENTIFIER '{' namespace_body . '}'
+   11 namespace_body: namespace_body . using_directive
+   12               | namespace_body . type_declaration
+
+    CLASS      сдвиг, и переход в состояние 19
+    INTERFACE  сдвиг, и переход в состояние 20
+    USING      сдвиг, и переход в состояние 36
+    '}'        сдвиг, и переход в состояние 217
+
+    type_declaration       переход в состояние 218
+    using_directive        переход в состояние 219
+    class_declaration      переход в состояние 46
+    interface_declaration  переход в состояние 52
+
+
+состояние 185
+
+   16 using_directive: USING IDENTIFIER '=' IDENTIFIER . ';'
+
+    ';'  сдвиг, и переход в состояние 220
+
+
+состояние 186
+
+   35 field_declaration: access_modifier VAR_TYPE IDENTIFIER '=' . expression ';'
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 221
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 187
+
+   47 method_declaration: access_modifier STATIC return_type IDENTIFIER . '(' parameter_list ')' block
+
+    '('  сдвиг, и переход в состояние 222
+
+
+состояние 188
+
+   34 field_declaration: access_modifier type IDENTIFIER '=' . expression ';'
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 223
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 189
+
+   33 field_declaration: access_modifier type IDENTIFIER ';' .
+
+    $default  вывод с использованием правила 33 (field_declaration)
+
+
+состояние 190
+
+   70 local_variable_declaration: type IDENTIFIER '=' expression . ';'
+
+    ';'  сдвиг, и переход в состояние 224
+
+
+состояние 191
+
+   45 method_declaration: return_type IDENTIFIER '(' ')' . block
+
+    '{'  сдвиг, и переход в состояние 41
+
+    block  переход в состояние 225
+
+
+состояние 192
+
+   50 parameter: type . IDENTIFIER
+
+    IDENTIFIER  сдвиг, и переход в состояние 226
+
+
+состояние 193
+
+   46 method_declaration: return_type IDENTIFIER '(' parameter_list . ')' block
+   49 parameter_list: parameter_list . ',' parameter
+
+    ')'  сдвиг, и переход в состояние 227
+    ','  сдвиг, и переход в состояние 228
+
+
+состояние 194
+
+   48 parameter_list: parameter .
+
+    $default  вывод с использованием правила 48 (parameter_list)
+
+
+состояние 195
+
+  122 postfix_expression: postfix_expression '(' argument_list ')' .
+
+    $default  вывод с использованием правила 122 (postfix_expression)
+
+
+состояние 196
+
+  143 expression_list: expression_list ',' . expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 229
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 197
+
+  127 member_expression: member_expression '(' argument_list ')' .
+
+    $default  вывод с использованием правила 127 (member_expression)
+
+
+состояние 198
+
+   72 if_statement: IF '(' expression ')' statement .
+   73             | IF '(' expression ')' statement . ELSE statement
+
+    ELSE  сдвиг, и переход в состояние 230
+
+    $default  вывод с использованием правила 72 (if_statement)
+
+
+состояние 199
+
+   74 while_statement: WHILE '(' expression ')' statement .
+
+    $default  вывод с использованием правила 74 (while_statement)
+
+
+состояние 200
+
+   90 local_variable_declaration_no_semicolon: VAR_TYPE IDENTIFIER '=' . expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 231
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 201
+
+   89 local_variable_declaration_no_semicolon: type IDENTIFIER '=' . expression
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 232
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 202
+
+   75 for_statement: FOR '(' for_initializer ';' expression . ';' for_iterator ')' statement
+
+    ';'  сдвиг, и переход в состояние 233
+
+
+состояние 203
+
+   77 foreach_statement: FOREACH '(' VAR_TYPE IDENTIFIER IN . expression ')' statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 234
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 204
+
+   76 foreach_statement: FOREACH '(' type IDENTIFIER IN . expression ')' statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    expression                 переход в состояние 235
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 205
+
+   24 static_member_declaration: STATIC . field_declaration
+   25                          | STATIC . method_declaration
+
+    PUBLIC        сдвиг, и переход в состояние 21
+    PRIVATE       сдвиг, и переход в состояние 22
+    INTERNAL      сдвиг, и переход в состояние 23
+    PROTECTED     сдвиг, и переход в состояние 24
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    VOID_TYPE     сдвиг, и переход в состояние 32
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+
+    INT_TYPE      [вывод с использованием правила 28 (access_modifier)]
+    FLOAT_TYPE    [вывод с использованием правила 28 (access_modifier)]
+    DOUBLE_TYPE   [вывод с использованием правила 28 (access_modifier)]
+    BOOL_TYPE     [вывод с использованием правила 28 (access_modifier)]
+    CHAR_TYPE     [вывод с использованием правила 28 (access_modifier)]
+    STRING_TYPE   [вывод с использованием правила 28 (access_modifier)]
+    DECIMAL_TYPE  [вывод с использованием правила 28 (access_modifier)]
+    $default      вывод с использованием правила 28 (access_modifier)
+
+    access_modifier     переход в состояние 47
+    field_declaration   переход в состояние 236
+    type                переход в состояние 149
+    return_type         переход в состояние 50
+    method_declaration  переход в состояние 237
+
+
+состояние 206
+
+   17 class_declaration: CLASS IDENTIFIER '{' class_body '}' .
+
+    $default  вывод с использованием правила 17 (class_declaration)
+
+
+состояние 207
+
+   19 class_body: class_body class_member .
+
+    $default  вывод с использованием правила 19 (class_body)
+
+
+состояние 208
+
+   23 class_member: static_member_declaration .
+
+    $default  вывод с использованием правила 23 (class_member)
+
+
+состояние 209
+
+   22 class_member: constructor_declaration .
+
+    $default  вывод с использованием правила 22 (class_member)
+
+
+состояние 210
+
+   26 constructor_declaration: access_modifier . IDENTIFIER '(' ')' block
+   27                        | access_modifier . IDENTIFIER '(' parameter_list ')' block
+   33 field_declaration: access_modifier . type IDENTIFIER ';'
+   34                  | access_modifier . type IDENTIFIER '=' expression ';'
+   35                  | access_modifier . VAR_TYPE IDENTIFIER '=' expression ';'
+   47 method_declaration: access_modifier . STATIC return_type IDENTIFIER '(' parameter_list ')' block
+
+    IDENTIFIER    сдвиг, и переход в состояние 238
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    VAR_TYPE      сдвиг, и переход в состояние 99
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+    STATIC        сдвиг, и переход в состояние 100
+
+    type  переход в состояние 101
+
+
+состояние 211
+
+   20 class_member: field_declaration .
+
+    $default  вывод с использованием правила 20 (class_member)
+
+
+состояние 212
+
+   21 class_member: method_declaration .
+
+    $default  вывод с использованием правила 21 (class_member)
+
+
+состояние 213
+
+   51 interface_declaration: INTERFACE IDENTIFIER '{' interface_body '}' . ';'
+
+    ';'  сдвиг, и переход в состояние 239
+
+
+состояние 214
+
+   54 interface_member: return_type . IDENTIFIER '(' parameter_list ')' ';'
+
+    IDENTIFIER  сдвиг, и переход в состояние 240
+
+
+состояние 215
+
+   53 interface_body: interface_body interface_member .
+
+    $default  вывод с использованием правила 53 (interface_body)
+
+
+состояние 216
+
+   71 local_variable_declaration: VAR_TYPE IDENTIFIER '=' expression ';' .
+
+    $default  вывод с использованием правила 71 (local_variable_declaration)
+
+
+состояние 217
+
+    9 namespace_declaration: NAMESPACE IDENTIFIER '{' namespace_body '}' .
+
+    $default  вывод с использованием правила 9 (namespace_declaration)
+
+
+состояние 218
+
+   12 namespace_body: namespace_body type_declaration .
+
+    $default  вывод с использованием правила 12 (namespace_body)
+
+
+состояние 219
+
+   11 namespace_body: namespace_body using_directive .
+
+    $default  вывод с использованием правила 11 (namespace_body)
+
+
+состояние 220
+
+   16 using_directive: USING IDENTIFIER '=' IDENTIFIER ';' .
+
+    $default  вывод с использованием правила 16 (using_directive)
+
+
+состояние 221
+
+   35 field_declaration: access_modifier VAR_TYPE IDENTIFIER '=' expression . ';'
+
+    ';'  сдвиг, и переход в состояние 241
+
+
+состояние 222
+
+   47 method_declaration: access_modifier STATIC return_type IDENTIFIER '(' . parameter_list ')' block
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+
+    type            переход в состояние 192
+    parameter_list  переход в состояние 242
+    parameter       переход в состояние 194
+
+
+состояние 223
+
+   34 field_declaration: access_modifier type IDENTIFIER '=' expression . ';'
+
+    ';'  сдвиг, и переход в состояние 243
+
+
+состояние 224
+
+   70 local_variable_declaration: type IDENTIFIER '=' expression ';' .
+
+    $default  вывод с использованием правила 70 (local_variable_declaration)
+
+
+состояние 225
+
+   45 method_declaration: return_type IDENTIFIER '(' ')' block .
+
+    $default  вывод с использованием правила 45 (method_declaration)
+
+
+состояние 226
+
+   50 parameter: type IDENTIFIER .
+
+    $default  вывод с использованием правила 50 (parameter)
+
+
+состояние 227
+
+   46 method_declaration: return_type IDENTIFIER '(' parameter_list ')' . block
+
+    '{'  сдвиг, и переход в состояние 41
+
+    block  переход в состояние 244
+
+
+состояние 228
+
+   49 parameter_list: parameter_list ',' . parameter
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+
+    type       переход в состояние 192
+    parameter  переход в состояние 245
+
+
+состояние 229
+
+  143 expression_list: expression_list ',' expression .
+
+    $default  вывод с использованием правила 143 (expression_list)
+
+
+состояние 230
+
+   73 if_statement: IF '(' expression ')' statement ELSE . statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    IF                  сдвиг, и переход в состояние 12
+    WHILE               сдвиг, и переход в состояние 13
+    FOR                 сдвиг, и переход в состояние 14
+    RETURN              сдвиг, и переход в состояние 15
+    BREAK               сдвиг, и переход в состояние 16
+    CONTINUE            сдвиг, и переход в состояние 17
+    FOREACH             сдвиг, и переход в состояние 18
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 31
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    '{'                 сдвиг, и переход в состояние 41
+
+    type                        переход в состояние 146
+    block                       переход в состояние 53
+    statement                   переход в состояние 246
+    expression_statement        переход в состояние 55
+    local_variable_declaration  переход в состояние 56
+    if_statement                переход в состояние 57
+    while_statement             переход в состояние 58
+    for_statement               переход в состояние 59
+    foreach_statement           переход в состояние 60
+    return_statement            переход в состояние 61
+    break_statement             переход в состояние 62
+    continue_statement          переход в состояние 63
+    expression                  переход в состояние 64
+    assignment_expression       переход в состояние 65
+    conditional_expression      переход в состояние 66
+    logical_or_expression       переход в состояние 67
+    logical_and_expression      переход в состояние 68
+    equality_expression         переход в состояние 69
+    relational_expression       переход в состояние 70
+    additive_expression         переход в состояние 71
+    multiplicative_expression   переход в состояние 72
+    unary_expression            переход в состояние 73
+    postfix_expression          переход в состояние 74
+    member_expression           переход в состояние 75
+    primary_expression          переход в состояние 76
+
+
+состояние 231
+
+   90 local_variable_declaration_no_semicolon: VAR_TYPE IDENTIFIER '=' expression .
+
+    $default  вывод с использованием правила 90 (local_variable_declaration_no_semicolon)
+
+
+состояние 232
+
+   89 local_variable_declaration_no_semicolon: type IDENTIFIER '=' expression .
+
+    $default  вывод с использованием правила 89 (local_variable_declaration_no_semicolon)
+
+
+состояние 233
+
+   75 for_statement: FOR '(' for_initializer ';' expression ';' . for_iterator ')' statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+
+    ')'       вывод с использованием правила 86 (for_iterator)
+    ')'       [вывод с использованием правила 88 (for_iterator)]
+    $default  вывод с использованием правила 86 (for_iterator)
+
+    for_iterator               переход в состояние 247
+    expression                 переход в состояние 248
+    assignment_expression      переход в состояние 65
+    conditional_expression     переход в состояние 66
+    logical_or_expression      переход в состояние 67
+    logical_and_expression     переход в состояние 68
+    equality_expression        переход в состояние 69
+    relational_expression      переход в состояние 70
+    additive_expression        переход в состояние 71
+    multiplicative_expression  переход в состояние 72
+    unary_expression           переход в состояние 73
+    postfix_expression         переход в состояние 74
+    member_expression          переход в состояние 75
+    primary_expression         переход в состояние 76
+
+
+состояние 234
+
+   77 foreach_statement: FOREACH '(' VAR_TYPE IDENTIFIER IN expression . ')' statement
+
+    ')'  сдвиг, и переход в состояние 249
+
+
+состояние 235
+
+   76 foreach_statement: FOREACH '(' type IDENTIFIER IN expression . ')' statement
+
+    ')'  сдвиг, и переход в состояние 250
+
+
+состояние 236
+
+   24 static_member_declaration: STATIC field_declaration .
+
+    $default  вывод с использованием правила 24 (static_member_declaration)
+
+
+состояние 237
+
+   25 static_member_declaration: STATIC method_declaration .
+
+    $default  вывод с использованием правила 25 (static_member_declaration)
+
+
+состояние 238
+
+   26 constructor_declaration: access_modifier IDENTIFIER . '(' ')' block
+   27                        | access_modifier IDENTIFIER . '(' parameter_list ')' block
+
+    '('  сдвиг, и переход в состояние 251
+
+
+состояние 239
+
+   51 interface_declaration: INTERFACE IDENTIFIER '{' interface_body '}' ';' .
+
+    $default  вывод с использованием правила 51 (interface_declaration)
+
+
+состояние 240
+
+   54 interface_member: return_type IDENTIFIER . '(' parameter_list ')' ';'
+
+    '('  сдвиг, и переход в состояние 252
+
+
+состояние 241
+
+   35 field_declaration: access_modifier VAR_TYPE IDENTIFIER '=' expression ';' .
+
+    $default  вывод с использованием правила 35 (field_declaration)
+
+
+состояние 242
+
+   47 method_declaration: access_modifier STATIC return_type IDENTIFIER '(' parameter_list . ')' block
+   49 parameter_list: parameter_list . ',' parameter
+
+    ')'  сдвиг, и переход в состояние 253
+    ','  сдвиг, и переход в состояние 228
+
+
+состояние 243
+
+   34 field_declaration: access_modifier type IDENTIFIER '=' expression ';' .
+
+    $default  вывод с использованием правила 34 (field_declaration)
+
+
+состояние 244
+
+   46 method_declaration: return_type IDENTIFIER '(' parameter_list ')' block .
+
+    $default  вывод с использованием правила 46 (method_declaration)
+
+
+состояние 245
+
+   49 parameter_list: parameter_list ',' parameter .
+
+    $default  вывод с использованием правила 49 (parameter_list)
+
+
+состояние 246
+
+   73 if_statement: IF '(' expression ')' statement ELSE statement .
+
+    $default  вывод с использованием правила 73 (if_statement)
+
+
+состояние 247
+
+   75 for_statement: FOR '(' for_initializer ';' expression ';' for_iterator . ')' statement
+
+    ')'  сдвиг, и переход в состояние 254
+
+
+состояние 248
+
+   87 for_iterator: expression .
+
+    $default  вывод с использованием правила 87 (for_iterator)
+
+
+состояние 249
+
+   77 foreach_statement: FOREACH '(' VAR_TYPE IDENTIFIER IN expression ')' . statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    IF                  сдвиг, и переход в состояние 12
+    WHILE               сдвиг, и переход в состояние 13
+    FOR                 сдвиг, и переход в состояние 14
+    RETURN              сдвиг, и переход в состояние 15
+    BREAK               сдвиг, и переход в состояние 16
+    CONTINUE            сдвиг, и переход в состояние 17
+    FOREACH             сдвиг, и переход в состояние 18
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 31
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    '{'                 сдвиг, и переход в состояние 41
+
+    type                        переход в состояние 146
+    block                       переход в состояние 53
+    statement                   переход в состояние 255
+    expression_statement        переход в состояние 55
+    local_variable_declaration  переход в состояние 56
+    if_statement                переход в состояние 57
+    while_statement             переход в состояние 58
+    for_statement               переход в состояние 59
+    foreach_statement           переход в состояние 60
+    return_statement            переход в состояние 61
+    break_statement             переход в состояние 62
+    continue_statement          переход в состояние 63
+    expression                  переход в состояние 64
+    assignment_expression       переход в состояние 65
+    conditional_expression      переход в состояние 66
+    logical_or_expression       переход в состояние 67
+    logical_and_expression      переход в состояние 68
+    equality_expression         переход в состояние 69
+    relational_expression       переход в состояние 70
+    additive_expression         переход в состояние 71
+    multiplicative_expression   переход в состояние 72
+    unary_expression            переход в состояние 73
+    postfix_expression          переход в состояние 74
+    member_expression           переход в состояние 75
+    primary_expression          переход в состояние 76
+
+
+состояние 250
+
+   76 foreach_statement: FOREACH '(' type IDENTIFIER IN expression ')' . statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    IF                  сдвиг, и переход в состояние 12
+    WHILE               сдвиг, и переход в состояние 13
+    FOR                 сдвиг, и переход в состояние 14
+    RETURN              сдвиг, и переход в состояние 15
+    BREAK               сдвиг, и переход в состояние 16
+    CONTINUE            сдвиг, и переход в состояние 17
+    FOREACH             сдвиг, и переход в состояние 18
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 31
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    '{'                 сдвиг, и переход в состояние 41
+
+    type                        переход в состояние 146
+    block                       переход в состояние 53
+    statement                   переход в состояние 256
+    expression_statement        переход в состояние 55
+    local_variable_declaration  переход в состояние 56
+    if_statement                переход в состояние 57
+    while_statement             переход в состояние 58
+    for_statement               переход в состояние 59
+    foreach_statement           переход в состояние 60
+    return_statement            переход в состояние 61
+    break_statement             переход в состояние 62
+    continue_statement          переход в состояние 63
+    expression                  переход в состояние 64
+    assignment_expression       переход в состояние 65
+    conditional_expression      переход в состояние 66
+    logical_or_expression       переход в состояние 67
+    logical_and_expression      переход в состояние 68
+    equality_expression         переход в состояние 69
+    relational_expression       переход в состояние 70
+    additive_expression         переход в состояние 71
+    multiplicative_expression   переход в состояние 72
+    unary_expression            переход в состояние 73
+    postfix_expression          переход в состояние 74
+    member_expression           переход в состояние 75
+    primary_expression          переход в состояние 76
+
+
+состояние 251
+
+   26 constructor_declaration: access_modifier IDENTIFIER '(' . ')' block
+   27                        | access_modifier IDENTIFIER '(' . parameter_list ')' block
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+    ')'           сдвиг, и переход в состояние 257
+
+    type            переход в состояние 192
+    parameter_list  переход в состояние 258
+    parameter       переход в состояние 194
+
+
+состояние 252
+
+   54 interface_member: return_type IDENTIFIER '(' . parameter_list ')' ';'
+
+    INT_TYPE      сдвиг, и переход в состояние 25
+    FLOAT_TYPE    сдвиг, и переход в состояние 26
+    DOUBLE_TYPE   сдвиг, и переход в состояние 27
+    BOOL_TYPE     сдвиг, и переход в состояние 28
+    CHAR_TYPE     сдвиг, и переход в состояние 29
+    STRING_TYPE   сдвиг, и переход в состояние 30
+    DECIMAL_TYPE  сдвиг, и переход в состояние 33
+
+    type            переход в состояние 192
+    parameter_list  переход в состояние 259
+    parameter       переход в состояние 194
+
+
+состояние 253
+
+   47 method_declaration: access_modifier STATIC return_type IDENTIFIER '(' parameter_list ')' . block
+
+    '{'  сдвиг, и переход в состояние 41
+
+    block  переход в состояние 260
+
+
+состояние 254
+
+   75 for_statement: FOR '(' for_initializer ';' expression ';' for_iterator ')' . statement
+
+    INTEGER_LITERAL     сдвиг, и переход в состояние 3
+    FLOAT_LITERAL       сдвиг, и переход в состояние 4
+    DOUBLE_LITERAL      сдвиг, и переход в состояние 5
+    DECIMAL_LITERAL     сдвиг, и переход в состояние 6
+    STRING_LITERAL      сдвиг, и переход в состояние 7
+    CHAR_LITERAL        сдвиг, и переход в состояние 8
+    BOOL_LITERAL_TRUE   сдвиг, и переход в состояние 9
+    BOOL_LITERAL_FALSE  сдвиг, и переход в состояние 10
+    IDENTIFIER          сдвиг, и переход в состояние 11
+    IF                  сдвиг, и переход в состояние 12
+    WHILE               сдвиг, и переход в состояние 13
+    FOR                 сдвиг, и переход в состояние 14
+    RETURN              сдвиг, и переход в состояние 15
+    BREAK               сдвиг, и переход в состояние 16
+    CONTINUE            сдвиг, и переход в состояние 17
+    FOREACH             сдвиг, и переход в состояние 18
+    INT_TYPE            сдвиг, и переход в состояние 25
+    FLOAT_TYPE          сдвиг, и переход в состояние 26
+    DOUBLE_TYPE         сдвиг, и переход в состояние 27
+    BOOL_TYPE           сдвиг, и переход в состояние 28
+    CHAR_TYPE           сдвиг, и переход в состояние 29
+    STRING_TYPE         сдвиг, и переход в состояние 30
+    VAR_TYPE            сдвиг, и переход в состояние 31
+    DECIMAL_TYPE        сдвиг, и переход в состояние 33
+    THIS                сдвиг, и переход в состояние 34
+    NULL_LITERAL        сдвиг, и переход в состояние 37
+    '-'                 сдвиг, и переход в состояние 38
+    '!'                 сдвиг, и переход в состояние 39
+    '('                 сдвиг, и переход в состояние 40
+    '{'                 сдвиг, и переход в состояние 41
+
+    type                        переход в состояние 146
+    block                       переход в состояние 53
+    statement                   переход в состояние 261
+    expression_statement        переход в состояние 55
+    local_variable_declaration  переход в состояние 56
+    if_statement                переход в состояние 57
+    while_statement             переход в состояние 58
+    for_statement               переход в состояние 59
+    foreach_statement           переход в состояние 60
+    return_statement            переход в состояние 61
+    break_statement             переход в состояние 62
+    continue_statement          переход в состояние 63
+    expression                  переход в состояние 64
+    assignment_expression       переход в состояние 65
+    conditional_expression      переход в состояние 66
+    logical_or_expression       переход в состояние 67
+    logical_and_expression      переход в состояние 68
+    equality_expression         переход в состояние 69
+    relational_expression       переход в состояние 70
+    additive_expression         переход в состояние 71
+    multiplicative_expression   переход в состояние 72
+    unary_expression            переход в состояние 73
+    postfix_expression          переход в состояние 74
+    member_expression           переход в состояние 75
+    primary_expression          переход в состояние 76
+
+
+состояние 255
+
+   77 foreach_statement: FOREACH '(' VAR_TYPE IDENTIFIER IN expression ')' statement .
+
+    $default  вывод с использованием правила 77 (foreach_statement)
+
+
+состояние 256
+
+   76 foreach_statement: FOREACH '(' type IDENTIFIER IN expression ')' statement .
+
+    $default  вывод с использованием правила 76 (foreach_statement)
+
+
+состояние 257
+
+   26 constructor_declaration: access_modifier IDENTIFIER '(' ')' . block
+
+    '{'  сдвиг, и переход в состояние 41
+
+    block  переход в состояние 262
+
+
+состояние 258
+
+   27 constructor_declaration: access_modifier IDENTIFIER '(' parameter_list . ')' block
+   49 parameter_list: parameter_list . ',' parameter
+
+    ')'  сдвиг, и переход в состояние 263
+    ','  сдвиг, и переход в состояние 228
+
+
+состояние 259
+
+   49 parameter_list: parameter_list . ',' parameter
+   54 interface_member: return_type IDENTIFIER '(' parameter_list . ')' ';'
+
+    ')'  сдвиг, и переход в состояние 264
+    ','  сдвиг, и переход в состояние 228
+
+
+состояние 260
+
+   47 method_declaration: access_modifier STATIC return_type IDENTIFIER '(' parameter_list ')' block .
+
+    $default  вывод с использованием правила 47 (method_declaration)
+
+
+состояние 261
+
+   75 for_statement: FOR '(' for_initializer ';' expression ';' for_iterator ')' statement .
+
+    $default  вывод с использованием правила 75 (for_statement)
+
+
+состояние 262
+
+   26 constructor_declaration: access_modifier IDENTIFIER '(' ')' block .
+
+    $default  вывод с использованием правила 26 (constructor_declaration)
+
+
+состояние 263
+
+   27 constructor_declaration: access_modifier IDENTIFIER '(' parameter_list ')' . block
+
+    '{'  сдвиг, и переход в состояние 41
+
+    block  переход в состояние 265
+
+
+состояние 264
+
+   54 interface_member: return_type IDENTIFIER '(' parameter_list ')' . ';'
+
+    ';'  сдвиг, и переход в состояние 266
+
+
+состояние 265
+
+   27 constructor_declaration: access_modifier IDENTIFIER '(' parameter_list ')' block .
+
+    $default  вывод с использованием правила 27 (constructor_declaration)
+
+
+состояние 266
+
+   54 interface_member: return_type IDENTIFIER '(' parameter_list ')' ';' .
+
+    $default  вывод с использованием правила 54 (interface_member)
