@@ -1,32 +1,40 @@
- %{
-// Remove warnings from bison
-#ifdef _MSC_VER
-#pragma warning( push, 0 )
-#pragma warning( disable : 6011 )
-#pragma warning( disable : 26819 )
-#pragma warning( disable : 26812 )
-#pragma warning( disable : 6387 )
-#endif // _MSC_VER
+%{
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <cstdio>
-#include <iostream>
+// Определения enum
+enum StandardType { ST_FLOAT, ST_DOUBLE, ST_DECIMAL, ST_BOOL };
+enum VisibilityModifier { VM_PUBLIC, VM_PROTECTED, VM_PRIVATE, VM_INTERNAL, VM_PROTECTED_INTERNAL };
 
-#include "Tree/Program.h"
 
-void __cdecl yyerror(const char* s) {
-	std::cerr << s << std::endl;
-}
-
-template <char Separator = ' ', typename... Args>
-void Print(Args&&... args) {
-    ((std::cout << args << Separator), ...);
-    std::cout << std::endl;
-}
-
-int yylex();
-int yyparse();
+extern int yylex(void);
 extern FILE* yyin;
-extern struct Program* treeRoot;
+
+void yyerror(const char* s) {
+	 fprintf(stderr, "Syntax Error: %s\n", s);
+}
+
+// Простые определения структур (заглушки)
+typedef struct { int dummy; } AccessExpr;
+typedef struct { int dummy; } ExprNode;
+typedef struct { int dummy; } ExprSeqNode;
+typedef struct { int dummy; } TypeNode;
+typedef struct { int dummy; } VarDeclNode;
+typedef struct { int dummy; } StmtSeqNode;
+typedef struct { int dummy; } StmtNode;
+typedef struct { int dummy; } FieldDeclNode;
+typedef struct { int dummy; } MethodArguments;
+typedef struct { int dummy; } MethodDeclNode;
+typedef struct { int dummy; } ConstructorDeclNode;
+typedef struct { int dummy; } DestructorDeclNode;
+typedef struct { int dummy; } IdentifierList;
+typedef struct { int dummy; } EnumDeclNode;
+typedef struct { int dummy; } InterpolatedStringNode;
+typedef struct { int dummy; } StructMembersNode;
+typedef struct { int dummy; } StructDeclNode;
+typedef struct { int dummy; } ClassNameNode;
+typedef struct { int dummy; } MethodNameNode;
+
 %}
 
 %union {
@@ -36,116 +44,62 @@ extern struct Program* treeRoot;
     double _floatingPoint;
     float _floatValue;
     char _character;
+	int _bool;
+	
+	int bool_value;
+    int int_value; 
+    double double_value;
 
     struct AccessExpr* _accessExpr;
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
-    enum class StandardType _standardType;
-    struct StandardArrayType* _standardArrayType;
+    enum StandardType _standardType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
-    struct WhileNode* _while;
-    struct DoWhileNode* _doWhile;
-    struct ForNode* _for;
-    struct ForEachNode* _foreach;
     struct StmtSeqNode* _stmtSeq;
-    struct IfNode* _if;
     struct StmtNode* _stmt;
     
-    enum class VisibilityModifier _visibiltyModifier;
+    enum VisibilityModifier _visibiltyModifier;
     struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
     struct MethodDeclNode* _methodDecl;
     struct ConstructorDeclNode* _constructorDecl;
     struct DestructorDeclNode* _destructorDecl;
-    struct ClassMembersNode* _classMembers;
-    struct ClassDeclNode* _classDecl;
-    struct StructDeclNode* _structDecl;
 
     struct IdentifierList* _enumerators;
     struct EnumDeclNode* _enumDecl;
-
-    struct IdentifierList* _usingArg;
-    struct NamespaceMembersNode* _namespaceMembers;
-    struct NamespaceDeclNode* _namespaceDecl;
-    struct UsingDirectiveNode* _usingDirective;
-    struct UsingDirectives* _usingDirectives;
-    struct NamespaceDeclSeq* _namespaceDeclSeq;
     
     struct InterpolatedStringNode* _interpolatedString;
     struct StructMembersNode* _structMembers;
-	
-	//struct QualifiedTypeName* _qualifiedTypeName;
-	struct ClassNameNode* _className;
+    struct StructDeclNode* _structDecl;
+    
+    struct ClassNameNode* _className;
     struct MethodNameNode* _methodName;
 }
 
 %type <_className> class_name
 %type <_methodName> method_name
-
 %type <_accessExpr> access_expr
-%type <_expr> expr expr_optional
+%type <_expr> expr
 %type <_exprSeq> expr_seq expr_seq_optional
-
 %type <_standardType> standard_type
-%type <_standardArrayType> standard_array_type
-%type <_type> type;
-
-%type <_varDecl> var_decl var_decl_with_init
-%type <_while> while_stmt
-%type <_doWhile> do_while_stmt
-%type <_for> for_stmt
-%type <_foreach> foreach_stmt
+%type <_type> type
+%type <_varDecl> var_decl
 %type <_stmtSeq> stmt_seq stmt_seq_optional
-%type <_if> if_stmt
 %type <_stmt> stmt
-
 %type <_visibiltyModifier> visibility_modifier
 %type <_fieldDecl> field_decl
 %type <_methodArguments> method_arguments method_arguments_optional
-%type <_methodDecl> method_decl operator_overload
-//%type <_constructorDecl> constructor_decl static_constructor_decl
-%type <_constructorDecl> static_constructor_decl
-
+%type <_methodDecl> method_decl
+%type <_constructorDecl> constructor_decl static_constructor_decl
 %type <_destructorDecl> destructor_decl
-%type <_classMembers> class_members class_members_optional
-%type <_classDecl> class_decl
 %type <_structDecl> struct_decl
 %type <_structMembers> struct_members struct_members_optional
-
 %type <_enumerators> enumerators
 %type <_enumDecl> enum_decl
-
-%type <_usingArg> using_arg
-%type <_namespaceMembers> namespace_members namespace_members_optional
-%type <_namespaceDecl> namespace_decl
-%type <_usingDirective> using_directive
-%type <_usingDirectives> using_directives using_directives_optional
-%type <_namespaceDeclSeq> namespace_decl_seq
-
 %type <_interpolatedString> interpolated_string interpolated_string_content
-
-//%type <_qualifiedTypeName> qualified_type_name
-
-%token LESS
-%token GREATER
-%token EQUAL
-%token NOT_EQUAL
-%token GREATER_OR_EQUAL
-%token LESS_OR_EQUAL
-%token OR
-%token AND
-%token BITWISE_OR
-%token BITWISE_AND
-
-%token PLUS_ASSIGN
-%token MINUS_ASSIGN
-%token MULTIPLY_ASSIGN
-%token DIVISION_ASSIGN
-%token INCREMENT
-%token DECREMENT
 
 %token <_identifier> IDENTIFIER
 %token <_integer> INTEGER
@@ -154,45 +108,24 @@ extern struct Program* treeRoot;
 %token <_string> STRING
 %token <_character> CHARACTER
 %token <_floatingPoint> DECIMAL_LITERAL
-%token RETURN
-%token IF
-%token ELSE
-%token WHILE
-%token DO
-%token FOR
-%token CHAR_KW
-%token INT_KW
-%token STRING_KW
-%token BOOL_KW
-%token FLOAT_KW
-%token DOUBLE_KW      // Добавлен токен для double
-%token DECIMAL_KW     // Добавлен токен для decimal
-%token VOID_KW
-%token NEW
-%token NULL_KW
-%token TRUE_KW
-%token FALSE_KW
-%token PUBLIC
-%token PROTECTED
-%token PRIVATE
-%token INTERNAL       // Добавлен токен для internal
-%token PROTECTED_INTERNAL // Добавлен токен для protected internal
-%token STATIC
-%token CLASS
-%token STRUCT         // Добавлен токен для struct
-%token ENUM
-%token USING
-%token NAMESPACE
-%token FOREACH
-%token IN_KW
-%token OBJECT
-%token OPERATOR
-%token VAR
-%token TILDE          // Добавлен токен для деструктора ~
-%token INTERPOLATED_STRING_START // Добавлен токен для интерполированных строк $"
-%token INTERPOLATED_STRING_END   // Добавлен токен для окончания интерполированных строк
-%token INTERPOLATED_STRING_TEXT  // Добавлен токен для текста в интерполированных строках
-%token INTERPOLATED_STRING_EXPR  // Добавлен токен для выражений в интерполированных строках
+%token BOOL_KW FLOAT_KW DOUBLE_KW DECIMAL_KW
+%token NULL_KW TRUE_KW FALSE_KW
+%token PUBLIC PROTECTED PRIVATE INTERNAL PROTECTED_INTERNAL STATIC
+%token STRUCT ENUM
+%token TILDE
+%token INTERPOLATED_STRING_START INTERPOLATED_STRING_END
+%token INTERPOLATED_STRING_TEXT INTERPOLATED_STRING_EXPR
+
+%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE
+%token VOID CLASS NEW THIS NAMESPACE
+%token IF ELSE WHILE FOR RETURN BREAK CONTINUE
+%token CHAR_LITERAL BOOL_LITERAL_TRUE BOOL_LITERAL_FALSE INTEGER_LITERAL DOUBLE_LITERAL
+%token LESS_EQUAL GREATER_EQUAL
+
+%token PLUS_ASSIGN MINUS_ASSIGN MULTIPLY_ASSIGN DIVISION_ASSIGN
+%token INCREMENT DECREMENT
+%token LESS GREATER EQUAL NOT_EQUAL GREATER_OR_EQUAL LESS_OR_EQUAL
+%token OR AND BITWISE_OR BITWISE_AND
 
 %right '=' PLUS_ASSIGN MINUS_ASSIGN MULTIPLY_ASSIGN DIVISION_ASSIGN
 %left OR AND BITWISE_OR BITWISE_AND
@@ -204,415 +137,214 @@ extern struct Program* treeRoot;
 %left '.' ']' '['
 %nonassoc '(' ')'
 
-%nonassoc LOWER_THAN_ELSE
-%nonassoc ELSE
-
 %start program
 
 %%
 
-program: using_directives_optional namespace_decl_seq { treeRoot = new Program($1, $2); }
+program: program_element
+       | program program_element
+;
+
+program_element: stmt                			{ printf("program_element -> stmt\n"); }
+			   | struct_decl                    { printf("program_element -> struct_decl\n"); }
+               | enum_decl                      { printf("program_element -> enum_decl\n"); }
+               | method_decl                    { printf("program_element -> method_decl\n"); }
+               | constructor_decl               { printf("program_element -> constructor_decl\n"); }
+               | destructor_decl                { printf("program_element -> destructor_decl\n"); }
+               | field_decl                     { printf("program_element -> field_decl\n"); }
 ;
 
 // ============================================================================
-// ВЫРАЖЕНИЯ И ДОСТУП
+// 1) ЧИСЛА С ПЛАВАЮЩЕЙ ТОЧКОЙ И ОПЕРАЦИИ
 // ============================================================================
 
-access_expr:  '(' expr ')'                                                  { Print("access_expr -> ( expr )"); }
-            |  access_expr '[' expr ']'                                     { Print("access_expr -> access_expr [ expr ]"); }
-            |  access_expr '[' ']'                                          { Print("access_expr -> access_expr [ ]"); }
-            | INTEGER                                                       { Print("access_expr -> INTEGER", $1); }
-            | FLOATING_POINT                                                { Print("access_expr -> FLOATING_POINT", $1); }
-            | FLOAT_LITERAL                                                 { Print("access_expr -> FLOAT_LITERAL", $1); } // Литерал с суффиксом f
-			| DECIMAL_LITERAL 												{ Print("access_expr -> DECIMAL_LITERAL", $1); }
-            | STRING                                                        { Print("access_expr -> FLOATING_STRING", $1); }
-            | CHARACTER                                                     { Print("access_expr -> CHARACTER", "'" + $1 + "'"); }
-            | TRUE_KW                                                       { Print("access_expr -> TRUE_KW"); }
-            | FALSE_KW                                                      { Print("access_expr -> FALSE_KW"); }
-            | IDENTIFIER                                                    { Print("access_expr -> IDENTIFIER", $1); }
-            | IDENTIFIER '(' expr_seq_optional ')'                          { Print("access_expr -> IDENTIFIER ( expr_seq_optional )", $1); }
-            | access_expr '.' IDENTIFIER                                    { Print("access_expr -> access_expr . IDENTIFIER"); }
-            | access_expr '.' IDENTIFIER '(' expr_seq_optional ')'          { Print("access_expr -> access_expr . IDENTIFIER ( expr_seq_optional )"); }
-            | interpolated_string                                           { Print("access_expr -> interpolated_string"); } // Интерполированные строки
+standard_type: FLOAT_KW     { printf("standard_type -> FLOAT_KW\n"); }
+			 | DOUBLE_KW    { printf("standard_type -> DOUBLE_KW\n"); }
+			 | DECIMAL_KW   { printf("standard_type -> DECIMAL_KW\n"); }
+			 | BOOL_KW      { printf("standard_type -> BOOL_KW\n"); }
 ;
 
-// ============================================================================
-// ВЫРАЖЕНИЯ И ОПЕРАЦИИ
-// ============================================================================
-
-expr: expr '+' expr                             { Print("expr + expr"); }
-    | expr '-' expr                             { Print("expr - expr"); }
-    | expr '*' expr                             { Print("expr * expr"); }
-    | expr '/' expr                             { Print("expr / expr"); }
-    | expr '=' expr                             { Print("expr = expr"); }
-    | expr PLUS_ASSIGN expr                     { Print("expr PLUS_ASSIGN expr"); }
-    | expr MINUS_ASSIGN expr                    { Print("expr MINUS_ASSIGN expr"); }
-    | expr MULTIPLY_ASSIGN expr                 { Print("expr MULTIPLY_ASSIGN expr"); }
-    | expr DIVISION_ASSIGN expr                 { Print("expr DIVISION_ASSIGN expr"); }
-    | expr '<' expr                             { Print("expr < expr"); }
-    | expr '>' expr                             { Print("expr > expr"); }
-    | expr EQUAL expr                           { Print("expr EQUAL expr"); }
-    | expr NOT_EQUAL expr                       { Print("expr NOT_EQUAL expr"); }
-    | expr LESS_OR_EQUAL expr                   { Print("expr LESS_OR_EQUAL expr"); }
-    | expr GREATER_OR_EQUAL expr                { Print("expr GREATER_OR_EQUAL expr"); }
-    | expr AND expr                             { Print("expr AND expr"); } // Условное И (&&)
-    | expr OR expr                              { Print("expr OR expr"); }  // Условное ИЛИ (||)
-    | expr BITWISE_AND expr                     { Print("expr BITWISE_AND expr"); } // Побитовое И (&)
-    | expr BITWISE_OR expr                      { Print("expr BITWISE_OR expr"); }  // Побитовое ИЛИ (|)
-    | '!' expr                                  { Print(" ! expr"); }
-    | INCREMENT expr                            { Print("INCREMENT expr"); }
-    | DECREMENT expr                            { Print("DECREMENT expr"); }
-    | '+' expr %prec UNARY_PLUS                 { Print("+ expr UNARY_PLUS"); }
-    | '-' expr %prec UNARY_MINUS                { Print("- expr UNARY_MINUS"); }
-    | NULL_KW                                   { Print("NULL_KW"); }
-    | access_expr                               { Print("access_expr"); }
-    | NEW type                                  { Print("NEW type"); }
-    | NEW type '{' expr_seq_optional '}'        { Print("NEW type { expr_seq_optional }"); }
-    | NEW '[' ']' '{' expr_seq_optional '}'     { Print("NEW [] { expr_seq_optional }"); }
-    | '(' standard_type ')' expr                { Print("( standard_type )"); }
-    | NEW standard_type '[' expr ']'            { Print("NEW standard_type [ expr ]"); }
+access_expr: '(' expr ')'                                        { printf("access_expr -> ( expr )\n"); }
+           | INTEGER                                             { printf("access_expr -> INTEGER\n"); }
+           | FLOATING_POINT                                      { printf("access_expr -> FLOATING_POINT\n"); }
+           | FLOAT_LITERAL                                       { printf("access_expr -> FLOAT_LITERAL\n"); }
+           | DECIMAL_LITERAL                                     { printf("access_expr -> DECIMAL_LITERAL\n"); }
+           | TRUE_KW                                             { printf("access_expr -> TRUE_KW\n"); }
+           | FALSE_KW                                            { printf("access_expr -> FALSE_KW\n"); }
+           | IDENTIFIER                                          { printf("access_expr -> IDENTIFIER\n"); }
+           | access_expr '.' IDENTIFIER                          { printf("access_expr -> access_expr . IDENTIFIER\n"); }
+           | access_expr '.' IDENTIFIER '(' expr_seq_optional ')'{ printf("access_expr -> access_expr . IDENTIFIER ( expr_seq_optional )\n"); }
+           | interpolated_string                                 { printf("access_expr -> interpolated_string\n"); }
 ;
 
-expr_optional:                  { Print(" expr_optional -> empty "); }
-              | expr            { Print(" expr_optional -> expr "); }
+expr_seq: expr                      { printf("expr_seq -> expr\n"); }
+        | expr_seq ',' expr         { printf("expr_seq -> expr_seq , expr\n"); }
 ;
 
-expr_seq: expr                  { Print(" expr_seq -> expr "); }
-        | expr_seq ',' expr     { Print(" expr_seq -> expr_seq , expr "); }
+expr_seq_optional: /* empty */               { printf("expr_seq_optional -> empty\n"); }
+				 | expr_seq                  { printf("expr_seq_optional -> expr_seq\n"); }
 ;
 
-expr_seq_optional:              { Print("expr_seq_optional -> empty"); }
-                 | expr_seq     { Print("expr_seq_optional -> expr_seq"); }
+expr: expr '+' expr                       { printf("expr + expr\n"); }
+    | expr '-' expr                       { printf("expr - expr\n"); }
+    | expr '*' expr                       { printf("expr * expr\n"); }
+    | expr '/' expr                       { printf("expr / expr\n"); }
+    | expr '=' expr                       { printf("expr = expr\n"); }
+    | expr PLUS_ASSIGN expr               { printf("expr PLUS_ASSIGN expr\n"); }
+    | expr MINUS_ASSIGN expr              { printf("expr MINUS_ASSIGN expr\n"); }
+    | expr MULTIPLY_ASSIGN expr           { printf("expr MULTIPLY_ASSIGN expr\n"); }
+    | expr DIVISION_ASSIGN expr           { printf("expr DIVISION_ASSIGN expr\n"); }
+    | expr '<' expr                       { printf("expr < expr\n"); }
+    | expr '>' expr                       { printf("expr > expr\n"); }
+    | expr EQUAL expr                     { printf("expr EQUAL expr\n"); }
+    | expr NOT_EQUAL expr                 { printf("expr NOT_EQUAL expr\n"); }
+    | expr LESS_OR_EQUAL expr             { printf("expr LESS_OR_EQUAL expr\n"); }
+    | expr GREATER_OR_EQUAL expr          { printf("expr GREATER_OR_EQUAL expr\n"); }
+    | expr AND expr                       { printf("expr AND expr\n"); }
+    | expr OR expr                        { printf("expr OR expr\n"); }
+    | expr BITWISE_AND expr               { printf("expr BITWISE_AND expr\n"); }
+    | expr BITWISE_OR expr                { printf("expr BITWISE_OR expr\n"); }
+    | '!' expr                            { printf(" ! expr\n"); }
+    | INCREMENT expr                      { printf("INCREMENT expr\n"); }
+    | DECREMENT expr                      { printf("DECREMENT expr\n"); }
+    | '+' expr %prec UNARY_PLUS           { printf("+ expr UNARY_PLUS\n"); }
+    | '-' expr %prec UNARY_MINUS          { printf("- expr UNARY_MINUS\n"); }
+    | NULL_KW                             { printf("NULL_KW\n"); }
+    | access_expr                         { printf("access_expr\n"); }
 ;
 
 // ============================================================================
-// ОПЕРАТОРЫ И УПРАВЛЯЮЩИЕ КОНСТРУКЦИИ
+// 3) МОДИФИКАТОРЫ ДОСТУПА
 // ============================================================================
 
-stmt: ';'                           { Print("stmt -> ;"); }
-    | expr ';'                      { Print("stmt -> expr ;"); }
-    | var_decl ';'                  { Print("stmt -> var_decl ;"); }
-    | var_decl_with_init ';'        { Print("stmt -> var_decl_with_init ;"); }
-    | while_stmt                    { Print("stmt -> while_stmt ;"); }
-    | do_while_stmt                 { Print("stmt -> do_while_stmt ;"); }
-    | for_stmt                      { Print("stmt -> for_stmt ;"); }
-    | if_stmt                       { Print("stmt -> if_stmt ;"); }
-    | foreach_stmt                  { Print("stmt -> foreach_stmt ;"); }
-    | '{' stmt_seq_optional '}'     { Print("stmt -> { stmt_seq_optional } ;"); }
-    | RETURN expr_optional ';'      { Print("stmt -> RETURN expr_optional ;"); }
-;
-
-stmt_seq: stmt              { Print("stmt_seq -> stmt"); }
-        | stmt_seq stmt     { Print("stmt_seq -> stmt_seq stmt"); }
-;
-
-stmt_seq_optional:          { Print("stmt_seq_optional -> empty"); }
-                 | stmt_seq  { Print("stmt_seq_optional -> stmt_seq"); }
-;
-
-while_stmt: WHILE '(' expr ')' stmt                 { Print("while_stmt -> WHILE ( expr ) stmt"); }
-;
-
-do_while_stmt: DO stmt WHILE '(' expr ')'';'        { Print("do_while_stmt -> DO stmt WHILE ( expr ) ;"); }
-;
-
-for_stmt: FOR '(' var_decl ';' expr_optional ';' expr_optional ')' stmt                     { Print("for_stmt -> FOR ( var_decl ; expr_optional ; expr_optional ) stmt"); }
-        |  FOR '(' var_decl_with_init ';' expr_optional ';' expr_optional ')' stmt          { Print("for_stmt -> FOR ( var_decl_with_init ; expr_optional ; expr_optional ) stmt"); }
-        |  FOR '(' expr_optional ';' expr_optional ';' expr_optional ')' stmt               { Print("for_stmt -> FOR ( expr_optional ; expr_optional ; expr_optional ) stmt"); }
-;
-
-if_stmt: IF '(' expr ')' stmt  %prec LOWER_THAN_ELSE             { Print("if_stmt -> IF ( expr ) stmt"); }
-        | IF '(' expr ')' stmt ELSE stmt    { Print("if_stmt -> IF ( expr ) stmt ELSE stmt"); }
-;
-
-foreach_stmt: FOREACH '(' var_decl IN_KW expr ')' stmt      { Print("foreach_stmt -> FOREACH ( var_decl IN_KW expr ) stmt"); }
+visibility_modifier: PUBLIC               { printf("visibility_modifier -> PUBLIC\n"); }
+				   | PROTECTED            { printf("visibility_modifier -> PROTECTED\n"); }
+				   | PRIVATE              { printf("visibility_modifier -> PRIVATE\n"); }
+				   | INTERNAL             { printf("visibility_modifier -> INTERNAL\n"); }
+				   | PROTECTED_INTERNAL   { printf("visibility_modifier -> PROTECTED_INTERNAL\n"); }
 ;
 
 // ============================================================================
-// ТИПЫ ДАННЫХ
+// 4) КОНСТРУКТОРЫ И ДЕСТРУКТОРЫ
 // ============================================================================
 
-standard_type: CHAR_KW      { Print("standard_type -> CHAR_KW"); }
-             | INT_KW       { Print("standard_type -> INT_KW"); }
-             | BOOL_KW      { Print("standard_type -> BOOL_KW"); }
-             | FLOAT_KW     { Print("standard_type -> FLOAT_KW"); }
-             | DOUBLE_KW    { Print("standard_type -> DOUBLE_KW"); }     // Добавлен double
-             | DECIMAL_KW   { Print("standard_type -> DECIMAL_KW"); }    // Добавлен decimal
-             | STRING_KW    { Print("standard_type -> STRING_KW"); }
+constructor_decl: visibility_modifier class_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ printf("constructor_decl -> visibility_modifier class_name\n"); }
 ;
 
-standard_array_type: standard_type '[' ']'          { Print("standard_type [ ]"); }
-                   | standard_array_type '[' ']'    { Print("standard_array_type [ ]"); }
+static_constructor_decl: STATIC class_name '(' ')' '{' stmt_seq_optional '}'	{ printf("static_constructor_decl -> STATIC class_name\n"); }
 ;
 
-type: standard_type         { Print("type -> standard_type"); }
-    | standard_array_type   { Print("type -> standard_array_type"); }
-    | access_expr           { Print("type -> access_expr"); }
-	//| qualified_type_name	{ Print("type -> qualified_type_name"); }
+destructor_decl: 	TILDE class_name '(' ')' '{' stmt_seq_optional '}'		{ printf("destructor_decl -> TILDE class_name\n"); }
 ;
 
-//qualified_type_name: IDENTIFIER								
-//                   | qualified_type_name '.' IDENTIFIER		{ Print("qualified_type_name"); }
-//;
-
-
-// ============================================================================
-// ПЕРЕМЕННЫЕ И ОБЪЯВЛЕНИЯ
-// ============================================================================
-
-var_decl: type IDENTIFIER                           { Print("var_decl -> type IDENTIFIER"); }
-        | VAR IDENTIFIER                            { Print("var_decl -> VAR IDENTIFIER"); }
-;
-
-var_decl_with_init: type IDENTIFIER '=' expr        { Print("var_decl_with_init -> type IDENTIFIER = expr"); }
-                    | VAR IDENTIFIER '=' expr       { Print("var_decl_with_init -> VAR IDENTIFIER = expr"); }
+class_name: 	IDENTIFIER { printf("class_name -> IDENTIFIER\n"); }
 ;
 
 // ============================================================================
-// МЕТОДЫ И АРГУМЕНТЫ
+// МЕТОДЫ И ПЕРЕМЕННЫЕ
 // ============================================================================
 
-method_arguments: var_decl                          { Print("method_arguments -> var_decl"); }
-                | method_arguments ',' var_decl     { Print("method_arguments -> method_arguments , var_decl"); }
-;
-method_arguments_optional:                          { Print("method_arguments_optional -> empty"); }
-                         | method_arguments         { Print("method_arguments_optional -> method_arguments"); }
+method_arguments: 	var_decl                          { printf("method_arguments -> var_decl\n"); }
+			    | method_arguments ',' var_decl       { printf("method_arguments -> method_arguments , var_decl\n"); }
 ;
 
-// ============================================================================
-// МОДИФИКАТОРЫ ДОСТУПА
-// ============================================================================
-
-visibility_modifier: PUBLIC                 { Print("visibility_modifier -> PUBLIC"); }
-                   | PROTECTED              { Print("visibility_modifier -> PROTECTED"); }
-                   | PRIVATE                { Print("visibility_modifier -> PRIVATE"); }
-                   | INTERNAL               { Print("visibility_modifier -> INTERNAL"); }           // Добавлен internal
-                   | PROTECTED_INTERNAL     { Print("visibility_modifier -> PROTECTED_INTERNAL"); }  // Добавлен protected internal
+method_arguments_optional: /* empty */                       { printf("method_arguments_optional -> empty\n"); }
+						 | method_arguments                  { printf("method_arguments_optional -> method_arguments\n"); }
 ;
 
-// ============================================================================
-// ОПЕРАТОРЫ ПЕРЕГРУЗКИ
-// ============================================================================
+method_decl: visibility_modifier type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ printf("method_decl -> visibility_modifier type method_name\n"); }
+;
 
-operator_overload:    visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR + ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR - ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR '*'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR * ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR '/'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR / ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR '<'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR < ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR '>'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR > ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR EQUAL            '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR == ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR NOT_EQUAL        '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR != ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR LESS_OR_EQUAL    '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR <= ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR GREATER_OR_EQUAL '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR >= ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR '!'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR ! ( var_decl ) { stmt_seq_optional }");     }
-                    | visibility_modifier STATIC type OPERATOR DECREMENT        '(' var_decl ')'              '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR -- ( var_decl ) { stmt_seq_optional }");     }
-                    | visibility_modifier STATIC type OPERATOR INCREMENT        '(' var_decl ')'              '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR ++ ( var_decl ) { stmt_seq_optional }");     }
-                    | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR - ( var_decl ) { stmt_seq_optional }");     }
-                    | visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR + ( var_decl ) { stmt_seq_optional }");     }
-                    | visibility_modifier STATIC type OPERATOR BITWISE_AND      '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR & ( var_decl , var_decl ) { stmt_seq_optional }"); }
-                    | visibility_modifier STATIC type OPERATOR BITWISE_OR       '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { Print("operator_overload -> visibility_modifier STATIC type OPERATOR | ( var_decl , var_decl ) { stmt_seq_optional }"); }
+method_name: 	IDENTIFIER { printf("method_name -> IDENTIFIER\n"); }
+;
+
+var_decl: type IDENTIFIER     { printf("var_decl -> type IDENTIFIER\n"); }
+;
+
+type: standard_type     { printf("type -> standard_type\n"); }
+    | access_expr       { printf("type -> access_expr\n"); }
 ;
 
 // ============================================================================
-// ИМЕНА КЛАССОВ И МЕТОДОВ (для семантического различения)
+// УТВЕРЖДЕНИЯ
 // ============================================================================
 
-class_name: IDENTIFIER { Print("class_name -> IDENTIFIER"); }
+stmt: ';'                           { printf("stmt -> ;\n"); }
+    | expr ';'                      { printf("stmt -> expr ;\n"); }
+    | '{' stmt_seq_optional '}'     { printf("stmt -> { stmt_seq_optional }\n"); }
 ;
 
-method_name: IDENTIFIER { Print("method_name -> IDENTIFIER"); }
+stmt_seq: stmt              { printf("stmt_seq -> stmt\n"); }
+        | stmt_seq stmt     { printf("stmt_seq -> stmt_seq stmt\n"); }
 ;
 
-// ============================================================================
-// МЕТОДЫ, КОНСТРУКТОРЫ И ДЕСТРУКТОРЫ
-// ============================================================================
-
-// Конструкторы
-//constructor_decl: visibility_modifier IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}' 
-//    { Print("IDENTIFIER"); }
-
-
-//method_decl: visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'                { Print("type IDENTIFIER"); }
-//           | visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'             { Print("VOID_KW IDENTIFIER"); }
-//           | visibility_modifier STATIC VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { Print("STATIC VOID_KW IDENTIFIER"); }
-//           | STATIC visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { Print("VOID_KW IDENTIFIER"); }
-//;
-
-//constructor_decl:
-//      visibility_modifier IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'
-//      { Print("constructor_decl -> visibility_modifier IDENTIFIER"); }
-
-
-//method_decl:	visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}' 			{ Print("method_decl -> visibility_modifier type IDENTIFIER"); }
-//		   | 	visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}' 			{ Print("method_decl -> visibility_modifier VOID_KW IDENTIFIER"); }
-//		   | 	visibility_modifier STATIC VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ Print("method_decl -> visibility_modifier STATIC VOID_KW IDENTIFIER"); }
-//		   | 	STATIC visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ Print("method_decl -> STATIC visibility_modifier VOID_KW IDENTIFIER"); }
-//           | 	visibility_modifier IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'					{ Print("constructor_decl -> visibility_modifier IDENTIFIER"); }
-//;
-
-constructor_decl: 	visibility_modifier class_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("constructor_decl -> visibility_modifier class_name"); }
-;
-
-method_decl: visibility_modifier type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'    		{ Print("method_decl -> visibility_modifier type IDENTIFIER"); }
-		   | visibility_modifier VOID_KW method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'   		{ Print("method_decl -> visibility_modifier VOID_KW IDENTIFIER"); }
-           | visibility_modifier STATIC type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("method_decl -> visibility_modifier STATIC type IDENTIFIER"); }
-           | visibility_modifier STATIC VOID_KW method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ Print("method_decl -> visibility_modifier STATIC VOID_KW IDENTIFIER"); }
-           | STATIC visibility_modifier type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("method_decl -> STATIC visibility_modifier type IDENTIFIER"); }
-           | STATIC visibility_modifier VOID_KW method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'	{ Print("method_decl -> STATIC visibility_modifier VOID_KW IDENTIFIER"); }
-;
-
-
-//constructor_decl: 	visibility_modifier IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'		{ Print("constructor_decl -> visibility_modifier IDENTIFIER"); }
-//;
-
-
-// Статический конструктор
-static_constructor_decl: STATIC class_name '(' ')' '{' stmt_seq_optional '}' 
-    { Print("STATIC IDENTIFIER"); }
-;
-
-// Деструктор
-destructor_decl: TILDE class_name '(' ')' '{' stmt_seq_optional '}' 
-    { Print("TILDE IDENTIFIER"); }
+stmt_seq_optional: /* empty */       { printf("stmt_seq_optional -> empty\n"); }
+                 | stmt_seq          { printf("stmt_seq_optional -> stmt_seq\n"); }
 ;
 
 // ============================================================================
-// ПОЛЯ КЛАССА
+// 5) ПЕРЕЧИСЛЯЕМЫЙ ТИП ДАННЫХ (ENUM)
 // ============================================================================
 
-field_decl: visibility_modifier var_decl ';'              { Print("field_decl -> visibility_modifier var_decl ;"); }
-          | visibility_modifier var_decl_with_init ';'    { Print("field_decl -> visibility_modifier var_decl_with_init ;"); }
-;
-    
-// ============================================================================
-// ЧЛЕНЫ КЛАССА
-// ============================================================================
-
-class_members: method_decl                                { Print("class_members -> method_decl"); }
-             | field_decl                                 { Print("class_members -> field_decl"); }
-             | operator_overload                          { Print("class_members -> operator_overload"); }
-             | constructor_decl                           { Print("class_members -> constructor_decl"); }
-             | static_constructor_decl                    { Print("class_members -> static_constructor_decl"); }
-             | destructor_decl                            { Print("class_members -> destructor_decl"); }
-             | class_members method_decl                  { Print("class_members -> class_members method_decl"); }
-             | class_members field_decl                   { Print("class_members -> class_members field_decl"); }
-             | class_members operator_overload            { Print("class_members -> class_members operator_overload"); }
-             | class_members constructor_decl             { Print("class_members -> class_members constructor_decl"); }
-             | class_members static_constructor_decl      { Print("class_members -> class_members static_constructor_decl"); }
-             | class_members destructor_decl              { Print("class_members -> class_members destructor_decl"); }
+enumerators: IDENTIFIER                     { printf("enumerators -> IDENTIFIER\n"); }
+           | enumerators ',' IDENTIFIER     { printf("enumerators -> enumerators , IDENTIFIER\n"); }
 ;
 
-class_members_optional:                     { Print("class_members_optional -> empty"); }
-                         | class_members    { Print("class_members_optional -> class_members"); }
+enum_decl: PUBLIC ENUM class_name '{' enumerators '}'	{ printf("enum_decl -> PUBLIC ENUM class_name\n"); }
 ;
 
 // ============================================================================
-// СТРУКТУРЫ (типы значений)
+// 6) ИНТЕРПОЛИРОВАННЫЕ СТРОКИ
 // ============================================================================
 
-// Члены структуры (без наследования, без деструкторов)
-struct_members: field_decl                              { Print("struct_members -> field_decl"); }
-              | method_decl                             { Print("struct_members -> method_decl"); }
-              //| constructor_decl                        { Print("struct_members -> constructor_decl"); }
-              | static_constructor_decl                 { Print("struct_members -> static_constructor_decl"); }
-              | struct_members field_decl               { Print("struct_members -> struct_members field_decl"); }
-              | struct_members method_decl              { Print("struct_members -> struct_members method_decl"); }
-              //| struct_members constructor_decl         { Print("struct_members -> struct_members constructor_decl"); }
-              | struct_members static_constructor_decl  { Print("struct_members -> struct_members static_constructor_decl"); }
+interpolated_string: INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END	{ printf("interpolated_string -> INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END\n"); }
 ;
 
-struct_members_optional:                       { Print("struct_members_optional -> empty"); }
-                       | struct_members    { Print("struct_members_optional -> struct_members"); }
-;
-
-// Объявление структуры
-struct_decl: PUBLIC STRUCT class_name '{' struct_members_optional '}' 
-    { Print("public", $3); }
+interpolated_string_content: /* empty */     												{ printf("interpolated_string_content -> empty\n"); }
+						   | INTERPOLATED_STRING_TEXT interpolated_string_content    		{ printf("interpolated_string_content -> INTERPOLATED_STRING_TEXT interpolated_string_content\n"); }
+						   | INTERPOLATED_STRING_EXPR expr interpolated_string_content 		{ printf("interpolated_string_content -> INTERPOLATED_STRING_EXPR expr interpolated_string_content\n"); }
 ;
 
 // ============================================================================
-// ПЕРЕЧИСЛЕНИЯ (enum)
+// 7) СТРУКТУРЫ
 // ============================================================================
 
-enumerators: IDENTIFIER                     { Print("enumerators -> IDENTIFIER"); }
-            | enumerators ',' IDENTIFIER    { Print("enumerators -> enumerators , IDENTIFIER"); }
+struct_members: field_decl                              { printf("struct_members -> field_decl\n"); }
+			  | method_decl                             { printf("struct_members -> method_decl\n"); }
+		      | static_constructor_decl                 { printf("struct_members -> static_constructor_decl\n"); }
+		      | struct_members field_decl               { printf("struct_members -> struct_members field_decl\n"); }
+              | struct_members method_decl              { printf("struct_members -> struct_members method_decl\n"); }
+              | struct_members static_constructor_decl  { printf("struct_members -> struct_members static_constructor_decl\n"); }
 ;
 
-enum_decl: PUBLIC ENUM class_name '{' enumerators '}' 
-    { Print("public", $3); }
+field_decl: visibility_modifier var_decl ';' { printf("field_decl -> visibility_modifier var_decl ;\n"); }
 ;
 
-// ============================================================================
-// КЛАССЫ
-// ============================================================================
-
-class_decl: PUBLIC CLASS class_name '{' class_members_optional '}'                  { Print("PUBLIC CLASS class_name -> class_members_optional"); }
-          | PUBLIC CLASS class_name ':' using_arg '{' class_members_optional '}'    { Print("class_decl -> PUBLIC CLASS IDENTIFIER : using_arg { class_members_optional }"); }
-          | PUBLIC CLASS class_name ':' OBJECT '{' class_members_optional '}'       { Print("class_decl -> PUBLIC CLASS IDENTIFIER : OBJECT { class_members_optional }"); }
-;
-                
-// ============================================================================
-// ПРОСТРАНСТВА ИМЕН И USING
-// ============================================================================
-
-namespace_members: enum_decl                    { Print("namespace_members -> enum_decl"); }           
-                | class_decl                    { Print("namespace_members -> class_decl"); }           
-                | struct_decl                   { Print("namespace_members -> struct_decl"); } // Добавлены структуры
-                | namespace_members enum_decl   { Print("namespace_members -> namespace_members enum_decl"); }           
-                | namespace_members class_decl  { Print("namespace_members -> namespace_members class_decl"); }
-                | namespace_members struct_decl { Print("namespace_members -> namespace_members struct_decl"); }
+struct_members_optional: /* empty */           { printf("struct_members_optional -> empty\n"); }
+					   | struct_members        { printf("struct_members_optional -> struct_members\n"); }
 ;
 
-namespace_members_optional:                         { Print("namespace_members_optional -> empty"); }
-                            | namespace_members     { Print("namespace_members_optional -> namespace_members"); }
+struct_decl: PUBLIC STRUCT class_name '{' struct_members_optional '}'	{ printf("struct_decl -> PUBLIC STRUCT class_name\n"); }
 ;
-
-namespace_decl: NAMESPACE IDENTIFIER '{' namespace_members_optional '}' 
-    { Print("namespace_decl");  }
-;
-
-namespace_decl_seq: namespace_decl                      { Print("namespace_decl_seq -> namespace_decl"); }
-                   | namespace_decl_seq namespace_decl  { Print("namespace_decl_seq -> namespace_decl_seq namespace_decl"); }
-;
-
-using_arg: IDENTIFIER                   { Print("using_arg", $1); }
-         | using_arg '.' IDENTIFIER     { Print("using_arg . IDENTIFIER"); }
-;
-
-using_directive: USING using_arg ';'    { Print("using_directive", $2); }
-;
-
-using_directives:  using_directive                  { Print("using_directives -> using_directive"); }
-                | using_directives using_directive  { Print("using_directives -> using_directives using_directive"); }
-;
-
-using_directives_optional:                  { Print("using_directives_optional -> empty");  }
-                        | using_directives  { Print("using_directives_optional -> using_directives"); }
-;
-
-// ============================================================================
-// ИНТЕРПОЛИРОВАННЫЕ СТРОКИ
-// ============================================================================
-
-interpolated_string: INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END
-    { Print("interpolated_string -> INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END"); }
-;
-
-//interpolated_string_content: /* empty */                          { Print("interpolated_string_content -> empty"); }
-//                          | INTERPOLATED_STRING_TEXT              { Print("interpolated_string_content -> INTERPOLATED_STRING_TEXT"); }
-//                          | INTERPOLATED_STRING_EXPR expr         { Print("interpolated_string_content -> INTERPOLATED_STRING_EXPR expr"); }
-//                          | interpolated_string_content INTERPOLATED_STRING_TEXT      { Print("interpolated_string_content -> interpolated_string_content INTERPOLATED_STRING_TEXT"); }
-//                          | interpolated_string_content INTERPOLATED_STRING_EXPR expr { Print("interpolated_string_content -> interpolated_string_content INTERPOLATED_STRING_EXPR expr"); }
-//;
-
-interpolated_string_content:/* empty */ 	{ Print("interpolated_string_content -> empty"); }
-						   | INTERPOLATED_STRING_TEXT interpolated_string_content		{ Print("interpolated_string_content -> INTERPOLATED_STRING_TEXT interpolated_string_content"); }
-						   | INTERPOLATED_STRING_EXPR expr interpolated_string_content	{ Print("interpolated_string_content -> INTERPOLATED_STRING_EXPR expr interpolated_string_content"); }
-;
-
 
 %%
 
-#ifdef _MSC_VER
-#pragma warning( pop )
-#endif // _MSC_VER
+int main(int argc, char** argv) {
+    if (argc > 1) {
+        yyin = fopen(argv[1], "r");
+        if (!yyin) {
+            printf("Cannot open file %s\n", argv[1]);
+            return 1;
+        }
+    } else {
+        yyin = stdin;
+        printf("Enter C# code (Ctrl+D to end):\n");
+    }
+
+    if (yyparse() == 0) {
+        printf("=== Parsing completed successfully! ===\n");
+    }
+
+    if (yyin != stdin) fclose(yyin);
+    return 0;
+}

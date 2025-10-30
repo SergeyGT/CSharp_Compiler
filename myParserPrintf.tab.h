@@ -54,71 +54,76 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    LESS = 258,                    /* LESS  */
-    GREATER = 259,                 /* GREATER  */
-    EQUAL = 260,                   /* EQUAL  */
-    NOT_EQUAL = 261,               /* NOT_EQUAL  */
-    GREATER_OR_EQUAL = 262,        /* GREATER_OR_EQUAL  */
-    LESS_OR_EQUAL = 263,           /* LESS_OR_EQUAL  */
-    OR = 264,                      /* OR  */
-    AND = 265,                     /* AND  */
-    BITWISE_OR = 266,              /* BITWISE_OR  */
-    BITWISE_AND = 267,             /* BITWISE_AND  */
-    PLUS_ASSIGN = 268,             /* PLUS_ASSIGN  */
-    MINUS_ASSIGN = 269,            /* MINUS_ASSIGN  */
-    MULTIPLY_ASSIGN = 270,         /* MULTIPLY_ASSIGN  */
-    DIVISION_ASSIGN = 271,         /* DIVISION_ASSIGN  */
-    INCREMENT = 272,               /* INCREMENT  */
-    DECREMENT = 273,               /* DECREMENT  */
-    IDENTIFIER = 274,              /* IDENTIFIER  */
-    INTEGER = 275,                 /* INTEGER  */
-    FLOATING_POINT = 276,          /* FLOATING_POINT  */
-    FLOAT_LITERAL = 277,           /* FLOAT_LITERAL  */
-    STRING = 278,                  /* STRING  */
-    CHARACTER = 279,               /* CHARACTER  */
-    DECIMAL_LITERAL = 280,         /* DECIMAL_LITERAL  */
-    RETURN = 281,                  /* RETURN  */
-    IF = 282,                      /* IF  */
-    ELSE = 283,                    /* ELSE  */
-    WHILE = 284,                   /* WHILE  */
-    DO = 285,                      /* DO  */
-    FOR = 286,                     /* FOR  */
-    CHAR_KW = 287,                 /* CHAR_KW  */
-    INT_KW = 288,                  /* INT_KW  */
-    STRING_KW = 289,               /* STRING_KW  */
-    BOOL_KW = 290,                 /* BOOL_KW  */
-    FLOAT_KW = 291,                /* FLOAT_KW  */
-    DOUBLE_KW = 292,               /* DOUBLE_KW  */
-    DECIMAL_KW = 293,              /* DECIMAL_KW  */
-    VOID_KW = 294,                 /* VOID_KW  */
-    NEW = 295,                     /* NEW  */
-    NULL_KW = 296,                 /* NULL_KW  */
-    TRUE_KW = 297,                 /* TRUE_KW  */
-    FALSE_KW = 298,                /* FALSE_KW  */
-    PUBLIC = 299,                  /* PUBLIC  */
-    PROTECTED = 300,               /* PROTECTED  */
-    PRIVATE = 301,                 /* PRIVATE  */
-    INTERNAL = 302,                /* INTERNAL  */
-    PROTECTED_INTERNAL = 303,      /* PROTECTED_INTERNAL  */
-    STATIC = 304,                  /* STATIC  */
-    CLASS = 305,                   /* CLASS  */
-    STRUCT = 306,                  /* STRUCT  */
-    ENUM = 307,                    /* ENUM  */
-    USING = 308,                   /* USING  */
-    NAMESPACE = 309,               /* NAMESPACE  */
-    FOREACH = 310,                 /* FOREACH  */
-    IN_KW = 311,                   /* IN_KW  */
-    OBJECT = 312,                  /* OBJECT  */
-    OPERATOR = 313,                /* OPERATOR  */
-    VAR = 314,                     /* VAR  */
-    TILDE = 315,                   /* TILDE  */
-    INTERPOLATED_STRING_START = 316, /* INTERPOLATED_STRING_START  */
-    INTERPOLATED_STRING_END = 317, /* INTERPOLATED_STRING_END  */
-    INTERPOLATED_STRING_TEXT = 318, /* INTERPOLATED_STRING_TEXT  */
-    INTERPOLATED_STRING_EXPR = 319, /* INTERPOLATED_STRING_EXPR  */
-    UNARY_MINUS = 320,             /* UNARY_MINUS  */
-    UNARY_PLUS = 321,              /* UNARY_PLUS  */
-    LOWER_THAN_ELSE = 322          /* LOWER_THAN_ELSE  */
+    IDENTIFIER = 258,              /* IDENTIFIER  */
+    INTEGER = 259,                 /* INTEGER  */
+    FLOATING_POINT = 260,          /* FLOATING_POINT  */
+    FLOAT_LITERAL = 261,           /* FLOAT_LITERAL  */
+    STRING = 262,                  /* STRING  */
+    CHARACTER = 263,               /* CHARACTER  */
+    DECIMAL_LITERAL = 264,         /* DECIMAL_LITERAL  */
+    BOOL_KW = 265,                 /* BOOL_KW  */
+    FLOAT_KW = 266,                /* FLOAT_KW  */
+    DOUBLE_KW = 267,               /* DOUBLE_KW  */
+    DECIMAL_KW = 268,              /* DECIMAL_KW  */
+    NULL_KW = 269,                 /* NULL_KW  */
+    TRUE_KW = 270,                 /* TRUE_KW  */
+    FALSE_KW = 271,                /* FALSE_KW  */
+    PUBLIC = 272,                  /* PUBLIC  */
+    PROTECTED = 273,               /* PROTECTED  */
+    PRIVATE = 274,                 /* PRIVATE  */
+    INTERNAL = 275,                /* INTERNAL  */
+    PROTECTED_INTERNAL = 276,      /* PROTECTED_INTERNAL  */
+    STATIC = 277,                  /* STATIC  */
+    STRUCT = 278,                  /* STRUCT  */
+    ENUM = 279,                    /* ENUM  */
+    TILDE = 280,                   /* TILDE  */
+    INTERPOLATED_STRING_START = 281, /* INTERPOLATED_STRING_START  */
+    INTERPOLATED_STRING_END = 282, /* INTERPOLATED_STRING_END  */
+    INTERPOLATED_STRING_TEXT = 283, /* INTERPOLATED_STRING_TEXT  */
+    INTERPOLATED_STRING_EXPR = 284, /* INTERPOLATED_STRING_EXPR  */
+    INT_TYPE = 285,                /* INT_TYPE  */
+    FLOAT_TYPE = 286,              /* FLOAT_TYPE  */
+    DOUBLE_TYPE = 287,             /* DOUBLE_TYPE  */
+    BOOL_TYPE = 288,               /* BOOL_TYPE  */
+    CHAR_TYPE = 289,               /* CHAR_TYPE  */
+    STRING_TYPE = 290,             /* STRING_TYPE  */
+    VOID = 291,                    /* VOID  */
+    CLASS = 292,                   /* CLASS  */
+    NEW = 293,                     /* NEW  */
+    THIS = 294,                    /* THIS  */
+    NAMESPACE = 295,               /* NAMESPACE  */
+    IF = 296,                      /* IF  */
+    ELSE = 297,                    /* ELSE  */
+    WHILE = 298,                   /* WHILE  */
+    FOR = 299,                     /* FOR  */
+    RETURN = 300,                  /* RETURN  */
+    BREAK = 301,                   /* BREAK  */
+    CONTINUE = 302,                /* CONTINUE  */
+    CHAR_LITERAL = 303,            /* CHAR_LITERAL  */
+    BOOL_LITERAL_TRUE = 304,       /* BOOL_LITERAL_TRUE  */
+    BOOL_LITERAL_FALSE = 305,      /* BOOL_LITERAL_FALSE  */
+    INTEGER_LITERAL = 306,         /* INTEGER_LITERAL  */
+    DOUBLE_LITERAL = 307,          /* DOUBLE_LITERAL  */
+    LESS_EQUAL = 308,              /* LESS_EQUAL  */
+    GREATER_EQUAL = 309,           /* GREATER_EQUAL  */
+    PLUS_ASSIGN = 310,             /* PLUS_ASSIGN  */
+    MINUS_ASSIGN = 311,            /* MINUS_ASSIGN  */
+    MULTIPLY_ASSIGN = 312,         /* MULTIPLY_ASSIGN  */
+    DIVISION_ASSIGN = 313,         /* DIVISION_ASSIGN  */
+    INCREMENT = 314,               /* INCREMENT  */
+    DECREMENT = 315,               /* DECREMENT  */
+    LESS = 316,                    /* LESS  */
+    GREATER = 317,                 /* GREATER  */
+    EQUAL = 318,                   /* EQUAL  */
+    NOT_EQUAL = 319,               /* NOT_EQUAL  */
+    GREATER_OR_EQUAL = 320,        /* GREATER_OR_EQUAL  */
+    LESS_OR_EQUAL = 321,           /* LESS_OR_EQUAL  */
+    OR = 322,                      /* OR  */
+    AND = 323,                     /* AND  */
+    BITWISE_OR = 324,              /* BITWISE_OR  */
+    BITWISE_AND = 325,             /* BITWISE_AND  */
+    UNARY_MINUS = 326,             /* UNARY_MINUS  */
+    UNARY_PLUS = 327               /* UNARY_PLUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -127,7 +132,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 32 "myParserPrintf.y"
+#line 40 "myParserPrintf.y"
 
     int _integer;
     char* _string;
@@ -135,52 +140,41 @@ union YYSTYPE
     double _floatingPoint;
     float _floatValue;
     char _character;
+	int _bool;
+	
+	int bool_value;
+    int int_value; 
+    double double_value;
 
     struct AccessExpr* _accessExpr;
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
-    enum class StandardType _standardType;
-    struct StandardArrayType* _standardArrayType;
+    enum StandardType _standardType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
-    struct WhileNode* _while;
-    struct DoWhileNode* _doWhile;
-    struct ForNode* _for;
-    struct ForEachNode* _foreach;
     struct StmtSeqNode* _stmtSeq;
-    struct IfNode* _if;
     struct StmtNode* _stmt;
     
-    enum class VisibilityModifier _visibiltyModifier;
+    enum VisibilityModifier _visibiltyModifier;
     struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
     struct MethodDeclNode* _methodDecl;
     struct ConstructorDeclNode* _constructorDecl;
     struct DestructorDeclNode* _destructorDecl;
-    struct ClassMembersNode* _classMembers;
-    struct ClassDeclNode* _classDecl;
-    struct StructDeclNode* _structDecl;
 
     struct IdentifierList* _enumerators;
     struct EnumDeclNode* _enumDecl;
-
-    struct IdentifierList* _usingArg;
-    struct NamespaceMembersNode* _namespaceMembers;
-    struct NamespaceDeclNode* _namespaceDecl;
-    struct UsingDirectiveNode* _usingDirective;
-    struct UsingDirectives* _usingDirectives;
-    struct NamespaceDeclSeq* _namespaceDeclSeq;
     
     struct InterpolatedStringNode* _interpolatedString;
     struct StructMembersNode* _structMembers;
-	
-	//struct QualifiedTypeName* _qualifiedTypeName;
-	struct ClassNameNode* _className;
+    struct StructDeclNode* _structDecl;
+    
+    struct ClassNameNode* _className;
     struct MethodNameNode* _methodName;
 
-#line 184 "myParserPrintf.tab.h"
+#line 178 "myParserPrintf.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
