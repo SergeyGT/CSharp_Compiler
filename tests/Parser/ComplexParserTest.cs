@@ -1,11 +1,14 @@
-namespace MyApp {
-    interface ILogger {
-        void Log(string message);
+namespace MyApp {    
+
+    interface IComplexParserTest
+    {
+        void MyTest(int x, int y);
     }
-    
-    class Program {
-        static void Main() {
-            Console.WriteLine("Hello");
+    class Program 
+    {
+        int y = 0;
+        void Main() {
+            Console.WriteLine(y);
         }
     }
 }

@@ -4,9 +4,12 @@
 
 extern int yylex(void);
 extern FILE* yyin;
+extern int yylineno;
+extern char* yytext;
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Syntax Error: %s\n", s);
+    fprintf(stderr, "Syntax Error at line %d near '%s': %s\n", yylineno, yytext, s);
+    fprintf(stderr, "DEBUG PARSER: Current token: %s\n", yytext); // ДОБАВЬ ЭТУ СТРОКУ
 }
 %}
 
@@ -17,29 +20,43 @@ void yyerror(const char *s) {
     char* string_value;
     char char_value;
     int bool_value;
+    int type_value;
 }
 
+// Literals
 %token <int_value> INTEGER_LITERAL
 %token <float_value> FLOAT_LITERAL  
 %token <double_value> DOUBLE_LITERAL
+%token <double_value> DECIMAL_LITERAL
 %token <string_value> STRING_LITERAL
 %token <char_value> CHAR_LITERAL
 %token <bool_value> BOOL_LITERAL_TRUE BOOL_LITERAL_FALSE
 %token <string_value> IDENTIFIER
 
-%token IF ELSE WHILE FOR RETURN BREAK CONTINUE
-%token CLASS PUBLIC PRIVATE STATIC VOID NEW THIS
-%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VAR_TYPE
-%token AND OR EQUAL NOT_EQUAL LESS_EQUAL GREATER_EQUAL
+%type <type_value> type return_type
 
-// ДОБАВЛЯЕМ ВСЕ НЕДОСТАЮЩИЕ ТОКЕНЫ
-%token NAMESPACE USING VAR OUT REF INTERNAL
-%token STRUCT ENUM INTERFACE ABSTRACT SEALED VIRTUAL OVERRIDE BASE
-%token SWITCH CASE DEFAULT GOTO
+// Operators
+%token PLUSPLUS MINUSMINUS 
+%token OR_ASSIGNMENT NULL_COALESCE SCOPE
+%token AND OR EQUAL NOT_EQUAL LESS_EQUAL GREATER_EQUAL
 %token PLUS_ASSIGNMENT MINUS_ASSIGNMENT MUL_ASSIGNMENT DIV_ASSIGNMENT MOD_ASSIGNMENT
+
+// Keywords
+%token IF ELSE WHILE FOR RETURN BREAK CONTINUE FOREACH DO
+%token CLASS STRUCT ENUM INTERFACE 
+%token PUBLIC PRIVATE INTERNAL PROTECTED 
+%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VAR_TYPE VOID_TYPE DECIMAL_TYPE
+%token NEW THIS
+%token OUT REF
+%token NAMESPACE USING 
+%token ABSTRACT STATIC SEALED VIRTUAL OVERRIDE BASE
+%token SWITCH CASE DEFAULT GOTO
 %token NULL_LITERAL CONSOLE_METHOD OPERATOR
 
+// Precedence
 %nonassoc LOWEST
+%nonassoc THEN
+%nonassoc ELSE
 %right '='
 %left OR
 %left AND
@@ -56,140 +73,316 @@ void yyerror(const char *s) {
 %%
 
 program: 
-    | program namespace_declaration { printf(" Found namespace\n"); }
-    | program using_directive { printf(" Found using directive\n"); }
-    | program class_declaration { printf(" Found class declaration\n"); }
-    | program interface_declaration { printf(" Found interface declaration\n"); }
-    | program statement { printf(" Found statement\n"); }
+    | program top_level_declaration
+    ;
+
+top_level_declaration:
+    namespace_declaration
+    | using_directive  
+    | type_declaration
+    | field_declaration
+    | method_declaration
+    | statement
     ;
 
 namespace_declaration: 
-    NAMESPACE IDENTIFIER '{' program '}' { printf(" Namespace: %s\n", $2); }
+    NAMESPACE IDENTIFIER '{' namespace_body '}' 
+    { printf("Namespace: %s\n", $2); }
+    ;
+
+namespace_body:
+    | namespace_body using_directive
+    | namespace_body type_declaration
+    ;
+
+type_declaration:
+    class_declaration
+    | interface_declaration
     ;
 
 using_directive: 
-    USING IDENTIFIER ';' { printf(" Using: %s\n", $2); }
-    | USING IDENTIFIER '=' IDENTIFIER ';' { printf(" Using alias: %s = %s\n", $2, $4); }
+    USING IDENTIFIER ';' 
+    { printf("Using: %s\n", $2); }
+    | USING IDENTIFIER '=' IDENTIFIER ';' 
+    { printf("Using alias: %s = %s\n", $2, $4); }
     ;
 
-class_declaration: CLASS IDENTIFIER '{' class_members '}' ';'{ printf(" Class: %s\n", $2); }
+// Class declarations
+class_declaration: 
+    CLASS IDENTIFIER '{' class_body '}' 
+    { printf("Class: %s\n", $2); }
     ;
 
-class_members:
-    | class_members class_member { printf(" Default class member\n"); }
-    | STATIC method_declaration { printf(" Static method class member\n"); }
-    | STATIC field_declaration { printf(" Static field class member\n"); }
+class_body:
+    | class_body class_member
     ;
 
-class_member: field_declaration { printf(" Field declaration\n"); }
-    | method_declaration { printf(" Method declaration\n"); }
+class_member: 
+    field_declaration
+    | method_declaration  
+    | constructor_declaration
+    | static_member_declaration
     ;
 
-field_declaration: type IDENTIFIER ';' { printf(" Field: %s\n", $2); }
-    | type IDENTIFIER '=' expression ';' { printf(" Field with init: %s\n", $2); }
-    | VAR IDENTIFIER '=' expression ';' { printf(" Implicit var: %s\n", $2); }
+static_member_declaration:
+    STATIC field_declaration
+    { printf("Static field\n"); }
+    | STATIC method_declaration
+    { printf("Static method\n"); }
     ;
 
-type: INT_TYPE { printf(" Type: int\n"); }
-    | FLOAT_TYPE { printf(" Type: float\n"); }
-    | DOUBLE_TYPE { printf(" Type: double\n"); }
-    | BOOL_TYPE { printf(" Type: bool\n"); }
-    | CHAR_TYPE { printf(" Type: char\n"); }
-    | STRING_TYPE { printf(" Type: string\n"); }
-    | VOID { printf(" Type: void\n"); }
+constructor_declaration:
+    access_modifier IDENTIFIER '(' ')' block
+    { printf("Constructor: %s\n", $2); }
+    | access_modifier IDENTIFIER '(' parameter_list ')' block
+    { printf("Constructor with params: %s\n", $2); }
     ;
 
-method_declaration: type IDENTIFIER '(' ')' block { printf(" Method: %s\n", $2); }
-    | VOID IDENTIFIER '(' ')' block { printf(" Method: void %s()\n", $2); }
-    | type IDENTIFIER '(' parameter_list ')' block { printf(" Method with params: %s\n", $2); }
-    | VOID IDENTIFIER '(' parameter_list ')' block { printf(" Void method with params: %s\n", $2); }
+access_modifier:
+    /* empty */ 
+    { printf("Default access\n"); }
+    | PUBLIC 
+    { printf("Public\n"); }
+    | PRIVATE 
+    { printf("Private\n"); }
+    | PROTECTED 
+    { printf("Protected\n"); }
+    | INTERNAL 
+    { printf("Internal\n"); }
+    ;
+
+field_declaration: 
+    access_modifier type IDENTIFIER ';' 
+    { printf("Field: %s\n", $3); }
+    | access_modifier type IDENTIFIER '=' expression ';'
+    { printf("Initialized field: %s\n", $3); }
+    | access_modifier VAR_TYPE IDENTIFIER '=' expression ';'
+    { printf("Var field: %s\n", $3); }
+    ;
+
+type:
+    INT_TYPE { printf("int "); $$ = 1; }
+    | FLOAT_TYPE { printf("float "); $$ = 2; }
+    | DOUBLE_TYPE { printf("double "); $$ = 3; }
+    | BOOL_TYPE { printf("bool "); $$ = 4; }
+    | CHAR_TYPE { printf("char "); $$ = 5; }
+    | STRING_TYPE { printf("string "); $$ = 6; }
+    ;
+
+return_type:
+    type { $$ = $1; }
+    | VOID_TYPE { printf("void "); $$ = 0; }
+    ;
+
+// Method declarations  
+method_declaration: 
+    return_type IDENTIFIER '(' ')' block
+    { printf("Method: %s\n", $2); }
+    | return_type IDENTIFIER '(' parameter_list ')' block
+    { printf("Method with params: %s\n", $2); }
     ;
 
 parameter_list:
-    | parameter
+    parameter
     | parameter_list ',' parameter
     ;
 
 parameter:
-    type IDENTIFIER { printf(" Parameter: %s\n", $2); }
+    type IDENTIFIER 
+    { printf("Parameter: %s\n", $2); }
     ;
 
-
+// Interface declarations
 interface_declaration: 
-    INTERFACE IDENTIFIER '{' interface_members '}' ';' { printf(" Interface: %s\n", $2); }
+    INTERFACE IDENTIFIER '{' interface_body '}' ';'
+    { printf("Interface: %s\n", $2); }
     ;
 
-interface_members:
-    | interface_members interface_member
+interface_body:
+    | interface_body interface_member
     ;
 
 interface_member:
-    type IDENTIFIER '(' parameter_list ')' ';' { printf(" Interface method: %s\n", $2); }
+    return_type IDENTIFIER '(' parameter_list ')' ';'
+    { printf("Interface method: %s\n", $2); }
+    ;
+
+// Statements
+block: 
+    '{' statement_list '}' 
+    { printf("Block\n"); }
+    ;
+
+statement_list:
+    | statement_list statement
+    ;
+
+statement: 
+    expression_statement
+    | local_variable_declaration
+    | if_statement 
+    | while_statement 
+    | return_statement 
+    | block 
+    ;
+
+expression_statement:
+    expression ';' 
+    { printf("Expression statement\n"); }
+    ;
+
+local_variable_declaration:
+    type IDENTIFIER ';'
+    { printf("Local variable: %s\n", $2); }
+    | type IDENTIFIER '=' expression ';'
+    { printf("Initialized local variable: %s\n", $2); }
+    | VAR_TYPE IDENTIFIER '=' expression ';'
+    { printf("Var local variable: %s\n", $2); }
+    ;
+
+if_statement: 
+    IF '(' expression ')' statement %prec THEN
+    { printf("If\n"); }
+    | IF '(' expression ')' statement ELSE statement 
+    { printf("If-else\n"); }
+    ;
+
+while_statement: 
+    WHILE '(' expression ')' statement 
+    { printf("While\n"); }
+    ;
+
+return_statement: 
+    RETURN ';' 
+    { printf("Return void\n"); }
+    | RETURN expression ';' 
+    { printf("Return value\n"); }
+    ;
+
+// Expressions
+expression: 
+    assignment_expression
+    ;
+
+assignment_expression:
+    conditional_expression
+    | IDENTIFIER '=' expression
+    { printf("Assignment\n"); }
+    ;
+
+conditional_expression:
+    logical_or_expression
+    ;
+
+logical_or_expression:
+    logical_and_expression
+    | logical_or_expression OR logical_and_expression
+    { printf("Logical OR\n"); }
+    ;
+
+logical_and_expression:
+    equality_expression
+    | logical_and_expression AND equality_expression
+    { printf("Logical AND\n"); }
+    ;
+
+equality_expression:
+    relational_expression
+    | equality_expression EQUAL relational_expression
+    { printf("Equals\n"); }
+    | equality_expression NOT_EQUAL relational_expression
+    { printf("Not equals\n"); }
+    ;
+
+relational_expression:
+    additive_expression
+    | relational_expression '<' additive_expression
+    { printf("Less than\n"); }
+    | relational_expression '>' additive_expression
+    { printf("Greater than\n"); }
+    | relational_expression LESS_EQUAL additive_expression
+    { printf("Less or equal\n"); }
+    | relational_expression GREATER_EQUAL additive_expression
+    { printf("Greater or equal\n"); }
+    ;
+
+additive_expression:
+    multiplicative_expression
+    | additive_expression '+' multiplicative_expression
+    { printf("Addition\n"); }
+    | additive_expression '-' multiplicative_expression
+    { printf("Subtraction\n"); }
+    ;
+
+multiplicative_expression:
+    unary_expression
+    | multiplicative_expression '*' unary_expression
+    { printf("Multiplication\n"); }
+    | multiplicative_expression '/' unary_expression
+    { printf("Division\n"); }
+    ;
+
+unary_expression:
+    postfix_expression
+    | '-' unary_expression %prec UMINUS
+    { printf("Unary minus\n"); }
+    | '!' unary_expression
+    { printf("Logical NOT\n"); }
+    ;
+
+postfix_expression:
+    primary_expression
+    | member_expression  // ДОБАВЬТЕ ЭТУ СТРОКУ
+    | postfix_expression '.' IDENTIFIER
+    { printf("Member access: %s\n", $3); }
+    | postfix_expression '(' argument_list ')'
+    { printf("Method call\n"); }
+    ;
+
+member_expression:
+    IDENTIFIER '.' IDENTIFIER
+    { printf("Member access: %s.%s\n", $1, $3); }
+    | member_expression '.' IDENTIFIER
+    { printf("Member access: %s\n", $3); }
+    | member_expression '(' argument_list ')'
+    { printf("Method call\n"); }
+    ;
+
+primary_expression:
+    IDENTIFIER 
+    { printf("Identifier: %s\n", $1); }
+    | INTEGER_LITERAL 
+    { printf("Integer: %d\n", $1); }
+    | FLOAT_LITERAL 
+    { printf("Float: %f\n", $1); }
+    | DOUBLE_LITERAL 
+    { printf("Double: %f\n", $1); }
+    | DECIMAL_LITERAL 
+    { printf("Decimal: %f\n", $1); }
+    | STRING_LITERAL 
+    { printf("String: %s\n", $1); }  // УБЕДИСЬ ЧТО ЭТО ЕСТЬ
+    | CHAR_LITERAL 
+    { printf("Char: %c\n", $1); }
+    | BOOL_LITERAL_TRUE 
+    { printf("Boolean: true\n"); }
+    | BOOL_LITERAL_FALSE 
+    { printf("Boolean: false\n"); }
+    | THIS 
+    { printf("This\n"); }
+    | '(' expression ')'
+    { printf("Parenthesized expression\n"); }
     ;
 
 
-block: '{' statements '}' { printf(" Block\n"); }
+
+argument_list:
+    /* empty */
+    { printf("Empty arguments\n"); }
+    | expression_list
     ;
 
-statements:
-    | statements statement { printf(" Statement in block\n"); }
-    ;
-
-statement: expression ';' { printf(" Expression statement\n"); }
-    | if_statement { printf(" If statement\n"); }
-    | while_statement { printf(" While statement\n"); }
-    | return_statement { printf(" Return statement\n"); }
-    | block { printf(" Block statement\n"); }
-    ;
-
-if_statement: IF '(' expression ')' statement { printf(" If statement\n"); }
-    | IF '(' expression ')' statement ELSE statement { printf(" If-else statement\n"); }
-    ;
-
-while_statement: WHILE '(' expression ')' statement { printf(" While statement\n"); }
-    ;
-
-return_statement: RETURN ';' { printf(" Return;\n"); }
-    | RETURN expression ';' { printf(" Return with value\n"); }
-    ;
-
-expression: primary { printf(" Primary expression\n"); }
-    | expression '+' expression { printf(" Addition\n"); }
-    | expression '-' expression { printf(" Subtraction\n"); }
-    | expression '*' expression { printf(" Multiplication\n"); }
-    | expression '/' expression { printf(" Division\n"); }
-    | expression '<' expression { printf(" Less than\n"); }
-    | expression '>' expression { printf(" Greater than\n"); }
-    | expression EQUAL expression { printf(" Equals\n"); }
-    | expression NOT_EQUAL expression { printf(" Not equals\n"); }
-    | expression AND expression { printf(" Logical AND\n"); }
-    | expression OR expression { printf(" Logical OR\n"); }
-    | expression '=' expression { printf(" Assignment\n"); }
-    | '!' expression { printf(" Logical NOT\n"); }
-    | '-' expression %prec UMINUS { printf(" Unary minus\n"); }
-    | NEW type '[' expression ']' { printf(" New array\n"); }
-    | NEW IDENTIFIER '(' ')' { printf(" New object: %s\n", $2); }
-    | expression '?' '.' IDENTIFIER { printf(" Null-conditional access: %s\n", $4); }
-    | expression '?' '[' expression ']' { printf(" Null-conditional index\n"); }
-    ;
-
-primary: IDENTIFIER { printf(" Identifier: %s\n", $1); }
-    | INTEGER_LITERAL { printf(" Integer: %d\n", $1); }
-    | STRING_LITERAL { printf(" String: %s\n", $1); }
-    | CHAR_LITERAL { printf(" Char: %c\n", $1); }
-    | BOOL_LITERAL_TRUE { printf(" Boolean: true\n"); }
-    | BOOL_LITERAL_FALSE { printf(" Boolean: false\n"); }
-    | THIS { printf(" This\n"); }
-    | '(' expression ')' { printf(" Parenthesized expression\n"); }
-    ;
-
-argument_list: 
-    | expression
-    | argument_list ',' expression
-    ;
-
-expression_list: 
-    | expression
+expression_list:
+    expression
     | expression_list ',' expression
     ;
 
