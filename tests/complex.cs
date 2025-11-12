@@ -13,3 +13,18 @@ public struct ComplexNumber {
 }
 
 result = ComplexNumber.Add(num1, num2);
+
+
+public struct ComplexNumber {
+    public double real;
+    public double imaginary;
+    
+    public ComplexNumber(double r, double i) {
+        real = r;
+        imaginary = i;
+    }
+    
+    public ComplexNumber Add(ComplexNumber a, ComplexNumber b) {
+        return new ComplexNumber(a.real + b.real, a.imaginary + b.imaginary);
+    }
+}

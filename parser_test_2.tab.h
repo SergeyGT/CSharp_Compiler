@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_MYPARSERPRINTF_TAB_H_INCLUDED
-# define YY_YY_MYPARSERPRINTF_TAB_H_INCLUDED
+#ifndef YY_YY_PARSER_TEST_2_TAB_H_INCLUDED
+# define YY_YY_PARSER_TEST_2_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -65,42 +65,41 @@ extern int yydebug;
     FLOAT_KW = 266,                /* FLOAT_KW  */
     DOUBLE_KW = 267,               /* DOUBLE_KW  */
     DECIMAL_KW = 268,              /* DECIMAL_KW  */
-    INT_KW = 269,                  /* INT_KW  */
-    CLASS_KW = 270,                /* CLASS_KW  */
-    NULL_KW = 271,                 /* NULL_KW  */
-    TRUE_KW = 272,                 /* TRUE_KW  */
-    FALSE_KW = 273,                /* FALSE_KW  */
-    PUBLIC = 274,                  /* PUBLIC  */
-    PROTECTED = 275,               /* PROTECTED  */
-    PRIVATE = 276,                 /* PRIVATE  */
-    INTERNAL = 277,                /* INTERNAL  */
-    PROTECTED_INTERNAL = 278,      /* PROTECTED_INTERNAL  */
-    STATIC = 279,                  /* STATIC  */
-    STRUCT = 280,                  /* STRUCT  */
-    ENUM = 281,                    /* ENUM  */
-    TILDE = 282,                   /* TILDE  */
-    INTERPOLATED_STRING_START = 283, /* INTERPOLATED_STRING_START  */
-    INTERPOLATED_STRING_END = 284, /* INTERPOLATED_STRING_END  */
-    INTERPOLATED_STRING_TEXT = 285, /* INTERPOLATED_STRING_TEXT  */
-    INTERPOLATED_STRING_EXPR = 286, /* INTERPOLATED_STRING_EXPR  */
-    PLUS_ASSIGN = 287,             /* PLUS_ASSIGN  */
-    MINUS_ASSIGN = 288,            /* MINUS_ASSIGN  */
-    MULTIPLY_ASSIGN = 289,         /* MULTIPLY_ASSIGN  */
-    DIVISION_ASSIGN = 290,         /* DIVISION_ASSIGN  */
-    INCREMENT = 291,               /* INCREMENT  */
-    DECREMENT = 292,               /* DECREMENT  */
-    LESS = 293,                    /* LESS  */
-    GREATER = 294,                 /* GREATER  */
-    EQUAL = 295,                   /* EQUAL  */
-    NOT_EQUAL = 296,               /* NOT_EQUAL  */
-    GREATER_OR_EQUAL = 297,        /* GREATER_OR_EQUAL  */
-    LESS_OR_EQUAL = 298,           /* LESS_OR_EQUAL  */
-    OR = 299,                      /* OR  */
-    AND = 300,                     /* AND  */
-    BITWISE_OR = 301,              /* BITWISE_OR  */
-    BITWISE_AND = 302,             /* BITWISE_AND  */
-    UNARY_MINUS = 303,             /* UNARY_MINUS  */
-    UNARY_PLUS = 304               /* UNARY_PLUS  */
+    NULL_KW = 269,                 /* NULL_KW  */
+    TRUE_KW = 270,                 /* TRUE_KW  */
+    FALSE_KW = 271,                /* FALSE_KW  */
+    PUBLIC = 272,                  /* PUBLIC  */
+    PROTECTED = 273,               /* PROTECTED  */
+    PRIVATE = 274,                 /* PRIVATE  */
+    INTERNAL = 275,                /* INTERNAL  */
+    PROTECTED_INTERNAL = 276,      /* PROTECTED_INTERNAL  */
+    STATIC = 277,                  /* STATIC  */
+    STRUCT = 278,                  /* STRUCT  */
+    ENUM = 279,                    /* ENUM  */
+    TILDE = 280,                   /* TILDE  */
+    INTERPOLATED_STRING_START = 281, /* INTERPOLATED_STRING_START  */
+    INTERPOLATED_STRING_END = 282, /* INTERPOLATED_STRING_END  */
+    INTERPOLATED_STRING_TEXT = 283, /* INTERPOLATED_STRING_TEXT  */
+    INTERPOLATED_STRING_EXPR = 284, /* INTERPOLATED_STRING_EXPR  */
+    INT_KW = 285,                  /* INT_KW  */
+    PLUS_ASSIGN = 286,             /* PLUS_ASSIGN  */
+    MINUS_ASSIGN = 287,            /* MINUS_ASSIGN  */
+    MULTIPLY_ASSIGN = 288,         /* MULTIPLY_ASSIGN  */
+    DIVISION_ASSIGN = 289,         /* DIVISION_ASSIGN  */
+    INCREMENT = 290,               /* INCREMENT  */
+    DECREMENT = 291,               /* DECREMENT  */
+    LESS = 292,                    /* LESS  */
+    GREATER = 293,                 /* GREATER  */
+    EQUAL = 294,                   /* EQUAL  */
+    NOT_EQUAL = 295,               /* NOT_EQUAL  */
+    GREATER_OR_EQUAL = 296,        /* GREATER_OR_EQUAL  */
+    LESS_OR_EQUAL = 297,           /* LESS_OR_EQUAL  */
+    OR = 298,                      /* OR  */
+    AND = 299,                     /* AND  */
+    BITWISE_OR = 300,              /* BITWISE_OR  */
+    BITWISE_AND = 301,             /* BITWISE_AND  */
+    UNARY_MINUS = 302,             /* UNARY_MINUS  */
+    UNARY_PLUS = 303               /* UNARY_PLUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -109,7 +108,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 40 "myParserPrintf.y"
+#line 37 "parser_test_2.y"
 
     int _integer;
     char* string_value;
@@ -117,42 +116,32 @@ union YYSTYPE
     double _floatingPoint;
     float _floatValue;
     char _character;
-	char char_value;
-	int _bool;
-	
-	int bool_value;
+    char char_value;
+    int _bool;
+    
+    int bool_value;
     int int_value; 
     double double_value;
 
     struct AccessExpr* _accessExpr;
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
-    
-    //enum StandardType _standardType;
     struct TypeNode* _type;
-    
     struct VarDeclNode* _varDecl;
     struct StmtSeqNode* _stmtSeq;
     struct StmtNode* _stmt;
-    
-    //enum VisibilityModifier _visibiltyModifier;
-    struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
-    struct MethodDeclNode* _methodDecl;
     struct ConstructorDeclNode* _constructorDecl;
     struct DestructorDeclNode* _destructorDecl;
-
     struct IdentifierList* _enumerators;
     struct EnumDeclNode* _enumDecl;
-    
     struct InterpolatedStringNode* _interpolatedString;
     struct StructMembersNode* _structMembers;
     struct StructDeclNode* _structDecl;
-    
     struct ClassNameNode* _className;
-    struct MethodNameNode* _methodName;
+    struct MemberDeclNode* _memberDecl;
 
-#line 156 "myParserPrintf.tab.h"
+#line 145 "parser_test_2.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -167,4 +156,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_MYPARSERPRINTF_TAB_H_INCLUDED  */
+#endif /* !YY_YY_PARSER_TEST_2_TAB_H_INCLUDED  */

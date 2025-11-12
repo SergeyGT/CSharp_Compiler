@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_MYPARSERPRINTF_TAB_H_INCLUDED
-# define YY_YY_MYPARSERPRINTF_TAB_H_INCLUDED
+#ifndef YY_YY_MYPARSERPRINTF_TEST_1_TAB_H_INCLUDED
+# define YY_YY_MYPARSERPRINTF_TEST_1_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -109,7 +109,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 40 "myParserPrintf.y"
+#line 41 "myParserPrintf_test_1.y"
 
     int _integer;
     char* string_value;
@@ -117,10 +117,9 @@ union YYSTYPE
     double _floatingPoint;
     float _floatValue;
     char _character;
-	char char_value;
-	int _bool;
-	
-	int bool_value;
+    int _bool;
+    
+    int bool_value;
     int int_value; 
     double double_value;
 
@@ -128,14 +127,12 @@ union YYSTYPE
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
-    //enum StandardType _standardType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
     struct StmtSeqNode* _stmtSeq;
     struct StmtNode* _stmt;
     
-    //enum VisibilityModifier _visibiltyModifier;
     struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
     struct MethodDeclNode* _methodDecl;
@@ -148,11 +145,13 @@ union YYSTYPE
     struct InterpolatedStringNode* _interpolatedString;
     struct StructMembersNode* _structMembers;
     struct StructDeclNode* _structDecl;
+    struct ClassDeclNode* _classDecl;
+    struct ClassMembersNode* _classMembers;
     
     struct ClassNameNode* _className;
     struct MethodNameNode* _methodName;
 
-#line 156 "myParserPrintf.tab.h"
+#line 155 "myParserPrintf_test_1.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -167,4 +166,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_MYPARSERPRINTF_TAB_H_INCLUDED  */
+#endif /* !YY_YY_MYPARSERPRINTF_TEST_1_TAB_H_INCLUDED  */

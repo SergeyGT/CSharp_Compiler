@@ -67,22 +67,21 @@
 
 
 /* First part of user prologue.  */
-#line 1 "myParserPrintf.y"
+#line 1 "myParserPrintf_test_1.y"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Определения enum
-enum StandardType { ST_FLOAT, ST_DOUBLE, ST_DECIMAL, ST_BOOL };
+enum StandardType { ST_FLOAT, ST_DOUBLE, ST_DECIMAL, ST_BOOL, ST_INT };
 enum VisibilityModifier { VM_PUBLIC, VM_PROTECTED, VM_PRIVATE, VM_INTERNAL, VM_PROTECTED_INTERNAL };
-
 
 extern int yylex(void);
 extern FILE* yyin;
+extern int yylineno;
 
-void yyerror(const char* s) {
-	 fprintf(stderr, "Syntax Error: %s\n", s);
-}
+void yyerror(const char* s);
 
 // Простые определения структур (заглушки)
 typedef struct { int dummy; } AccessExpr;
@@ -104,9 +103,11 @@ typedef struct { int dummy; } StructMembersNode;
 typedef struct { int dummy; } StructDeclNode;
 typedef struct { int dummy; } ClassNameNode;
 typedef struct { int dummy; } MethodNameNode;
+typedef struct { int dummy; } ClassDeclNode;
+typedef struct { int dummy; } ClassMembersNode;
 
 
-#line 110 "myParserPrintf.tab.c"
+#line 111 "myParserPrintf_test_1.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -129,7 +130,7 @@ typedef struct { int dummy; } MethodNameNode;
 #  endif
 # endif
 
-#include "myParserPrintf.tab.h"
+#include "myParserPrintf_test_1.tab.h"
 /* Symbol kind.  */
 enum yysymbol_kind_t
 {
@@ -189,48 +190,53 @@ enum yysymbol_kind_t
   YYSYMBOL_52_ = 52,                       /* '-'  */
   YYSYMBOL_53_ = 53,                       /* '*'  */
   YYSYMBOL_54_ = 54,                       /* '/'  */
-  YYSYMBOL_55_ = 55,                       /* '!'  */
-  YYSYMBOL_UNARY_MINUS = 56,               /* UNARY_MINUS  */
-  YYSYMBOL_UNARY_PLUS = 57,                /* UNARY_PLUS  */
-  YYSYMBOL_58_ = 58,                       /* '.'  */
-  YYSYMBOL_59_ = 59,                       /* ']'  */
-  YYSYMBOL_60_ = 60,                       /* '['  */
-  YYSYMBOL_61_ = 61,                       /* '('  */
-  YYSYMBOL_62_ = 62,                       /* ')'  */
-  YYSYMBOL_63_ = 63,                       /* ','  */
-  YYSYMBOL_64_ = 64,                       /* '{'  */
-  YYSYMBOL_65_ = 65,                       /* '}'  */
-  YYSYMBOL_66_ = 66,                       /* ';'  */
-  YYSYMBOL_YYACCEPT = 67,                  /* $accept  */
-  YYSYMBOL_program = 68,                   /* program  */
-  YYSYMBOL_program_element = 69,           /* program_element  */
-  YYSYMBOL_standard_type = 70,             /* standard_type  */
-  YYSYMBOL_access_expr = 71,               /* access_expr  */
-  YYSYMBOL_expr_seq = 72,                  /* expr_seq  */
-  YYSYMBOL_expr_seq_optional = 73,         /* expr_seq_optional  */
-  YYSYMBOL_expr = 74,                      /* expr  */
-  YYSYMBOL_visibility_modifier = 75,       /* visibility_modifier  */
-  YYSYMBOL_constructor_decl = 76,          /* constructor_decl  */
-  YYSYMBOL_static_constructor_decl = 77,   /* static_constructor_decl  */
-  YYSYMBOL_destructor_decl = 78,           /* destructor_decl  */
-  YYSYMBOL_class_name = 79,                /* class_name  */
-  YYSYMBOL_method_arguments = 80,          /* method_arguments  */
-  YYSYMBOL_method_arguments_optional = 81, /* method_arguments_optional  */
-  YYSYMBOL_method_decl = 82,               /* method_decl  */
-  YYSYMBOL_method_name = 83,               /* method_name  */
-  YYSYMBOL_var_decl = 84,                  /* var_decl  */
-  YYSYMBOL_type = 85,                      /* type  */
-  YYSYMBOL_stmt = 86,                      /* stmt  */
-  YYSYMBOL_stmt_seq = 87,                  /* stmt_seq  */
-  YYSYMBOL_stmt_seq_optional = 88,         /* stmt_seq_optional  */
-  YYSYMBOL_enumerators = 89,               /* enumerators  */
-  YYSYMBOL_enum_decl = 90,                 /* enum_decl  */
-  YYSYMBOL_interpolated_string = 91,       /* interpolated_string  */
-  YYSYMBOL_interpolated_string_content = 92, /* interpolated_string_content  */
-  YYSYMBOL_struct_members = 93,            /* struct_members  */
-  YYSYMBOL_field_decl = 94,                /* field_decl  */
-  YYSYMBOL_struct_members_optional = 95,   /* struct_members_optional  */
-  YYSYMBOL_struct_decl = 96                /* struct_decl  */
+  YYSYMBOL_55_ = 55,                       /* '%'  */
+  YYSYMBOL_56_ = 56,                       /* '!'  */
+  YYSYMBOL_UNARY_MINUS = 57,               /* UNARY_MINUS  */
+  YYSYMBOL_UNARY_PLUS = 58,                /* UNARY_PLUS  */
+  YYSYMBOL_59_ = 59,                       /* '.'  */
+  YYSYMBOL_60_ = 60,                       /* ']'  */
+  YYSYMBOL_61_ = 61,                       /* '['  */
+  YYSYMBOL_62_ = 62,                       /* '('  */
+  YYSYMBOL_63_ = 63,                       /* ')'  */
+  YYSYMBOL_64_ = 64,                       /* ','  */
+  YYSYMBOL_65_ = 65,                       /* '{'  */
+  YYSYMBOL_66_ = 66,                       /* '}'  */
+  YYSYMBOL_67_ = 67,                       /* ';'  */
+  YYSYMBOL_YYACCEPT = 68,                  /* $accept  */
+  YYSYMBOL_program = 69,                   /* program  */
+  YYSYMBOL_program_element = 70,           /* program_element  */
+  YYSYMBOL_standard_type = 71,             /* standard_type  */
+  YYSYMBOL_type = 72,                      /* type  */
+  YYSYMBOL_access_expr = 73,               /* access_expr  */
+  YYSYMBOL_expr_seq = 74,                  /* expr_seq  */
+  YYSYMBOL_expr_seq_optional = 75,         /* expr_seq_optional  */
+  YYSYMBOL_expr = 76,                      /* expr  */
+  YYSYMBOL_visibility_modifier = 77,       /* visibility_modifier  */
+  YYSYMBOL_class_members = 78,             /* class_members  */
+  YYSYMBOL_class_members_optional = 79,    /* class_members_optional  */
+  YYSYMBOL_class_decl = 80,                /* class_decl  */
+  YYSYMBOL_struct_members = 81,            /* struct_members  */
+  YYSYMBOL_struct_members_optional = 82,   /* struct_members_optional  */
+  YYSYMBOL_struct_decl = 83,               /* struct_decl  */
+  YYSYMBOL_field_decl_optional_static = 84, /* field_decl_optional_static  */
+  YYSYMBOL_field_decl = 85,                /* field_decl  */
+  YYSYMBOL_method_arguments = 86,          /* method_arguments  */
+  YYSYMBOL_method_arguments_optional = 87, /* method_arguments_optional  */
+  YYSYMBOL_method_decl = 88,               /* method_decl  */
+  YYSYMBOL_class_name = 89,                /* class_name  */
+  YYSYMBOL_method_name = 90,               /* method_name  */
+  YYSYMBOL_var_decl = 91,                  /* var_decl  */
+  YYSYMBOL_constructor_decl = 92,          /* constructor_decl  */
+  YYSYMBOL_static_constructor_decl = 93,   /* static_constructor_decl  */
+  YYSYMBOL_destructor_decl = 94,           /* destructor_decl  */
+  YYSYMBOL_stmt = 95,                      /* stmt  */
+  YYSYMBOL_stmt_seq = 96,                  /* stmt_seq  */
+  YYSYMBOL_stmt_seq_optional = 97,         /* stmt_seq_optional  */
+  YYSYMBOL_enumerators = 98,               /* enumerators  */
+  YYSYMBOL_enum_decl = 99,                 /* enum_decl  */
+  YYSYMBOL_interpolated_string = 100,      /* interpolated_string  */
+  YYSYMBOL_interpolated_string_content = 101 /* interpolated_string_content  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -558,16 +564,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  53
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   357
+#define YYLAST   398
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  67
+#define YYNTOKENS  68
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  30
+#define YYNNTS  34
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  98
+#define YYNRULES  113
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  174
+#define YYNSTATES  194
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   304
@@ -587,16 +593,16 @@ static const yytype_int8 yytranslate[] =
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    55,     2,     2,     2,     2,     2,     2,
-      61,    62,    53,    51,    63,    52,    58,    54,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,    66,
+       2,     2,     2,    56,     2,     2,     2,    55,     2,     2,
+      62,    63,    53,    51,    64,    52,    59,    54,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,    67,
       49,    48,    50,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    60,     2,    59,     2,     2,     2,     2,     2,     2,
+       2,    61,     2,    60,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    64,     2,    65,     2,     2,     2,     2,
+       2,     2,     2,    65,     2,    66,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -614,23 +620,25 @@ static const yytype_int8 yytranslate[] =
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
-      45,    46,    47,    56,    57
+      45,    46,    47,    57,    58
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   145,   145,   146,   149,   150,   151,   152,   153,   154,
-     155,   162,   163,   164,   165,   166,   169,   170,   171,   172,
-     173,   174,   175,   176,   177,   178,   179,   182,   183,   186,
-     187,   190,   191,   192,   193,   194,   195,   196,   197,   198,
-     199,   200,   201,   202,   203,   204,   205,   206,   207,   208,
-     209,   210,   211,   212,   213,   214,   215,   222,   223,   224,
-     225,   226,   233,   236,   239,   242,   249,   250,   253,   254,
-     257,   260,   263,   266,   267,   274,   275,   276,   279,   280,
-     283,   284,   291,   292,   295,   302,   305,   306,   307,   314,
-     315,   316,   317,   318,   319,   322,   325,   326,   329
+       0,   138,   138,   139,   142,   143,   144,   145,   146,   147,
+     148,   149,   156,   157,   158,   159,   160,   163,   164,   171,
+     172,   173,   174,   175,   176,   177,   178,   179,   180,   181,
+     182,   185,   186,   189,   190,   193,   194,   195,   196,   197,
+     198,   199,   200,   201,   202,   203,   204,   205,   206,   207,
+     208,   209,   210,   211,   212,   213,   214,   215,   216,   217,
+     218,   225,   226,   227,   228,   229,   236,   237,   238,   239,
+     240,   241,   242,   243,   246,   247,   250,   257,   258,   259,
+     260,   261,   262,   265,   266,   269,   276,   277,   280,   287,
+     288,   291,   292,   295,   298,   301,   304,   311,   314,   317,
+     324,   325,   326,   329,   330,   333,   334,   341,   342,   345,
+     352,   355,   356,   357
 };
 #endif
 
@@ -657,16 +665,18 @@ static const char *const yytname[] =
   "MULTIPLY_ASSIGN", "DIVISION_ASSIGN", "INCREMENT", "DECREMENT", "LESS",
   "GREATER", "EQUAL", "NOT_EQUAL", "GREATER_OR_EQUAL", "LESS_OR_EQUAL",
   "OR", "AND", "BITWISE_OR", "BITWISE_AND", "'='", "'<'", "'>'", "'+'",
-  "'-'", "'*'", "'/'", "'!'", "UNARY_MINUS", "UNARY_PLUS", "'.'", "']'",
-  "'['", "'('", "')'", "','", "'{'", "'}'", "';'", "$accept", "program",
-  "program_element", "standard_type", "access_expr", "expr_seq",
-  "expr_seq_optional", "expr", "visibility_modifier", "constructor_decl",
-  "static_constructor_decl", "destructor_decl", "class_name",
-  "method_arguments", "method_arguments_optional", "method_decl",
-  "method_name", "var_decl", "type", "stmt", "stmt_seq",
-  "stmt_seq_optional", "enumerators", "enum_decl", "interpolated_string",
-  "interpolated_string_content", "struct_members", "field_decl",
-  "struct_members_optional", "struct_decl", YY_NULLPTR
+  "'-'", "'*'", "'/'", "'%'", "'!'", "UNARY_MINUS", "UNARY_PLUS", "'.'",
+  "']'", "'['", "'('", "')'", "','", "'{'", "'}'", "';'", "$accept",
+  "program", "program_element", "standard_type", "type", "access_expr",
+  "expr_seq", "expr_seq_optional", "expr", "visibility_modifier",
+  "class_members", "class_members_optional", "class_decl",
+  "struct_members", "struct_members_optional", "struct_decl",
+  "field_decl_optional_static", "field_decl", "method_arguments",
+  "method_arguments_optional", "method_decl", "class_name", "method_name",
+  "var_decl", "constructor_decl", "static_constructor_decl",
+  "destructor_decl", "stmt", "stmt_seq", "stmt_seq_optional",
+  "enumerators", "enum_decl", "interpolated_string",
+  "interpolated_string_content", YY_NULLPTR
 };
 
 static const char *
@@ -676,12 +686,12 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-109)
+#define YYPACT_NINF (-124)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-73)
+#define YYTABLE_NINF (-97)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -690,24 +700,26 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-     115,  -109,  -109,  -109,  -109,  -109,  -109,  -109,  -109,     5,
-    -109,  -109,  -109,  -109,    58,    39,   181,   181,   181,   181,
-     181,   181,   141,  -109,    62,  -109,     6,   211,    11,  -109,
-    -109,  -109,  -109,  -109,  -109,  -109,  -109,    58,    58,  -109,
-      34,    39,   181,    46,  -109,  -109,  -109,  -109,  -109,   240,
-    -109,   141,    31,  -109,  -109,    94,   181,   181,   181,   181,
-     181,   181,   181,   181,   181,   181,   181,   181,   181,   181,
-     181,   181,   181,   181,   181,  -109,    40,  -109,  -109,  -109,
-    -109,  -109,  -109,     6,    41,    37,   103,    45,    51,    43,
-    -109,   265,  -109,  -109,  -109,  -109,    55,   288,   288,   288,
-     288,   102,   102,   102,   102,   303,   303,   303,   303,   288,
-     102,   102,    33,    33,  -109,  -109,   210,  -109,    59,    66,
-      14,   126,    75,  -109,   181,    67,    79,  -109,   145,   210,
-    -109,    58,   210,  -109,  -109,    14,  -109,    84,  -109,   -52,
-     141,    97,    99,   288,   210,    98,  -109,   101,   104,  -109,
-    -109,  -109,  -109,   161,  -109,   106,   181,  -109,  -109,   141,
-     108,   111,  -109,  -109,   288,   109,   141,   116,  -109,   110,
-     141,  -109,   117,  -109
+     136,  -124,  -124,  -124,  -124,  -124,  -124,  -124,  -124,  -124,
+    -124,  -124,  -124,  -124,     6,    -6,   218,   218,   218,   218,
+     218,   218,   177,  -124,    82,  -124,   -38,   243,   237,  -124,
+    -124,  -124,  -124,  -124,  -124,  -124,  -124,  -124,  -124,  -124,
+     -34,    -6,   218,     7,  -124,  -124,  -124,  -124,  -124,   271,
+    -124,   177,   -28,  -124,  -124,    36,   218,   218,   218,   218,
+     218,   218,   218,   218,   218,   218,   218,   218,   218,   218,
+     218,   218,   218,   218,   218,   218,  -124,  -124,  -124,  -124,
+    -124,  -124,     6,   114,     6,     6,  -124,    61,     3,    -1,
+       4,  -124,   297,  -124,  -124,  -124,  -124,     9,   321,   321,
+     321,   321,   205,   205,   205,   205,   337,   337,   337,   337,
+     321,   205,   205,   -23,   -23,  -124,  -124,  -124,    14,    66,
+    -124,     5,    15,    16,    17,    21,   114,  -124,    25,  -124,
+     218,   188,  -124,  -124,   374,    89,   114,    29,    31,  -124,
+     177,    32,    43,   321,   165,   188,    41,  -124,  -124,  -124,
+    -124,     6,   165,   374,    42,  -124,  -124,  -124,  -124,   -52,
+      48,   114,    47,    49,   218,  -124,  -124,  -124,  -124,  -124,
+    -124,    51,  -124,  -124,  -124,  -124,   113,  -124,    55,  -124,
+     177,  -124,   321,    58,  -124,   177,    56,    64,    69,  -124,
+     177,  -124,    71,  -124
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -715,40 +727,44 @@ static const yytype_int16 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,    23,    17,    18,    19,    20,    55,    21,    22,    57,
-      58,    59,    60,    61,     0,    86,     0,     0,     0,     0,
-       0,     0,    80,    75,     0,     2,    56,     0,     0,     8,
-       9,     7,     4,     6,    26,    10,     5,     0,     0,    65,
-       0,    86,     0,     0,    51,    52,    53,    54,    50,     0,
-      78,    81,     0,     1,     3,     0,     0,     0,     0,     0,
+       0,    27,    20,    21,    22,    23,    26,    24,    25,    61,
+      62,    63,    64,    65,     0,   111,     0,     0,     0,     0,
+       0,     0,   105,   100,     0,     2,    60,     0,     0,    11,
+       5,    88,    10,     7,     8,     9,     4,     6,    30,    94,
+       0,   111,     0,     0,    56,    57,    58,    59,    55,     0,
+     103,   106,     0,     1,     3,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,    76,    23,    14,    11,    12,
-      13,    15,    73,    74,     0,     0,     0,     0,     0,     0,
-      87,    86,    85,    16,    79,    77,    24,    36,    37,    38,
-      39,    42,    43,    45,    44,    47,    46,    49,    48,    35,
-      40,    41,    31,    32,    33,    34,    68,    95,    71,     0,
-      96,     0,     0,    88,    29,    69,     0,    66,     0,    68,
-      57,     0,     0,    91,    90,    97,    89,     0,    82,     0,
-      80,    30,     0,    27,     0,     0,    72,     0,     0,    94,
-      93,    92,    98,     0,    84,     0,     0,    25,    67,    80,
-       0,     0,    83,    64,    28,     0,    80,     0,    62,     0,
-      80,    70,     0,    63
+       0,     0,     0,     0,     0,     0,   101,    15,    12,    13,
+      14,    16,     0,     0,     0,     0,    17,     0,    18,     0,
+       0,   112,   111,   110,    19,   104,   102,    28,    41,    42,
+      43,    44,    47,    48,    50,    49,    52,    51,    54,    53,
+      40,    45,    46,    35,    36,    37,    38,    39,     0,     0,
+      18,     0,     0,     0,    95,     0,    91,    86,     0,   113,
+      33,    74,    96,    87,    83,     0,    91,    92,     0,    89,
+     105,    34,     0,    31,     0,    75,     0,    66,    67,    68,
+      69,     0,     0,    84,     0,    77,    78,    79,   107,     0,
+       0,     0,     0,     0,     0,    29,    70,    71,    72,    73,
+      76,     0,    80,    81,    82,    85,     0,   109,     0,    90,
+     105,    99,    32,     0,   108,   105,     0,     0,     0,    97,
+     105,    93,     0,    98
 };
 
 /* YYPGOTO[NTERM-NUM].  */
-static const yytype_int16 yypgoto[] =
+static const yytype_int8 yypgoto[] =
 {
-    -109,  -109,   144,  -109,   -22,  -109,  -109,   -16,  -108,  -109,
-      48,  -109,   -19,  -109,    60,   -47,  -109,   -53,   -21,     8,
-    -109,   -66,  -109,  -109,  -109,   -31,  -109,   -43,  -109,  -109
+    -124,  -124,   106,  -124,   -21,  -124,  -124,  -124,   -16,  -118,
+    -124,  -124,  -124,  -124,  -124,  -124,  -124,  -116,  -124,    -4,
+     -56,    -8,  -124,   -66,  -123,    -7,  -112,    10,  -124,  -117,
+    -124,  -124,  -124,   -30
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_uint8 yydefgoto[] =
 {
-       0,    24,    25,    82,    26,   141,   142,    27,    28,    29,
-     133,    30,    40,   125,   126,    31,   119,    85,   128,    50,
-      51,    52,   139,    33,    34,    43,   135,    35,   137,    36
+       0,    24,    25,    86,   119,    26,   141,   142,    27,    28,
+     145,   146,    29,   153,   154,    30,    31,    32,   137,   138,
+      33,   120,   125,    89,    34,   157,    35,    50,    51,    52,
+     159,    37,    38,    43
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -756,82 +772,90 @@ static const yytype_uint8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-      44,    45,    46,    47,    48,    49,    83,    86,    32,    84,
-      90,   153,   132,   154,    76,     2,     3,     4,    87,    88,
-       5,    77,    78,    79,    80,    81,    91,   132,     7,     8,
-      37,    38,    32,   130,    10,    11,    12,    13,   131,    15,
-      97,    98,    99,   100,   101,   102,   103,   104,   105,   106,
-     107,   108,   109,   110,   111,   112,   113,   114,   115,    94,
-     123,    39,    53,   127,    55,     1,     2,     3,     4,    41,
-      42,     5,    21,   134,   155,    92,   127,   136,     6,     7,
-       8,     9,    10,    11,    12,    13,    73,    74,   150,    14,
-      15,   158,   151,   165,    83,    89,    95,    96,    16,    17,
-     169,   -65,   116,   117,   172,   122,   118,    83,   143,   120,
-      83,    86,   148,    18,    19,   121,   124,    20,     1,     2,
-       3,     4,    83,    21,     5,   -72,    22,   129,    23,   138,
-     144,     6,     7,     8,     9,    10,    11,    12,    13,   140,
-     164,   145,    14,    15,     1,     2,     3,     4,   146,   152,
-       5,    16,    17,    71,    72,    73,    74,     6,     7,     8,
-     156,   157,   159,   160,   162,   161,    18,    19,    54,    15,
-      20,   163,   166,   167,   168,   171,    21,    16,    17,    22,
-     170,    23,   173,   149,     1,     2,     3,     4,     0,   147,
-       5,     0,    18,    19,     0,     0,    20,     6,     7,     8,
-       0,     0,    21,     0,     0,    22,     0,    23,     0,    15,
-       0,     0,     0,     1,     2,     3,     4,    16,    17,     5,
-      77,    78,    79,    80,    81,     0,     0,     7,     8,     0,
-       0,     0,    18,    19,     0,     0,    20,     0,    15,     0,
-       0,     0,    21,    56,    57,    58,    59,     0,     0,     0,
+      44,    45,    46,    47,    48,    49,    40,    87,   149,    39,
+      36,    91,   176,   144,   177,   147,   152,   121,   155,   150,
+      88,    55,   168,   163,    41,    42,    92,   144,    90,   166,
+      73,    74,    75,   169,    36,   152,    93,   172,    96,    97,
+      98,    99,   100,   101,   102,   103,   104,   105,   106,   107,
+     108,   109,   110,   111,   112,   113,   114,   115,   116,   117,
+     139,    95,   129,   186,   124,   126,   127,   128,   188,   132,
+     139,   130,   133,   192,   118,   148,   122,   123,   156,   131,
+     134,   135,    53,   136,   -96,     1,     2,     3,     4,   167,
+     140,     5,   158,   161,   162,   179,   164,   173,     6,     7,
+       8,     9,    10,    11,    12,    13,   165,   170,   175,    14,
+      15,   178,   180,   183,   143,   181,   184,    39,    16,    17,
+     185,   187,   189,    87,    77,    78,    79,    80,    81,   190,
+      54,    87,   160,    18,    19,   191,    88,   193,    20,     1,
+       2,     3,     4,   171,    21,     5,   174,    22,   182,    23,
+       0,     0,     6,     7,     8,     9,    10,    11,    12,    13,
+       0,     0,     0,    14,    15,     0,     0,     0,    39,     0,
+       0,     0,    16,    17,     0,    77,    78,    79,    80,    81,
+       1,     2,     3,     4,     0,     0,     5,    18,    19,    83,
+       0,     0,    20,     6,     7,     8,     0,     0,    21,     0,
+       0,    22,     0,    23,     0,    15,     0,     9,    10,    11,
+      12,    13,     0,    16,    17,    14,     0,     0,     0,     0,
+       0,     1,     2,     3,     4,     0,     0,     5,    18,    19,
+       0,     0,     0,    20,     6,     7,     8,     0,     0,    21,
+      39,     0,    22,     0,    23,     0,    15,    77,    78,    79,
+      80,    81,    82,     0,    16,    17,    71,    72,    73,    74,
+      75,    83,    84,    85,     0,     0,     0,     0,     0,    18,
+      19,     0,     0,     0,    20,    56,    57,    58,    59,     0,
+      21,     0,     0,    60,    61,    62,    63,    64,    65,    66,
+      67,    68,    69,    70,    71,    72,    73,    74,    75,     0,
+       0,     0,     0,    56,    57,    58,    59,     0,     0,     0,
+      76,    60,    61,    62,    63,    64,    65,    66,    67,    68,
+      69,    70,    71,    72,    73,    74,    75,    41,    42,    56,
+      57,    58,    59,     0,    94,     0,     0,    60,    61,    62,
+      63,    64,    65,    66,    67,    68,    69,    70,    71,    72,
+      73,    74,    75,    56,    57,    58,    59,     0,     0,     0,
        0,    60,    61,    62,    63,    64,    65,    66,    67,    68,
-      69,    70,    71,    72,    73,    74,     0,     0,     0,     0,
-       0,    21,    56,    57,    58,    59,     0,    75,     0,     0,
-      60,    61,    62,    63,    64,    65,    66,    67,    68,    69,
-      70,    71,    72,    73,    74,    41,    42,    56,    57,    58,
-      59,     0,    93,     0,     0,    60,    61,    62,    63,    64,
-      65,    66,    67,    68,    69,    70,    71,    72,    73,    74,
-      56,    57,    58,    59,     0,     0,     0,     0,    60,    61,
-      62,    63,    64,    65,    66,    67,    68,    69,    70,    71,
-      72,    73,    74,    60,    61,    62,    63,     0,     0,     0,
-       0,     0,    69,    70,    71,    72,    73,    74
+      69,    70,    71,    72,    73,    74,    75,    60,    61,    62,
+      63,     0,     0,     0,     0,     0,    69,    70,    71,    72,
+      73,    74,    75,     9,    10,    11,    12,    13,   151
 };
 
 static const yytype_int16 yycheck[] =
 {
-      16,    17,    18,    19,    20,    21,    28,    28,     0,    28,
-      41,    63,   120,    65,     3,     4,     5,     6,    37,    38,
-       9,    10,    11,    12,    13,    14,    42,   135,    17,    18,
-      25,    26,    24,    19,    20,    21,    22,    23,    24,    28,
+      16,    17,    18,    19,    20,    21,    14,    28,   131,     3,
+       0,    41,    64,   131,    66,   131,   134,    83,   134,   131,
+      28,    59,   145,   140,    30,    31,    42,   145,    62,   145,
+      53,    54,    55,   145,    24,   153,    29,   153,    66,     3,
       56,    57,    58,    59,    60,    61,    62,    63,    64,    65,
-      66,    67,    68,    69,    70,    71,    72,    73,    74,    51,
-      91,     3,     0,   116,    58,     3,     4,     5,     6,    30,
-      31,     9,    61,   120,   140,    29,   129,   120,    16,    17,
-      18,    19,    20,    21,    22,    23,    53,    54,   135,    27,
-      28,   144,   135,   159,   116,    61,    65,     3,    36,    37,
-     166,    61,    61,    66,   170,    62,     3,   129,   124,    64,
-     132,   132,   131,    51,    52,    64,    61,    55,     3,     4,
-       5,     6,   144,    61,     9,    66,    64,    61,    66,     3,
-      63,    16,    17,    18,    19,    20,    21,    22,    23,    64,
-     156,    62,    27,    28,     3,     4,     5,     6,     3,    65,
-       9,    36,    37,    51,    52,    53,    54,    16,    17,    18,
-      63,    62,    64,    62,     3,    61,    51,    52,    24,    28,
-      55,    65,    64,    62,    65,    65,    61,    36,    37,    64,
-      64,    66,    65,   135,     3,     4,     5,     6,    -1,   129,
-       9,    -1,    51,    52,    -1,    -1,    55,    16,    17,    18,
-      -1,    -1,    61,    -1,    -1,    64,    -1,    66,    -1,    28,
-      -1,    -1,    -1,     3,     4,     5,     6,    36,    37,     9,
-      10,    11,    12,    13,    14,    -1,    -1,    17,    18,    -1,
-      -1,    -1,    51,    52,    -1,    -1,    55,    -1,    28,    -1,
-      -1,    -1,    61,    32,    33,    34,    35,    -1,    -1,    -1,
+      66,    67,    68,    69,    70,    71,    72,    73,    74,    75,
+     126,    51,    92,   180,     3,    62,    67,    63,   185,     3,
+     136,    62,    67,   190,    82,   131,    84,    85,   134,    65,
+      65,    65,     0,    62,    67,     3,     4,     5,     6,   145,
+      65,     9,     3,    64,    63,   161,    64,   153,    16,    17,
+      18,    19,    20,    21,    22,    23,    63,    66,    66,    27,
+      28,    63,    65,    62,   130,    66,     3,     3,    36,    37,
+      65,    63,    66,   144,    10,    11,    12,    13,    14,    65,
+      24,   152,   136,    51,    52,    66,   144,    66,    56,     3,
+       4,     5,     6,   151,    62,     9,   153,    65,   164,    67,
+      -1,    -1,    16,    17,    18,    19,    20,    21,    22,    23,
+      -1,    -1,    -1,    27,    28,    -1,    -1,    -1,     3,    -1,
+      -1,    -1,    36,    37,    -1,    10,    11,    12,    13,    14,
+       3,     4,     5,     6,    -1,    -1,     9,    51,    52,    24,
+      -1,    -1,    56,    16,    17,    18,    -1,    -1,    62,    -1,
+      -1,    65,    -1,    67,    -1,    28,    -1,    19,    20,    21,
+      22,    23,    -1,    36,    37,    27,    -1,    -1,    -1,    -1,
+      -1,     3,     4,     5,     6,    -1,    -1,     9,    51,    52,
+      -1,    -1,    -1,    56,    16,    17,    18,    -1,    -1,    62,
+       3,    -1,    65,    -1,    67,    -1,    28,    10,    11,    12,
+      13,    14,    15,    -1,    36,    37,    51,    52,    53,    54,
+      55,    24,    25,    26,    -1,    -1,    -1,    -1,    -1,    51,
+      52,    -1,    -1,    -1,    56,    32,    33,    34,    35,    -1,
+      62,    -1,    -1,    40,    41,    42,    43,    44,    45,    46,
+      47,    48,    49,    50,    51,    52,    53,    54,    55,    -1,
+      -1,    -1,    -1,    32,    33,    34,    35,    -1,    -1,    -1,
+      67,    40,    41,    42,    43,    44,    45,    46,    47,    48,
+      49,    50,    51,    52,    53,    54,    55,    30,    31,    32,
+      33,    34,    35,    -1,    63,    -1,    -1,    40,    41,    42,
+      43,    44,    45,    46,    47,    48,    49,    50,    51,    52,
+      53,    54,    55,    32,    33,    34,    35,    -1,    -1,    -1,
       -1,    40,    41,    42,    43,    44,    45,    46,    47,    48,
-      49,    50,    51,    52,    53,    54,    -1,    -1,    -1,    -1,
-      -1,    61,    32,    33,    34,    35,    -1,    66,    -1,    -1,
-      40,    41,    42,    43,    44,    45,    46,    47,    48,    49,
-      50,    51,    52,    53,    54,    30,    31,    32,    33,    34,
-      35,    -1,    62,    -1,    -1,    40,    41,    42,    43,    44,
-      45,    46,    47,    48,    49,    50,    51,    52,    53,    54,
-      32,    33,    34,    35,    -1,    -1,    -1,    -1,    40,    41,
-      42,    43,    44,    45,    46,    47,    48,    49,    50,    51,
-      52,    53,    54,    40,    41,    42,    43,    -1,    -1,    -1,
-      -1,    -1,    49,    50,    51,    52,    53,    54
+      49,    50,    51,    52,    53,    54,    55,    40,    41,    42,
+      43,    -1,    -1,    -1,    -1,    -1,    49,    50,    51,    52,
+      53,    54,    55,    19,    20,    21,    22,    23,    24
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
@@ -840,52 +864,58 @@ static const yytype_int8 yystos[] =
 {
        0,     3,     4,     5,     6,     9,    16,    17,    18,    19,
       20,    21,    22,    23,    27,    28,    36,    37,    51,    52,
-      55,    61,    64,    66,    68,    69,    71,    74,    75,    76,
-      78,    82,    86,    90,    91,    94,    96,    25,    26,     3,
-      79,    30,    31,    92,    74,    74,    74,    74,    74,    74,
-      86,    87,    88,     0,    69,    58,    32,    33,    34,    35,
+      56,    62,    65,    67,    69,    70,    73,    76,    77,    80,
+      83,    84,    85,    88,    92,    94,    95,    99,   100,     3,
+      89,    30,    31,   101,    76,    76,    76,    76,    76,    76,
+      95,    96,    97,     0,    70,    59,    32,    33,    34,    35,
       40,    41,    42,    43,    44,    45,    46,    47,    48,    49,
-      50,    51,    52,    53,    54,    66,     3,    10,    11,    12,
-      13,    14,    70,    71,    79,    84,    85,    79,    79,    61,
-      92,    74,    29,    62,    86,    65,     3,    74,    74,    74,
-      74,    74,    74,    74,    74,    74,    74,    74,    74,    74,
-      74,    74,    74,    74,    74,    74,    61,    66,     3,    83,
-      64,    64,    62,    92,    61,    80,    81,    84,    85,    61,
-      19,    24,    75,    77,    82,    93,    94,    95,     3,    89,
-      64,    72,    73,    74,    63,    62,     3,    81,    79,    77,
-      82,    94,    65,    63,    65,    88,    63,    62,    84,    64,
-      62,    61,     3,    65,    74,    88,    64,    62,    65,    88,
-      64,    65,    88,    65
+      50,    51,    52,    53,    54,    55,    67,    10,    11,    12,
+      13,    14,    15,    24,    25,    26,    71,    72,    89,    91,
+      62,   101,    76,    29,    63,    95,    66,     3,    76,    76,
+      76,    76,    76,    76,    76,    76,    76,    76,    76,    76,
+      76,    76,    76,    76,    76,    76,    76,    76,    89,    72,
+      89,    91,    89,    89,     3,    90,    62,    67,    63,   101,
+      62,    65,     3,    67,    65,    65,    62,    86,    87,    91,
+      65,    74,    75,    76,    77,    78,    79,    85,    88,    92,
+      94,    24,    77,    81,    82,    85,    88,    93,     3,    98,
+      87,    64,    63,    97,    64,    63,    85,    88,    92,    94,
+      66,    89,    85,    88,    93,    66,    64,    66,    63,    91,
+      65,    66,    76,    62,     3,    65,    97,    63,    97,    66,
+      65,    66,    97,    66
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    67,    68,    68,    69,    69,    69,    69,    69,    69,
-      69,    70,    70,    70,    70,    70,    71,    71,    71,    71,
-      71,    71,    71,    71,    71,    71,    71,    72,    72,    73,
-      73,    74,    74,    74,    74,    74,    74,    74,    74,    74,
-      74,    74,    74,    74,    74,    74,    74,    74,    74,    74,
-      74,    74,    74,    74,    74,    74,    74,    75,    75,    75,
-      75,    75,    76,    77,    78,    79,    80,    80,    81,    81,
-      82,    83,    84,    85,    85,    86,    86,    86,    87,    87,
-      88,    88,    89,    89,    90,    91,    92,    92,    92,    93,
-      93,    93,    93,    93,    93,    94,    95,    95,    96
+       0,    68,    69,    69,    70,    70,    70,    70,    70,    70,
+      70,    70,    71,    71,    71,    71,    71,    72,    72,    73,
+      73,    73,    73,    73,    73,    73,    73,    73,    73,    73,
+      73,    74,    74,    75,    75,    76,    76,    76,    76,    76,
+      76,    76,    76,    76,    76,    76,    76,    76,    76,    76,
+      76,    76,    76,    76,    76,    76,    76,    76,    76,    76,
+      76,    77,    77,    77,    77,    77,    78,    78,    78,    78,
+      78,    78,    78,    78,    79,    79,    80,    81,    81,    81,
+      81,    81,    81,    82,    82,    83,    84,    84,    85,    86,
+      86,    87,    87,    88,    89,    90,    91,    92,    93,    94,
+      95,    95,    95,    96,    96,    97,    97,    98,    98,    99,
+     100,   101,   101,   101
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     2,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     3,     1,     1,     1,
-       1,     1,     1,     1,     3,     6,     1,     1,     3,     0,
-       1,     3,     3,     3,     3,     3,     3,     3,     3,     3,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     3,
+       1,     1,     1,     1,     1,     1,     1,     1,     3,     6,
+       1,     1,     3,     0,     1,     3,     3,     3,     3,     3,
        3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
-       2,     2,     2,     2,     2,     1,     1,     1,     1,     1,
-       1,     1,     8,     7,     7,     1,     1,     3,     0,     1,
-       9,     1,     2,     1,     1,     1,     2,     3,     1,     2,
-       0,     1,     1,     3,     6,     3,     0,     2,     3,     1,
-       1,     1,     2,     2,     2,     3,     0,     1,     6
+       3,     3,     3,     3,     3,     2,     2,     2,     2,     2,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
+       2,     2,     2,     2,     0,     1,     6,     1,     1,     1,
+       2,     2,     2,     0,     1,     6,     3,     4,     1,     1,
+       3,     0,     1,     9,     1,     1,     2,     8,     7,     7,
+       1,     2,     3,     1,     2,     0,     1,     1,     3,     6,
+       3,     0,     2,     3
 };
 
 
@@ -1349,577 +1379,667 @@ yyreduce:
   switch (yyn)
     {
   case 4: /* program_element: stmt  */
-#line 149 "myParserPrintf.y"
-                                                        { printf("program_element -> stmt\n"); }
-#line 1355 "myParserPrintf.tab.c"
+#line 142 "myParserPrintf_test_1.y"
+                                               { printf("program_element -> stmt\n"); }
+#line 1385 "myParserPrintf_test_1.tab.c"
     break;
 
   case 5: /* program_element: struct_decl  */
-#line 150 "myParserPrintf.y"
-                                                            { printf("program_element -> struct_decl\n"); }
-#line 1361 "myParserPrintf.tab.c"
+#line 143 "myParserPrintf_test_1.y"
+                                               { printf("program_element -> struct_decl\n"); }
+#line 1391 "myParserPrintf_test_1.tab.c"
     break;
 
   case 6: /* program_element: enum_decl  */
-#line 151 "myParserPrintf.y"
-                                                { printf("program_element -> enum_decl\n"); }
-#line 1367 "myParserPrintf.tab.c"
+#line 144 "myParserPrintf_test_1.y"
+                                               { printf("program_element -> enum_decl\n"); }
+#line 1397 "myParserPrintf_test_1.tab.c"
     break;
 
   case 7: /* program_element: method_decl  */
-#line 152 "myParserPrintf.y"
-                                                { printf("program_element -> method_decl\n"); }
-#line 1373 "myParserPrintf.tab.c"
+#line 145 "myParserPrintf_test_1.y"
+                                               { printf("program_element -> method_decl\n"); }
+#line 1403 "myParserPrintf_test_1.tab.c"
     break;
 
   case 8: /* program_element: constructor_decl  */
-#line 153 "myParserPrintf.y"
-                                                { printf("program_element -> constructor_decl\n"); }
-#line 1379 "myParserPrintf.tab.c"
+#line 146 "myParserPrintf_test_1.y"
+                                               { printf("program_element -> constructor_decl\n"); }
+#line 1409 "myParserPrintf_test_1.tab.c"
     break;
 
   case 9: /* program_element: destructor_decl  */
-#line 154 "myParserPrintf.y"
-                                                { printf("program_element -> destructor_decl\n"); }
-#line 1385 "myParserPrintf.tab.c"
+#line 147 "myParserPrintf_test_1.y"
+                                               { printf("program_element -> destructor_decl\n"); }
+#line 1415 "myParserPrintf_test_1.tab.c"
     break;
 
   case 10: /* program_element: field_decl  */
-#line 155 "myParserPrintf.y"
-                                                { printf("program_element -> field_decl\n"); }
-#line 1391 "myParserPrintf.tab.c"
+#line 148 "myParserPrintf_test_1.y"
+                                               { printf("program_element -> field_decl\n"); }
+#line 1421 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 11: /* standard_type: FLOAT_KW  */
-#line 162 "myParserPrintf.y"
+  case 11: /* program_element: class_decl  */
+#line 149 "myParserPrintf_test_1.y"
+                                               { printf("program_element -> class_decl\n"); }
+#line 1427 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 12: /* standard_type: FLOAT_KW  */
+#line 156 "myParserPrintf_test_1.y"
                             { printf("standard_type -> FLOAT_KW\n"); }
-#line 1397 "myParserPrintf.tab.c"
+#line 1433 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 12: /* standard_type: DOUBLE_KW  */
-#line 163 "myParserPrintf.y"
-                                        { printf("standard_type -> DOUBLE_KW\n"); }
-#line 1403 "myParserPrintf.tab.c"
+  case 13: /* standard_type: DOUBLE_KW  */
+#line 157 "myParserPrintf_test_1.y"
+                            { printf("standard_type -> DOUBLE_KW\n"); }
+#line 1439 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 13: /* standard_type: DECIMAL_KW  */
-#line 164 "myParserPrintf.y"
-                                        { printf("standard_type -> DECIMAL_KW\n"); }
-#line 1409 "myParserPrintf.tab.c"
+  case 14: /* standard_type: DECIMAL_KW  */
+#line 158 "myParserPrintf_test_1.y"
+                            { printf("standard_type -> DECIMAL_KW\n"); }
+#line 1445 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 14: /* standard_type: BOOL_KW  */
-#line 165 "myParserPrintf.y"
-                                        { printf("standard_type -> BOOL_KW\n"); }
-#line 1415 "myParserPrintf.tab.c"
+  case 15: /* standard_type: BOOL_KW  */
+#line 159 "myParserPrintf_test_1.y"
+                            { printf("standard_type -> BOOL_KW\n"); }
+#line 1451 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 15: /* standard_type: INT_KW  */
-#line 166 "myParserPrintf.y"
-                                        { printf("standard_type -> INT_KW\n"); }
-#line 1421 "myParserPrintf.tab.c"
+  case 16: /* standard_type: INT_KW  */
+#line 160 "myParserPrintf_test_1.y"
+                            { printf("standard_type -> INT_KW\n"); }
+#line 1457 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 16: /* access_expr: '(' expr ')'  */
-#line 169 "myParserPrintf.y"
-                                                                 { printf("access_expr -> ( expr )\n"); }
-#line 1427 "myParserPrintf.tab.c"
-    break;
-
-  case 17: /* access_expr: INTEGER  */
-#line 170 "myParserPrintf.y"
-                                                                 { printf("access_expr -> INTEGER\n"); }
-#line 1433 "myParserPrintf.tab.c"
-    break;
-
-  case 18: /* access_expr: FLOATING_POINT  */
-#line 171 "myParserPrintf.y"
-                                                                 { printf("access_expr -> FLOATING_POINT\n"); }
-#line 1439 "myParserPrintf.tab.c"
-    break;
-
-  case 19: /* access_expr: FLOAT_LITERAL  */
-#line 172 "myParserPrintf.y"
-                                                                 { printf("access_expr -> FLOAT_LITERAL\n"); }
-#line 1445 "myParserPrintf.tab.c"
-    break;
-
-  case 20: /* access_expr: DECIMAL_LITERAL  */
-#line 173 "myParserPrintf.y"
-                                                                 { printf("access_expr -> DECIMAL_LITERAL\n"); }
-#line 1451 "myParserPrintf.tab.c"
-    break;
-
-  case 21: /* access_expr: TRUE_KW  */
-#line 174 "myParserPrintf.y"
-                                                                 { printf("access_expr -> TRUE_KW\n"); }
-#line 1457 "myParserPrintf.tab.c"
-    break;
-
-  case 22: /* access_expr: FALSE_KW  */
-#line 175 "myParserPrintf.y"
-                                                                 { printf("access_expr -> FALSE_KW\n"); }
-#line 1463 "myParserPrintf.tab.c"
-    break;
-
-  case 23: /* access_expr: IDENTIFIER  */
-#line 176 "myParserPrintf.y"
-                                                                 { printf("access_expr -> IDENTIFIER\n"); }
-#line 1469 "myParserPrintf.tab.c"
-    break;
-
-  case 24: /* access_expr: access_expr '.' IDENTIFIER  */
-#line 177 "myParserPrintf.y"
-                                                                 { printf("access_expr -> access_expr . IDENTIFIER\n"); }
-#line 1475 "myParserPrintf.tab.c"
-    break;
-
-  case 25: /* access_expr: access_expr '.' IDENTIFIER '(' expr_seq_optional ')'  */
-#line 178 "myParserPrintf.y"
-                                                                 { printf("access_expr -> access_expr . IDENTIFIER ( expr_seq_optional )\n"); }
-#line 1481 "myParserPrintf.tab.c"
-    break;
-
-  case 26: /* access_expr: interpolated_string  */
-#line 179 "myParserPrintf.y"
-                                                                 { printf("access_expr -> interpolated_string\n"); }
-#line 1487 "myParserPrintf.tab.c"
-    break;
-
-  case 27: /* expr_seq: expr  */
-#line 182 "myParserPrintf.y"
-                                    { printf("expr_seq -> expr\n"); }
-#line 1493 "myParserPrintf.tab.c"
-    break;
-
-  case 28: /* expr_seq: expr_seq ',' expr  */
-#line 183 "myParserPrintf.y"
-                                    { printf("expr_seq -> expr_seq , expr\n"); }
-#line 1499 "myParserPrintf.tab.c"
-    break;
-
-  case 29: /* expr_seq_optional: %empty  */
-#line 186 "myParserPrintf.y"
-                                             { printf("expr_seq_optional -> empty\n"); }
-#line 1505 "myParserPrintf.tab.c"
-    break;
-
-  case 30: /* expr_seq_optional: expr_seq  */
-#line 187 "myParserPrintf.y"
-                                                             { printf("expr_seq_optional -> expr_seq\n"); }
-#line 1511 "myParserPrintf.tab.c"
-    break;
-
-  case 31: /* expr: expr '+' expr  */
-#line 190 "myParserPrintf.y"
-                                          { printf("expr + expr\n"); }
-#line 1517 "myParserPrintf.tab.c"
-    break;
-
-  case 32: /* expr: expr '-' expr  */
-#line 191 "myParserPrintf.y"
-                                          { printf("expr - expr\n"); }
-#line 1523 "myParserPrintf.tab.c"
-    break;
-
-  case 33: /* expr: expr '*' expr  */
-#line 192 "myParserPrintf.y"
-                                          { printf("expr * expr\n"); }
-#line 1529 "myParserPrintf.tab.c"
-    break;
-
-  case 34: /* expr: expr '/' expr  */
-#line 193 "myParserPrintf.y"
-                                          { printf("expr / expr\n"); }
-#line 1535 "myParserPrintf.tab.c"
-    break;
-
-  case 35: /* expr: expr '=' expr  */
-#line 194 "myParserPrintf.y"
-                                          { printf("expr = expr\n"); }
-#line 1541 "myParserPrintf.tab.c"
-    break;
-
-  case 36: /* expr: expr PLUS_ASSIGN expr  */
-#line 195 "myParserPrintf.y"
-                                          { printf("expr PLUS_ASSIGN expr\n"); }
-#line 1547 "myParserPrintf.tab.c"
-    break;
-
-  case 37: /* expr: expr MINUS_ASSIGN expr  */
-#line 196 "myParserPrintf.y"
-                                          { printf("expr MINUS_ASSIGN expr\n"); }
-#line 1553 "myParserPrintf.tab.c"
-    break;
-
-  case 38: /* expr: expr MULTIPLY_ASSIGN expr  */
-#line 197 "myParserPrintf.y"
-                                          { printf("expr MULTIPLY_ASSIGN expr\n"); }
-#line 1559 "myParserPrintf.tab.c"
-    break;
-
-  case 39: /* expr: expr DIVISION_ASSIGN expr  */
-#line 198 "myParserPrintf.y"
-                                          { printf("expr DIVISION_ASSIGN expr\n"); }
-#line 1565 "myParserPrintf.tab.c"
-    break;
-
-  case 40: /* expr: expr '<' expr  */
-#line 199 "myParserPrintf.y"
-                                          { printf("expr < expr\n"); }
-#line 1571 "myParserPrintf.tab.c"
-    break;
-
-  case 41: /* expr: expr '>' expr  */
-#line 200 "myParserPrintf.y"
-                                          { printf("expr > expr\n"); }
-#line 1577 "myParserPrintf.tab.c"
-    break;
-
-  case 42: /* expr: expr EQUAL expr  */
-#line 201 "myParserPrintf.y"
-                                          { printf("expr EQUAL expr\n"); }
-#line 1583 "myParserPrintf.tab.c"
-    break;
-
-  case 43: /* expr: expr NOT_EQUAL expr  */
-#line 202 "myParserPrintf.y"
-                                          { printf("expr NOT_EQUAL expr\n"); }
-#line 1589 "myParserPrintf.tab.c"
-    break;
-
-  case 44: /* expr: expr LESS_OR_EQUAL expr  */
-#line 203 "myParserPrintf.y"
-                                          { printf("expr LESS_OR_EQUAL expr\n"); }
-#line 1595 "myParserPrintf.tab.c"
-    break;
-
-  case 45: /* expr: expr GREATER_OR_EQUAL expr  */
-#line 204 "myParserPrintf.y"
-                                          { printf("expr GREATER_OR_EQUAL expr\n"); }
-#line 1601 "myParserPrintf.tab.c"
-    break;
-
-  case 46: /* expr: expr AND expr  */
-#line 205 "myParserPrintf.y"
-                                          { printf("expr AND expr\n"); }
-#line 1607 "myParserPrintf.tab.c"
-    break;
-
-  case 47: /* expr: expr OR expr  */
-#line 206 "myParserPrintf.y"
-                                          { printf("expr OR expr\n"); }
-#line 1613 "myParserPrintf.tab.c"
-    break;
-
-  case 48: /* expr: expr BITWISE_AND expr  */
-#line 207 "myParserPrintf.y"
-                                          { printf("expr BITWISE_AND expr\n"); }
-#line 1619 "myParserPrintf.tab.c"
-    break;
-
-  case 49: /* expr: expr BITWISE_OR expr  */
-#line 208 "myParserPrintf.y"
-                                          { printf("expr BITWISE_OR expr\n"); }
-#line 1625 "myParserPrintf.tab.c"
-    break;
-
-  case 50: /* expr: '!' expr  */
-#line 209 "myParserPrintf.y"
-                                          { printf(" ! expr\n"); }
-#line 1631 "myParserPrintf.tab.c"
-    break;
-
-  case 51: /* expr: INCREMENT expr  */
-#line 210 "myParserPrintf.y"
-                                          { printf("INCREMENT expr\n"); }
-#line 1637 "myParserPrintf.tab.c"
-    break;
-
-  case 52: /* expr: DECREMENT expr  */
-#line 211 "myParserPrintf.y"
-                                          { printf("DECREMENT expr\n"); }
-#line 1643 "myParserPrintf.tab.c"
-    break;
-
-  case 53: /* expr: '+' expr  */
-#line 212 "myParserPrintf.y"
-                                          { printf("+ expr UNARY_PLUS\n"); }
-#line 1649 "myParserPrintf.tab.c"
-    break;
-
-  case 54: /* expr: '-' expr  */
-#line 213 "myParserPrintf.y"
-                                          { printf("- expr UNARY_MINUS\n"); }
-#line 1655 "myParserPrintf.tab.c"
-    break;
-
-  case 55: /* expr: NULL_KW  */
-#line 214 "myParserPrintf.y"
-                                          { printf("NULL_KW\n"); }
-#line 1661 "myParserPrintf.tab.c"
-    break;
-
-  case 56: /* expr: access_expr  */
-#line 215 "myParserPrintf.y"
-                                          { printf("access_expr\n"); }
-#line 1667 "myParserPrintf.tab.c"
-    break;
-
-  case 57: /* visibility_modifier: PUBLIC  */
-#line 222 "myParserPrintf.y"
-                                          { printf("visibility_modifier -> PUBLIC\n"); }
-#line 1673 "myParserPrintf.tab.c"
-    break;
-
-  case 58: /* visibility_modifier: PROTECTED  */
-#line 223 "myParserPrintf.y"
-                                                          { printf("visibility_modifier -> PROTECTED\n"); }
-#line 1679 "myParserPrintf.tab.c"
-    break;
-
-  case 59: /* visibility_modifier: PRIVATE  */
-#line 224 "myParserPrintf.y"
-                                                          { printf("visibility_modifier -> PRIVATE\n"); }
-#line 1685 "myParserPrintf.tab.c"
-    break;
-
-  case 60: /* visibility_modifier: INTERNAL  */
-#line 225 "myParserPrintf.y"
-                                                          { printf("visibility_modifier -> INTERNAL\n"); }
-#line 1691 "myParserPrintf.tab.c"
-    break;
-
-  case 61: /* visibility_modifier: PROTECTED_INTERNAL  */
-#line 226 "myParserPrintf.y"
-                                                          { printf("visibility_modifier -> PROTECTED_INTERNAL\n"); }
-#line 1697 "myParserPrintf.tab.c"
-    break;
-
-  case 62: /* constructor_decl: visibility_modifier class_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'  */
-#line 233 "myParserPrintf.y"
-                                                                                                                { printf("constructor_decl -> visibility_modifier class_name\n"); }
-#line 1703 "myParserPrintf.tab.c"
-    break;
-
-  case 63: /* static_constructor_decl: STATIC class_name '(' ')' '{' stmt_seq_optional '}'  */
-#line 236 "myParserPrintf.y"
-                                                                                { printf("static_constructor_decl -> STATIC class_name\n"); }
-#line 1709 "myParserPrintf.tab.c"
-    break;
-
-  case 64: /* destructor_decl: TILDE class_name '(' ')' '{' stmt_seq_optional '}'  */
-#line 239 "myParserPrintf.y"
-                                                                                        { printf("destructor_decl -> TILDE class_name\n"); }
-#line 1715 "myParserPrintf.tab.c"
-    break;
-
-  case 65: /* class_name: IDENTIFIER  */
-#line 242 "myParserPrintf.y"
-                           { printf("class_name -> IDENTIFIER\n"); }
-#line 1721 "myParserPrintf.tab.c"
-    break;
-
-  case 66: /* method_arguments: var_decl  */
-#line 249 "myParserPrintf.y"
-                                                          { printf("method_arguments -> var_decl\n"); }
-#line 1727 "myParserPrintf.tab.c"
-    break;
-
-  case 67: /* method_arguments: method_arguments ',' var_decl  */
-#line 250 "myParserPrintf.y"
-                                                                  { printf("method_arguments -> method_arguments , var_decl\n"); }
-#line 1733 "myParserPrintf.tab.c"
-    break;
-
-  case 68: /* method_arguments_optional: %empty  */
-#line 253 "myParserPrintf.y"
-                                                             { printf("method_arguments_optional -> empty\n"); }
-#line 1739 "myParserPrintf.tab.c"
-    break;
-
-  case 69: /* method_arguments_optional: method_arguments  */
-#line 254 "myParserPrintf.y"
-                                                                                     { printf("method_arguments_optional -> method_arguments\n"); }
-#line 1745 "myParserPrintf.tab.c"
-    break;
-
-  case 70: /* method_decl: visibility_modifier type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'  */
-#line 257 "myParserPrintf.y"
-                                                                                                                { printf("method_decl -> visibility_modifier type method_name\n"); }
-#line 1751 "myParserPrintf.tab.c"
-    break;
-
-  case 71: /* method_name: IDENTIFIER  */
-#line 260 "myParserPrintf.y"
-                           { printf("method_name -> IDENTIFIER\n"); }
-#line 1757 "myParserPrintf.tab.c"
-    break;
-
-  case 72: /* var_decl: type IDENTIFIER  */
-#line 263 "myParserPrintf.y"
-                              { printf("var_decl -> type IDENTIFIER\n"); }
-#line 1763 "myParserPrintf.tab.c"
-    break;
-
-  case 73: /* type: standard_type  */
-#line 266 "myParserPrintf.y"
+  case 17: /* type: standard_type  */
+#line 163 "myParserPrintf_test_1.y"
                         { printf("type -> standard_type\n"); }
-#line 1769 "myParserPrintf.tab.c"
+#line 1463 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 74: /* type: access_expr  */
-#line 267 "myParserPrintf.y"
-                        { printf("type -> access_expr\n"); }
-#line 1775 "myParserPrintf.tab.c"
+  case 18: /* type: class_name  */
+#line 164 "myParserPrintf_test_1.y"
+                        { printf("type -> class_name\n"); }
+#line 1469 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 75: /* stmt: ';'  */
-#line 274 "myParserPrintf.y"
-                                    { printf("stmt -> ;\n"); }
-#line 1781 "myParserPrintf.tab.c"
+  case 19: /* access_expr: '(' expr ')'  */
+#line 171 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> ( expr )\n"); }
+#line 1475 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 76: /* stmt: expr ';'  */
-#line 275 "myParserPrintf.y"
-                                    { printf("stmt -> expr ;\n"); }
-#line 1787 "myParserPrintf.tab.c"
+  case 20: /* access_expr: INTEGER  */
+#line 172 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> INTEGER\n"); }
+#line 1481 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 77: /* stmt: '{' stmt_seq_optional '}'  */
-#line 276 "myParserPrintf.y"
-                                    { printf("stmt -> { stmt_seq_optional }\n"); }
-#line 1793 "myParserPrintf.tab.c"
+  case 21: /* access_expr: FLOATING_POINT  */
+#line 173 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> FLOATING_POINT\n"); }
+#line 1487 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 78: /* stmt_seq: stmt  */
-#line 279 "myParserPrintf.y"
-                            { printf("stmt_seq -> stmt\n"); }
-#line 1799 "myParserPrintf.tab.c"
+  case 22: /* access_expr: FLOAT_LITERAL  */
+#line 174 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> FLOAT_LITERAL\n"); }
+#line 1493 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 79: /* stmt_seq: stmt_seq stmt  */
-#line 280 "myParserPrintf.y"
-                            { printf("stmt_seq -> stmt_seq stmt\n"); }
-#line 1805 "myParserPrintf.tab.c"
+  case 23: /* access_expr: DECIMAL_LITERAL  */
+#line 175 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> DECIMAL_LITERAL\n"); }
+#line 1499 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 80: /* stmt_seq_optional: %empty  */
-#line 283 "myParserPrintf.y"
-                                     { printf("stmt_seq_optional -> empty\n"); }
-#line 1811 "myParserPrintf.tab.c"
+  case 24: /* access_expr: TRUE_KW  */
+#line 176 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> TRUE_KW\n"); }
+#line 1505 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 81: /* stmt_seq_optional: stmt_seq  */
-#line 284 "myParserPrintf.y"
-                                     { printf("stmt_seq_optional -> stmt_seq\n"); }
-#line 1817 "myParserPrintf.tab.c"
+  case 25: /* access_expr: FALSE_KW  */
+#line 177 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> FALSE_KW\n"); }
+#line 1511 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 82: /* enumerators: IDENTIFIER  */
-#line 291 "myParserPrintf.y"
-                                            { printf("enumerators -> IDENTIFIER\n"); }
-#line 1823 "myParserPrintf.tab.c"
+  case 26: /* access_expr: NULL_KW  */
+#line 178 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> NULL_KW\n"); }
+#line 1517 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 83: /* enumerators: enumerators ',' IDENTIFIER  */
-#line 292 "myParserPrintf.y"
-                                            { printf("enumerators -> enumerators , IDENTIFIER\n"); }
-#line 1829 "myParserPrintf.tab.c"
+  case 27: /* access_expr: IDENTIFIER  */
+#line 179 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> IDENTIFIER\n"); }
+#line 1523 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 84: /* enum_decl: PUBLIC ENUM class_name '{' enumerators '}'  */
-#line 295 "myParserPrintf.y"
-                                                        { printf("enum_decl -> PUBLIC ENUM class_name\n"); }
-#line 1835 "myParserPrintf.tab.c"
+  case 28: /* access_expr: access_expr '.' IDENTIFIER  */
+#line 180 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> access_expr . IDENTIFIER\n"); }
+#line 1529 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 85: /* interpolated_string: INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END  */
-#line 302 "myParserPrintf.y"
-                                                                                                        { printf("interpolated_string -> INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END\n"); }
-#line 1841 "myParserPrintf.tab.c"
+  case 29: /* access_expr: access_expr '.' IDENTIFIER '(' expr_seq_optional ')'  */
+#line 181 "myParserPrintf_test_1.y"
+                                                                  { printf("access_expr -> access_expr . IDENTIFIER ( expr_seq_optional )\n"); }
+#line 1535 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 86: /* interpolated_string_content: %empty  */
-#line 305 "myParserPrintf.y"
-                                                                                                                                        { printf("interpolated_string_content -> empty\n"); }
-#line 1847 "myParserPrintf.tab.c"
+  case 30: /* access_expr: interpolated_string  */
+#line 182 "myParserPrintf_test_1.y"
+                                                                 { printf("access_expr -> interpolated_string\n"); }
+#line 1541 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 87: /* interpolated_string_content: INTERPOLATED_STRING_TEXT interpolated_string_content  */
-#line 306 "myParserPrintf.y"
-                                                                                                                        { printf("interpolated_string_content -> INTERPOLATED_STRING_TEXT interpolated_string_content\n"); }
-#line 1853 "myParserPrintf.tab.c"
+  case 31: /* expr_seq: expr  */
+#line 185 "myParserPrintf_test_1.y"
+                                    { printf("expr_seq -> expr\n"); }
+#line 1547 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 88: /* interpolated_string_content: INTERPOLATED_STRING_EXPR expr interpolated_string_content  */
-#line 307 "myParserPrintf.y"
-                                                                                                                        { printf("interpolated_string_content -> INTERPOLATED_STRING_EXPR expr interpolated_string_content\n"); }
-#line 1859 "myParserPrintf.tab.c"
+  case 32: /* expr_seq: expr_seq ',' expr  */
+#line 186 "myParserPrintf_test_1.y"
+                                    { printf("expr_seq -> expr_seq , expr\n"); }
+#line 1553 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 89: /* struct_members: field_decl  */
-#line 314 "myParserPrintf.y"
+  case 33: /* expr_seq_optional: %empty  */
+#line 189 "myParserPrintf_test_1.y"
+                                    { printf("expr_seq_optional -> empty\n"); }
+#line 1559 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 34: /* expr_seq_optional: expr_seq  */
+#line 190 "myParserPrintf_test_1.y"
+                                    { printf("expr_seq_optional -> expr_seq\n"); }
+#line 1565 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 35: /* expr: expr '+' expr  */
+#line 193 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr + expr\n"); }
+#line 1571 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 36: /* expr: expr '-' expr  */
+#line 194 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr - expr\n"); }
+#line 1577 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 37: /* expr: expr '*' expr  */
+#line 195 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr * expr\n"); }
+#line 1583 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 38: /* expr: expr '/' expr  */
+#line 196 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr / expr\n"); }
+#line 1589 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 39: /* expr: expr '%' expr  */
+#line 197 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr %% expr\n"); }
+#line 1595 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 40: /* expr: expr '=' expr  */
+#line 198 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr = expr\n"); }
+#line 1601 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 41: /* expr: expr PLUS_ASSIGN expr  */
+#line 199 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr PLUS_ASSIGN expr\n"); }
+#line 1607 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 42: /* expr: expr MINUS_ASSIGN expr  */
+#line 200 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr MINUS_ASSIGN expr\n"); }
+#line 1613 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 43: /* expr: expr MULTIPLY_ASSIGN expr  */
+#line 201 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr MULTIPLY_ASSIGN expr\n"); }
+#line 1619 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 44: /* expr: expr DIVISION_ASSIGN expr  */
+#line 202 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr DIVISION_ASSIGN expr\n"); }
+#line 1625 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 45: /* expr: expr '<' expr  */
+#line 203 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr < expr\n"); }
+#line 1631 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 46: /* expr: expr '>' expr  */
+#line 204 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr > expr\n"); }
+#line 1637 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 47: /* expr: expr EQUAL expr  */
+#line 205 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr EQUAL expr\n"); }
+#line 1643 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 48: /* expr: expr NOT_EQUAL expr  */
+#line 206 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr NOT_EQUAL expr\n"); }
+#line 1649 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 49: /* expr: expr LESS_OR_EQUAL expr  */
+#line 207 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr LESS_OR_EQUAL expr\n"); }
+#line 1655 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 50: /* expr: expr GREATER_OR_EQUAL expr  */
+#line 208 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr GREATER_OR_EQUAL expr\n"); }
+#line 1661 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 51: /* expr: expr AND expr  */
+#line 209 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr AND expr\n"); }
+#line 1667 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 52: /* expr: expr OR expr  */
+#line 210 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr OR expr\n"); }
+#line 1673 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 53: /* expr: expr BITWISE_AND expr  */
+#line 211 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr BITWISE_AND expr\n"); }
+#line 1679 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 54: /* expr: expr BITWISE_OR expr  */
+#line 212 "myParserPrintf_test_1.y"
+                                          { printf("expr -> expr BITWISE_OR expr\n"); }
+#line 1685 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 55: /* expr: '!' expr  */
+#line 213 "myParserPrintf_test_1.y"
+                                          { printf("expr -> ! expr\n"); }
+#line 1691 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 56: /* expr: INCREMENT expr  */
+#line 214 "myParserPrintf_test_1.y"
+                                          { printf("expr -> INCREMENT expr\n"); }
+#line 1697 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 57: /* expr: DECREMENT expr  */
+#line 215 "myParserPrintf_test_1.y"
+                                          { printf("expr -> DECREMENT expr\n"); }
+#line 1703 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 58: /* expr: '+' expr  */
+#line 216 "myParserPrintf_test_1.y"
+                                          { printf("expr -> + expr UNARY_PLUS\n"); }
+#line 1709 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 59: /* expr: '-' expr  */
+#line 217 "myParserPrintf_test_1.y"
+                                          { printf("expr -> - expr UNARY_MINUS\n"); }
+#line 1715 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 60: /* expr: access_expr  */
+#line 218 "myParserPrintf_test_1.y"
+                                          { printf("expr -> access_expr\n"); }
+#line 1721 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 61: /* visibility_modifier: PUBLIC  */
+#line 225 "myParserPrintf_test_1.y"
+                                          { printf("visibility_modifier -> PUBLIC\n"); }
+#line 1727 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 62: /* visibility_modifier: PROTECTED  */
+#line 226 "myParserPrintf_test_1.y"
+                                          { printf("visibility_modifier -> PROTECTED\n"); }
+#line 1733 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 63: /* visibility_modifier: PRIVATE  */
+#line 227 "myParserPrintf_test_1.y"
+                                          { printf("visibility_modifier -> PRIVATE\n"); }
+#line 1739 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 64: /* visibility_modifier: INTERNAL  */
+#line 228 "myParserPrintf_test_1.y"
+                                          { printf("visibility_modifier -> INTERNAL\n"); }
+#line 1745 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 65: /* visibility_modifier: PROTECTED_INTERNAL  */
+#line 229 "myParserPrintf_test_1.y"
+                                          { printf("visibility_modifier -> PROTECTED_INTERNAL\n"); }
+#line 1751 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 66: /* class_members: field_decl  */
+#line 236 "myParserPrintf_test_1.y"
+                                                       { printf("class_members -> field_decl\n"); }
+#line 1757 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 67: /* class_members: method_decl  */
+#line 237 "myParserPrintf_test_1.y"
+                                                       { printf("class_members -> method_decl\n"); }
+#line 1763 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 68: /* class_members: constructor_decl  */
+#line 238 "myParserPrintf_test_1.y"
+                                                       { printf("class_members -> constructor_decl\n"); }
+#line 1769 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 69: /* class_members: destructor_decl  */
+#line 239 "myParserPrintf_test_1.y"
+                                                       { printf("class_members -> destructor_decl\n"); }
+#line 1775 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 70: /* class_members: class_members field_decl  */
+#line 240 "myParserPrintf_test_1.y"
+                                                       { printf("class_members -> class_members field_decl\n"); }
+#line 1781 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 71: /* class_members: class_members method_decl  */
+#line 241 "myParserPrintf_test_1.y"
+                                                       { printf("class_members -> class_members method_decl\n"); }
+#line 1787 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 72: /* class_members: class_members constructor_decl  */
+#line 242 "myParserPrintf_test_1.y"
+                                                       { printf("class_members -> class_members constructor_decl\n"); }
+#line 1793 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 73: /* class_members: class_members destructor_decl  */
+#line 243 "myParserPrintf_test_1.y"
+                                                       { printf("class_members -> class_members destructor_decl\n"); }
+#line 1799 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 74: /* class_members_optional: %empty  */
+#line 246 "myParserPrintf_test_1.y"
+                                          { printf("class_members_optional -> empty\n"); }
+#line 1805 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 75: /* class_members_optional: class_members  */
+#line 247 "myParserPrintf_test_1.y"
+                                           { printf("class_members_optional -> class_members\n"); }
+#line 1811 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 76: /* class_decl: visibility_modifier CLASS_KW class_name '{' class_members_optional '}'  */
+#line 250 "myParserPrintf_test_1.y"
+                                                                                   { printf("class_decl -> visibility_modifier CLASS_KW class_name\n"); }
+#line 1817 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 77: /* struct_members: field_decl  */
+#line 257 "myParserPrintf_test_1.y"
                                                         { printf("struct_members -> field_decl\n"); }
-#line 1865 "myParserPrintf.tab.c"
+#line 1823 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 90: /* struct_members: method_decl  */
-#line 315 "myParserPrintf.y"
-                                                                    { printf("struct_members -> method_decl\n"); }
-#line 1871 "myParserPrintf.tab.c"
+  case 78: /* struct_members: method_decl  */
+#line 258 "myParserPrintf_test_1.y"
+                                                         { printf("struct_members -> method_decl\n"); }
+#line 1829 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 91: /* struct_members: static_constructor_decl  */
-#line 316 "myParserPrintf.y"
-                                                                { printf("struct_members -> static_constructor_decl\n"); }
-#line 1877 "myParserPrintf.tab.c"
+  case 79: /* struct_members: static_constructor_decl  */
+#line 259 "myParserPrintf_test_1.y"
+                                                         { printf("struct_members -> static_constructor_decl\n"); }
+#line 1835 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 92: /* struct_members: struct_members field_decl  */
-#line 317 "myParserPrintf.y"
-                                                                { printf("struct_members -> struct_members field_decl\n"); }
-#line 1883 "myParserPrintf.tab.c"
+  case 80: /* struct_members: struct_members field_decl  */
+#line 260 "myParserPrintf_test_1.y"
+                                                         { printf("struct_members -> struct_members field_decl\n"); }
+#line 1841 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 93: /* struct_members: struct_members method_decl  */
-#line 318 "myParserPrintf.y"
-                                                        { printf("struct_members -> struct_members method_decl\n"); }
-#line 1889 "myParserPrintf.tab.c"
+  case 81: /* struct_members: struct_members method_decl  */
+#line 261 "myParserPrintf_test_1.y"
+                                                         { printf("struct_members -> struct_members method_decl\n"); }
+#line 1847 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 94: /* struct_members: struct_members static_constructor_decl  */
-#line 319 "myParserPrintf.y"
-                                                        { printf("struct_members -> struct_members static_constructor_decl\n"); }
-#line 1895 "myParserPrintf.tab.c"
+  case 82: /* struct_members: struct_members static_constructor_decl  */
+#line 262 "myParserPrintf_test_1.y"
+                                                         { printf("struct_members -> struct_members static_constructor_decl\n"); }
+#line 1853 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 95: /* field_decl: visibility_modifier var_decl ';'  */
-#line 322 "myParserPrintf.y"
-                                             { printf("field_decl -> visibility_modifier var_decl ;\n"); }
-#line 1901 "myParserPrintf.tab.c"
+  case 83: /* struct_members_optional: %empty  */
+#line 265 "myParserPrintf_test_1.y"
+                                          { printf("struct_members_optional -> empty\n"); }
+#line 1859 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 96: /* struct_members_optional: %empty  */
-#line 325 "myParserPrintf.y"
-                                               { printf("struct_members_optional -> empty\n"); }
-#line 1907 "myParserPrintf.tab.c"
+  case 84: /* struct_members_optional: struct_members  */
+#line 266 "myParserPrintf_test_1.y"
+                                           { printf("struct_members_optional -> struct_members\n"); }
+#line 1865 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 97: /* struct_members_optional: struct_members  */
-#line 326 "myParserPrintf.y"
-                                                                   { printf("struct_members_optional -> struct_members\n"); }
-#line 1913 "myParserPrintf.tab.c"
+  case 85: /* struct_decl: visibility_modifier STRUCT class_name '{' struct_members_optional '}'  */
+#line 269 "myParserPrintf_test_1.y"
+                                                                                   { printf("struct_decl -> visibility_modifier STRUCT class_name\n"); }
+#line 1871 "myParserPrintf_test_1.tab.c"
     break;
 
-  case 98: /* struct_decl: PUBLIC STRUCT class_name '{' struct_members_optional '}'  */
-#line 329 "myParserPrintf.y"
-                                                                        { printf("struct_decl -> PUBLIC STRUCT class_name\n"); }
-#line 1919 "myParserPrintf.tab.c"
+  case 86: /* field_decl_optional_static: visibility_modifier var_decl ';'  */
+#line 276 "myParserPrintf_test_1.y"
+                                                             { printf("field_decl_optional_static -> visibility_modifier var_decl ;\n"); }
+#line 1877 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 87: /* field_decl_optional_static: visibility_modifier STATIC var_decl ';'  */
+#line 277 "myParserPrintf_test_1.y"
+                                                                    { printf("field_decl_optional_static -> visibility_modifier STATIC var_decl ;\n"); }
+#line 1883 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 88: /* field_decl: field_decl_optional_static  */
+#line 280 "myParserPrintf_test_1.y"
+                                       { printf("field_decl -> field_decl_optional_static\n"); }
+#line 1889 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 89: /* method_arguments: var_decl  */
+#line 287 "myParserPrintf_test_1.y"
+                                               { printf("method_arguments -> var_decl\n"); }
+#line 1895 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 90: /* method_arguments: method_arguments ',' var_decl  */
+#line 288 "myParserPrintf_test_1.y"
+                                                { printf("method_arguments -> method_arguments , var_decl\n"); }
+#line 1901 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 91: /* method_arguments_optional: %empty  */
+#line 291 "myParserPrintf_test_1.y"
+                                              { printf("method_arguments_optional -> empty\n"); }
+#line 1907 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 92: /* method_arguments_optional: method_arguments  */
+#line 292 "myParserPrintf_test_1.y"
+                                               { printf("method_arguments_optional -> method_arguments\n"); }
+#line 1913 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 93: /* method_decl: visibility_modifier type method_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'  */
+#line 295 "myParserPrintf_test_1.y"
+                                                                                                              { printf("method_decl -> visibility_modifier type method_name\n"); }
+#line 1919 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 94: /* class_name: IDENTIFIER  */
+#line 298 "myParserPrintf_test_1.y"
+                       { printf("class_name -> IDENTIFIER\n"); }
+#line 1925 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 95: /* method_name: IDENTIFIER  */
+#line 301 "myParserPrintf_test_1.y"
+                        { printf("method_name -> IDENTIFIER\n"); }
+#line 1931 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 96: /* var_decl: type IDENTIFIER  */
+#line 304 "myParserPrintf_test_1.y"
+                              { printf("var_decl -> type IDENTIFIER\n"); }
+#line 1937 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 97: /* constructor_decl: visibility_modifier class_name '(' method_arguments_optional ')' '{' stmt_seq_optional '}'  */
+#line 311 "myParserPrintf_test_1.y"
+                                                                                                             { printf("constructor_decl -> visibility_modifier class_name\n"); }
+#line 1943 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 98: /* static_constructor_decl: STATIC class_name '(' ')' '{' stmt_seq_optional '}'  */
+#line 314 "myParserPrintf_test_1.y"
+                                                                             { printf("static_constructor_decl -> STATIC class_name\n"); }
+#line 1949 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 99: /* destructor_decl: TILDE class_name '(' ')' '{' stmt_seq_optional '}'  */
+#line 317 "myParserPrintf_test_1.y"
+                                                                    { printf("destructor_decl -> TILDE class_name\n"); }
+#line 1955 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 100: /* stmt: ';'  */
+#line 324 "myParserPrintf_test_1.y"
+                                    { printf("stmt -> ;\n"); }
+#line 1961 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 101: /* stmt: expr ';'  */
+#line 325 "myParserPrintf_test_1.y"
+                                    { printf("stmt -> expr ;\n"); }
+#line 1967 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 102: /* stmt: '{' stmt_seq_optional '}'  */
+#line 326 "myParserPrintf_test_1.y"
+                                    { printf("stmt -> { stmt_seq_optional }\n"); }
+#line 1973 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 103: /* stmt_seq: stmt  */
+#line 329 "myParserPrintf_test_1.y"
+                            { printf("stmt_seq -> stmt\n"); }
+#line 1979 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 104: /* stmt_seq: stmt_seq stmt  */
+#line 330 "myParserPrintf_test_1.y"
+                            { printf("stmt_seq -> stmt_seq stmt\n"); }
+#line 1985 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 105: /* stmt_seq_optional: %empty  */
+#line 333 "myParserPrintf_test_1.y"
+                                     { printf("stmt_seq_optional -> empty\n"); }
+#line 1991 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 106: /* stmt_seq_optional: stmt_seq  */
+#line 334 "myParserPrintf_test_1.y"
+                                     { printf("stmt_seq_optional -> stmt_seq\n"); }
+#line 1997 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 107: /* enumerators: IDENTIFIER  */
+#line 341 "myParserPrintf_test_1.y"
+                                            { printf("enumerators -> IDENTIFIER\n"); }
+#line 2003 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 108: /* enumerators: enumerators ',' IDENTIFIER  */
+#line 342 "myParserPrintf_test_1.y"
+                                            { printf("enumerators -> enumerators , IDENTIFIER\n"); }
+#line 2009 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 109: /* enum_decl: visibility_modifier ENUM class_name '{' enumerators '}'  */
+#line 345 "myParserPrintf_test_1.y"
+                                                                   { printf("enum_decl -> visibility_modifier ENUM class_name\n"); }
+#line 2015 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 110: /* interpolated_string: INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END  */
+#line 352 "myParserPrintf_test_1.y"
+                                                                                                   { printf("interpolated_string -> INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END\n"); }
+#line 2021 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 111: /* interpolated_string_content: %empty  */
+#line 355 "myParserPrintf_test_1.y"
+                                                                   { printf("interpolated_string_content -> empty\n"); }
+#line 2027 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 112: /* interpolated_string_content: INTERPOLATED_STRING_TEXT interpolated_string_content  */
+#line 356 "myParserPrintf_test_1.y"
+                                                                                 { printf("interpolated_string_content -> INTERPOLATED_STRING_TEXT interpolated_string_content\n"); }
+#line 2033 "myParserPrintf_test_1.tab.c"
+    break;
+
+  case 113: /* interpolated_string_content: INTERPOLATED_STRING_EXPR expr interpolated_string_content  */
+#line 357 "myParserPrintf_test_1.y"
+                                                                                      { printf("interpolated_string_content -> INTERPOLATED_STRING_EXPR expr interpolated_string_content\n"); }
+#line 2039 "myParserPrintf_test_1.tab.c"
     break;
 
 
-#line 1923 "myParserPrintf.tab.c"
+#line 2043 "myParserPrintf_test_1.tab.c"
 
       default: break;
     }
@@ -2112,25 +2232,33 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 332 "myParserPrintf.y"
+#line 360 "myParserPrintf_test_1.y"
 
 
 int main(int argc, char** argv) {
     if (argc > 1) {
         yyin = fopen(argv[1], "r");
         if (!yyin) {
-            printf("Cannot open file %s\n", argv[1]);
+            fprintf(stderr, "Cannot open file %s\n", argv[1]);
             return 1;
         }
     } else {
         yyin = stdin;
         printf("Enter C# code (Ctrl+D to end):\n");
+        fflush(stdout); // Ensure prompt is displayed
     }
 
-    if (yyparse() == 0) {
+    int result = yyparse();
+    
+    if (result == 0) {
         printf("=== Parsing completed successfully! ===\n");
+    } else {
+        printf("=== Parsing failed with errors ===\n");
     }
 
-    if (yyin != stdin) fclose(yyin);
-    return 0;
+    if (yyin != stdin && yyin != NULL) {
+        fclose(yyin);
+    }
+    
+    return result;
 }
