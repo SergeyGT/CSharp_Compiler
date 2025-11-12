@@ -1,0 +1,1 @@
+protected internal string protectedInternalField;
