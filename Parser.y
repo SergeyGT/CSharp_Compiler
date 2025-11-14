@@ -63,8 +63,8 @@ void yyerror(const char *s);
 %left '*' '/' '%'
 %right '!' INCREMENT DECREMENT
 %right UMINUS
-%left '.' '[' ']' NULL_SAFE_DOT NULL_SAFE_INDEX
-%left '('
+%left '(' '.' '[' ']' NULL_SAFE_DOT NULL_SAFE_INDEX
+
 %nonassoc FIELD
 
 %start program

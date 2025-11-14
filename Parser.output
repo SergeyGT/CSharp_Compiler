@@ -1,0 +1,5238 @@
+Terminals unused in grammar
+
+    NULL_COALESCE
+    NEW
+    LESS
+    GREATER
+    BITWISE_OR
+    BITWISE_AND
+    THEN
+    FIELD
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: %empty
+    2        | program top_level_declaration
+
+    3 top_level_declaration: namespace_declaration
+    4                      | using_directive
+    5                      | type_declaration
+    6                      | field_declaration
+    7                      | method_declaration
+    8                      | constructor_declaration
+    9                      | destructor_decl
+
+   10 namespace_declaration: NAMESPACE qualified_identifier '{' namespace_body '}'
+
+   11 namespace_body: %empty
+   12               | namespace_body namespace_body_element
+
+   13 namespace_body_element: using_directive
+   14                       | type_declaration
+   15                       | field_declaration
+   16                       | method_declaration
+   17                       | constructor_declaration
+   18                       | destructor_decl
+
+   19 using_directive: USING qualified_identifier ';'
+   20                | USING IDENTIFIER '=' qualified_identifier ';'
+
+   21 type_declaration: class_declaration
+   22                 | interface_declaration
+   23                 | struct_decl
+   24                 | enum_decl
+
+   25 standard_type: FLOAT_KW
+   26              | DOUBLE_KW
+   27              | DECIMAL_KW
+   28              | BOOL_KW
+   29              | INT_KW
+
+   30 primitive_type: INT_TYPE
+   31               | FLOAT_TYPE
+   32               | DOUBLE_TYPE
+   33               | BOOL_TYPE
+   34               | CHAR_TYPE
+   35               | STRING_TYPE
+   36               | DECIMAL_TYPE
+   37               | standard_type
+
+   38 method_return_type: primitive_type
+   39                   | VOID_TYPE
+   40                   | qualified_identifier
+
+   41 class_declaration: CLASS IDENTIFIER class_parent '{' class_body '}'
+   42                  | visibility_modifier CLASS IDENTIFIER '{' class_body '}'
+
+   43 class_parent: %empty
+   44             | ':' qualified_identifier
+
+   45 class_body: %empty
+   46           | class_body class_member
+
+   47 class_member: member_modifiers field_declaration
+   48             | member_modifiers method_declaration
+   49             | member_modifiers constructor_declaration
+   50             | destructor_decl
+   51             | static_constructor_decl
+
+   52 struct_decl: STRUCT IDENTIFIER '{' struct_members_optional '}'
+   53            | visibility_modifier STRUCT IDENTIFIER '{' struct_members_optional '}'
+
+   54 struct_members: field_declaration
+   55               | method_declaration
+   56               | static_constructor_decl
+   57               | struct_members field_declaration
+   58               | struct_members method_declaration
+   59               | struct_members static_constructor_decl
+
+   60 struct_members_optional: %empty
+   61                        | struct_members
+
+   62 interface_declaration: INTERFACE IDENTIFIER '{' interface_body '}'
+
+   63 interface_body: %empty
+   64               | interface_body interface_member
+
+   65 interface_member: method_return_type IDENTIFIER '(' parameter_list ')' ';'
+
+   66 enum_decl: ENUM IDENTIFIER '{' enumerators '}'
+   67          | visibility_modifier ENUM IDENTIFIER '{' enumerators '}'
+
+   68 enumerators: IDENTIFIER
+   69            | enumerators ',' IDENTIFIER
+
+   70 visibility_modifier: PUBLIC
+   71                    | PROTECTED
+   72                    | PRIVATE
+   73                    | INTERNAL
+   74                    | PROTECTED_INTERNAL
+
+   75 member_modifiers: visibility_modifier
+   76                 | visibility_modifier STATIC
+
+   77 field_declaration: typed_field_declaration
+   78                  | visibility_modifier primitive_type IDENTIFIER field_init ';'
+   79                  | visibility_modifier STATIC primitive_type IDENTIFIER field_init ';'
+
+   80 typed_field_declaration: primitive_type IDENTIFIER field_init ';'
+
+   81 field_init: %empty
+   82           | '=' expression
+
+   83 method_declaration: primitive_type IDENTIFIER '(' parameter_list ')' block
+   84                   | visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' block
+   85                   | VOID_TYPE IDENTIFIER '(' parameter_list ')' block
+
+   86 parameter_list: %empty
+   87               | parameter_list_tail
+
+   88 parameter_list_tail: parameter
+   89                    | parameter_list_tail ',' parameter
+
+   90 parameter: primitive_type IDENTIFIER
+
+   91 constructor_declaration: IDENTIFIER '(' parameter_list ')' block
+   92                        | visibility_modifier IDENTIFIER '(' parameter_list ')' block
+
+   93 static_constructor_decl: STATIC IDENTIFIER '(' ')' block
+
+   94 destructor_decl: TILDE IDENTIFIER '(' ')' block
+
+   95 block: '{' statement_list '}'
+
+   96 statement_list: %empty
+   97               | statement_list statement
+
+   98 statement: local_variable_declaration
+   99          | expression ';'
+  100          | if_statement
+  101          | while_statement
+  102          | for_statement
+  103          | foreach_statement
+  104          | return_statement
+  105          | break_statement
+  106          | continue_statement
+  107          | block
+  108          | ';'
+
+  109 local_variable_declaration: primitive_type IDENTIFIER local_init ';'
+
+  110 local_init: %empty
+  111           | '=' expression
+
+  112 if_statement: IF '(' expression ')' statement
+  113             | IF '(' expression ')' statement ELSE statement
+
+  114 while_statement: WHILE '(' expression ')' statement
+
+  115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' for_iter_opt ')' statement
+
+  116 for_init_opt: %empty
+  117             | local_variable_declaration
+  118             | expression_list
+
+  119 for_iter_opt: %empty
+  120             | expression_list
+
+  121 expression_opt: %empty
+  122               | expression
+
+  123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN expression ')' statement
+
+  124 foreach_type: primitive_type
+
+  125 return_statement: RETURN ';'
+  126                 | RETURN expression ';'
+
+  127 break_statement: BREAK ';'
+
+  128 continue_statement: CONTINUE ';'
+
+  129 expression: assignment_expression
+
+  130 assignment_expression: conditional_expression
+  131                      | unary_expression assignment_op assignment_expression
+
+  132 assignment_op: '='
+  133              | PLUS_ASSIGNMENT
+  134              | MINUS_ASSIGNMENT
+  135              | PLUS_ASSIGN
+  136              | MINUS_ASSIGN
+  137              | MULTIPLY_ASSIGN
+  138              | DIVISION_ASSIGN
+
+  139 conditional_expression: logical_or_expression
+
+  140 logical_or_expression: logical_and_expression
+  141                      | logical_or_expression OR logical_and_expression
+
+  142 logical_and_expression: equality_expression
+  143                       | logical_and_expression AND equality_expression
+
+  144 equality_expression: relational_expression
+  145                    | equality_expression EQUAL relational_expression
+  146                    | equality_expression NOT_EQUAL relational_expression
+
+  147 relational_expression: additive_expression
+  148                      | relational_expression '<' additive_expression
+  149                      | relational_expression '>' additive_expression
+  150                      | relational_expression LESS_EQUAL additive_expression
+  151                      | relational_expression GREATER_EQUAL additive_expression
+  152                      | relational_expression LESS_OR_EQUAL additive_expression
+  153                      | relational_expression GREATER_OR_EQUAL additive_expression
+
+  154 additive_expression: multiplicative_expression
+  155                    | additive_expression '+' multiplicative_expression
+  156                    | additive_expression '-' multiplicative_expression
+
+  157 multiplicative_expression: unary_expression
+  158                          | multiplicative_expression '*' unary_expression
+  159                          | multiplicative_expression '/' unary_expression
+  160                          | multiplicative_expression '%' unary_expression
+
+  161 unary_expression: postfix_expression
+  162                 | '-' unary_expression
+  163                 | '!' unary_expression
+  164                 | INCREMENT unary_expression
+  165                 | DECREMENT unary_expression
+
+  166 postfix_expression: primary_expression
+  167                   | postfix_expression '.' IDENTIFIER
+  168                   | postfix_expression '(' argument_list ')'
+  169                   | postfix_expression PLUSPLUS
+  170                   | postfix_expression MINUSMINUS
+  171                   | postfix_expression NULL_SAFE_DOT IDENTIFIER
+  172                   | postfix_expression NULL_SAFE_INDEX expression ']'
+  173                   | postfix_expression '[' expression ']'
+
+  174 primary_expression: IDENTIFIER
+  175                   | INTEGER_LITERAL
+  176                   | FLOAT_LITERAL
+  177                   | DOUBLE_LITERAL
+  178                   | DECIMAL_LITERAL
+  179                   | STRING_LITERAL
+  180                   | CHAR_LITERAL
+  181                   | BOOL_LITERAL_TRUE
+  182                   | BOOL_LITERAL_FALSE
+  183                   | TRUE_KW
+  184                   | FALSE_KW
+  185                   | NULL_LITERAL
+  186                   | NULL_KW
+  187                   | THIS
+  188                   | '(' expression ')'
+  189                   | interpolated_string
+
+  190 argument_list: %empty
+  191              | expression_list
+
+  192 expression_list: expression
+  193                | expression_list ',' expression
+
+  194 interpolated_string: INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END
+
+  195 interpolated_string_content: %empty
+  196                            | INTERPOLATED_STRING_TEXT interpolated_string_content
+  197                            | INTERPOLATED_STRING_EXPR expression interpolated_string_content
+
+  198 qualified_identifier: simple_identifier
+  199                     | qualified_identifier '.' simple_identifier
+
+  200 simple_identifier: IDENTIFIER
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '!' (33) 163
+    '%' (37) 160
+    '(' (40) 65 83 84 85 91 92 93 94 112 113 114 115 123 168 188
+    ')' (41) 65 83 84 85 91 92 93 94 112 113 114 115 123 168 188
+    '*' (42) 158
+    '+' (43) 155
+    ',' (44) 69 89 193
+    '-' (45) 156 162
+    '.' (46) 167 199
+    '/' (47) 159
+    ':' (58) 44
+    ';' (59) 19 20 65 78 79 80 99 108 109 115 125 126 127 128
+    '<' (60) 148
+    '=' (61) 20 82 111 132
+    '>' (62) 149
+    '[' (91) 173
+    ']' (93) 172 173
+    '{' (123) 10 41 42 52 53 62 66 67 95
+    '}' (125) 10 41 42 52 53 62 66 67 95
+    error (256)
+    INTEGER_LITERAL <int_value> (258) 175
+    FLOAT_LITERAL <float_value> (259) 176
+    DOUBLE_LITERAL <double_value> (260) 177
+    DECIMAL_LITERAL <double_value> (261) 178
+    STRING_LITERAL <string_value> (262) 179
+    CHAR_LITERAL <char_value> (263) 180
+    BOOL_LITERAL_TRUE <bool_value> (264) 181
+    BOOL_LITERAL_FALSE <bool_value> (265) 182
+    IDENTIFIER <string_value> (266) 20 41 42 52 53 62 65 66 67 68 69 78 79 80 83 84 85 90 91 92 93 94 109 123 167 171 174 200
+    PLUSPLUS (267) 169
+    MINUSMINUS (268) 170
+    NULL_COALESCE (269)
+    NULL_SAFE_DOT (270) 171
+    NULL_SAFE_INDEX (271) 172
+    AND (272) 143
+    OR (273) 141
+    EQUAL (274) 145
+    NOT_EQUAL (275) 146
+    LESS_EQUAL (276) 150
+    GREATER_EQUAL (277) 151
+    PLUS_ASSIGNMENT (278) 133
+    MINUS_ASSIGNMENT (279) 134
+    IF (280) 112 113
+    ELSE (281) 113
+    WHILE (282) 114
+    FOR (283) 115
+    RETURN (284) 125 126
+    BREAK (285) 127
+    CONTINUE (286) 128
+    CLASS (287) 41 42
+    INTERFACE (288) 62
+    STATIC (289) 76 79 93
+    NEW (290)
+    THIS (291) 187
+    PUBLIC (292) 70
+    PRIVATE (293) 72
+    PROTECTED (294) 71
+    INTERNAL (295) 73
+    PROTECTED_INTERNAL (296) 74
+    INT_TYPE (297) 30
+    FLOAT_TYPE (298) 31
+    DOUBLE_TYPE (299) 32
+    BOOL_TYPE (300) 33
+    CHAR_TYPE (301) 34
+    STRING_TYPE (302) 35
+    VOID_TYPE (303) 39 85
+    DECIMAL_TYPE (304) 36
+    NAMESPACE (305) 10
+    USING (306) 19 20
+    FOREACH (307) 123
+    IN (308) 123
+    NULL_LITERAL (309) 185
+    BOOL_KW (310) 28
+    FLOAT_KW (311) 25
+    DOUBLE_KW (312) 26
+    DECIMAL_KW (313) 27
+    INT_KW (314) 29
+    NULL_KW (315) 186
+    TRUE_KW (316) 183
+    FALSE_KW (317) 184
+    STRUCT (318) 52 53
+    ENUM (319) 66 67
+    TILDE (320) 94
+    INTERPOLATED_STRING_START (321) 194
+    INTERPOLATED_STRING_END (322) 194
+    INTERPOLATED_STRING_TEXT (323) 196
+    INTERPOLATED_STRING_EXPR (324) 197
+    PLUS_ASSIGN (325) 135
+    MINUS_ASSIGN (326) 136
+    MULTIPLY_ASSIGN (327) 137
+    DIVISION_ASSIGN (328) 138
+    INCREMENT (329) 164
+    DECREMENT (330) 165
+    LESS (331)
+    GREATER (332)
+    GREATER_OR_EQUAL (333) 153
+    LESS_OR_EQUAL (334) 152
+    BITWISE_OR (335)
+    BITWISE_AND (336)
+    THEN (337)
+    LOWER_THAN_ELSE (338)
+    UMINUS (339)
+    FIELD (340)
+
+
+Nonterminals, with rules where they appear
+
+    $accept (105)
+        on left: 0
+    program (106)
+        on left: 1 2
+        on right: 0 2
+    top_level_declaration (107)
+        on left: 3 4 5 6 7 8 9
+        on right: 2
+    namespace_declaration (108)
+        on left: 10
+        on right: 3
+    namespace_body (109)
+        on left: 11 12
+        on right: 10 12
+    namespace_body_element (110)
+        on left: 13 14 15 16 17 18
+        on right: 12
+    using_directive (111)
+        on left: 19 20
+        on right: 4 13
+    type_declaration (112)
+        on left: 21 22 23 24
+        on right: 5 14
+    standard_type <type_value> (113)
+        on left: 25 26 27 28 29
+        on right: 37
+    primitive_type <type_value> (114)
+        on left: 30 31 32 33 34 35 36 37
+        on right: 38 78 79 80 83 84 90 109 124
+    method_return_type <type_value> (115)
+        on left: 38 39 40
+        on right: 65
+    class_declaration (116)
+        on left: 41 42
+        on right: 21
+    class_parent (117)
+        on left: 43 44
+        on right: 41
+    class_body (118)
+        on left: 45 46
+        on right: 41 42 46
+    class_member (119)
+        on left: 47 48 49 50 51
+        on right: 46
+    struct_decl (120)
+        on left: 52 53
+        on right: 23
+    struct_members (121)
+        on left: 54 55 56 57 58 59
+        on right: 57 58 59 61
+    struct_members_optional (122)
+        on left: 60 61
+        on right: 52 53
+    interface_declaration (123)
+        on left: 62
+        on right: 22
+    interface_body (124)
+        on left: 63 64
+        on right: 62 64
+    interface_member (125)
+        on left: 65
+        on right: 64
+    enum_decl (126)
+        on left: 66 67
+        on right: 24
+    enumerators (127)
+        on left: 68 69
+        on right: 66 67 69
+    visibility_modifier (128)
+        on left: 70 71 72 73 74
+        on right: 42 53 67 75 76 78 79 84 92
+    member_modifiers (129)
+        on left: 75 76
+        on right: 47 48 49
+    field_declaration (130)
+        on left: 77 78 79
+        on right: 6 15 47 54 57
+    typed_field_declaration (131)
+        on left: 80
+        on right: 77
+    field_init (132)
+        on left: 81 82
+        on right: 78 79 80
+    method_declaration (133)
+        on left: 83 84 85
+        on right: 7 16 48 55 58
+    parameter_list (134)
+        on left: 86 87
+        on right: 65 83 84 85 91 92
+    parameter_list_tail (135)
+        on left: 88 89
+        on right: 87 89
+    parameter (136)
+        on left: 90
+        on right: 88 89
+    constructor_declaration (137)
+        on left: 91 92
+        on right: 8 17 49
+    static_constructor_decl (138)
+        on left: 93
+        on right: 51 56 59
+    destructor_decl (139)
+        on left: 94
+        on right: 9 18 50
+    block (140)
+        on left: 95
+        on right: 83 84 85 91 92 93 94 107
+    statement_list (141)
+        on left: 96 97
+        on right: 95 97
+    statement (142)
+        on left: 98 99 100 101 102 103 104 105 106 107 108
+        on right: 97 112 113 114 115 123
+    local_variable_declaration (143)
+        on left: 109
+        on right: 98 117
+    local_init (144)
+        on left: 110 111
+        on right: 109
+    if_statement (145)
+        on left: 112 113
+        on right: 100
+    while_statement (146)
+        on left: 114
+        on right: 101
+    for_statement (147)
+        on left: 115
+        on right: 102
+    for_init_opt (148)
+        on left: 116 117 118
+        on right: 115
+    for_iter_opt (149)
+        on left: 119 120
+        on right: 115
+    expression_opt (150)
+        on left: 121 122
+        on right: 115
+    foreach_statement (151)
+        on left: 123
+        on right: 103
+    foreach_type (152)
+        on left: 124
+        on right: 123
+    return_statement (153)
+        on left: 125 126
+        on right: 104
+    break_statement (154)
+        on left: 127
+        on right: 105
+    continue_statement (155)
+        on left: 128
+        on right: 106
+    expression (156)
+        on left: 129
+        on right: 82 99 111 112 113 114 122 123 126 172 173 188 192 193 197
+    assignment_expression (157)
+        on left: 130 131
+        on right: 129 131
+    assignment_op (158)
+        on left: 132 133 134 135 136 137 138
+        on right: 131
+    conditional_expression (159)
+        on left: 139
+        on right: 130
+    logical_or_expression (160)
+        on left: 140 141
+        on right: 139 141
+    logical_and_expression (161)
+        on left: 142 143
+        on right: 140 141 143
+    equality_expression (162)
+        on left: 144 145 146
+        on right: 142 143 145 146
+    relational_expression (163)
+        on left: 147 148 149 150 151 152 153
+        on right: 144 145 146 148 149 150 151 152 153
+    additive_expression (164)
+        on left: 154 155 156
+        on right: 147 148 149 150 151 152 153 155 156
+    multiplicative_expression (165)
+        on left: 157 158 159 160
+        on right: 154 155 156 158 159 160
+    unary_expression (166)
+        on left: 161 162 163 164 165
+        on right: 131 157 158 159 160 162 163 164 165
+    postfix_expression (167)
+        on left: 166 167 168 169 170 171 172 173
+        on right: 161 167 168 169 170 171 172 173
+    primary_expression (168)
+        on left: 174 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189
+        on right: 166
+    argument_list (169)
+        on left: 190 191
+        on right: 168
+    expression_list (170)
+        on left: 192 193
+        on right: 118 120 191 193
+    interpolated_string (171)
+        on left: 194
+        on right: 189
+    interpolated_string_content (172)
+        on left: 195 196 197
+        on right: 194 196 197
+    qualified_identifier <string_value> (173)
+        on left: 198 199
+        on right: 10 19 20 40 44 199
+    simple_identifier <string_value> (174)
+        on left: 200
+        on right: 198 199
+
+
+State 0
+
+    0 $accept: . program $end
+
+    $default  reduce using rule 1 (program)
+
+    program  go to state 1
+
+
+State 1
+
+    0 $accept: program . $end
+    2 program: program . top_level_declaration
+
+    $end                shift, and go to state 2
+    IDENTIFIER          shift, and go to state 3
+    CLASS               shift, and go to state 4
+    INTERFACE           shift, and go to state 5
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    INT_TYPE            shift, and go to state 11
+    FLOAT_TYPE          shift, and go to state 12
+    DOUBLE_TYPE         shift, and go to state 13
+    BOOL_TYPE           shift, and go to state 14
+    CHAR_TYPE           shift, and go to state 15
+    STRING_TYPE         shift, and go to state 16
+    VOID_TYPE           shift, and go to state 17
+    DECIMAL_TYPE        shift, and go to state 18
+    NAMESPACE           shift, and go to state 19
+    USING               shift, and go to state 20
+    BOOL_KW             shift, and go to state 21
+    FLOAT_KW            shift, and go to state 22
+    DOUBLE_KW           shift, and go to state 23
+    DECIMAL_KW          shift, and go to state 24
+    INT_KW              shift, and go to state 25
+    STRUCT              shift, and go to state 26
+    ENUM                shift, and go to state 27
+    TILDE               shift, and go to state 28
+
+    top_level_declaration    go to state 29
+    namespace_declaration    go to state 30
+    using_directive          go to state 31
+    type_declaration         go to state 32
+    standard_type            go to state 33
+    primitive_type           go to state 34
+    class_declaration        go to state 35
+    struct_decl              go to state 36
+    interface_declaration    go to state 37
+    enum_decl                go to state 38
+    visibility_modifier      go to state 39
+    field_declaration        go to state 40
+    typed_field_declaration  go to state 41
+    method_declaration       go to state 42
+    constructor_declaration  go to state 43
+    destructor_decl          go to state 44
+
+
+State 2
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 3
+
+   91 constructor_declaration: IDENTIFIER . '(' parameter_list ')' block
+
+    '('  shift, and go to state 45
+
+
+State 4
+
+   41 class_declaration: CLASS . IDENTIFIER class_parent '{' class_body '}'
+
+    IDENTIFIER  shift, and go to state 46
+
+
+State 5
+
+   62 interface_declaration: INTERFACE . IDENTIFIER '{' interface_body '}'
+
+    IDENTIFIER  shift, and go to state 47
+
+
+State 6
+
+   70 visibility_modifier: PUBLIC .
+
+    $default  reduce using rule 70 (visibility_modifier)
+
+
+State 7
+
+   72 visibility_modifier: PRIVATE .
+
+    $default  reduce using rule 72 (visibility_modifier)
+
+
+State 8
+
+   71 visibility_modifier: PROTECTED .
+
+    $default  reduce using rule 71 (visibility_modifier)
+
+
+State 9
+
+   73 visibility_modifier: INTERNAL .
+
+    $default  reduce using rule 73 (visibility_modifier)
+
+
+State 10
+
+   74 visibility_modifier: PROTECTED_INTERNAL .
+
+    $default  reduce using rule 74 (visibility_modifier)
+
+
+State 11
+
+   30 primitive_type: INT_TYPE .
+
+    $default  reduce using rule 30 (primitive_type)
+
+
+State 12
+
+   31 primitive_type: FLOAT_TYPE .
+
+    $default  reduce using rule 31 (primitive_type)
+
+
+State 13
+
+   32 primitive_type: DOUBLE_TYPE .
+
+    $default  reduce using rule 32 (primitive_type)
+
+
+State 14
+
+   33 primitive_type: BOOL_TYPE .
+
+    $default  reduce using rule 33 (primitive_type)
+
+
+State 15
+
+   34 primitive_type: CHAR_TYPE .
+
+    $default  reduce using rule 34 (primitive_type)
+
+
+State 16
+
+   35 primitive_type: STRING_TYPE .
+
+    $default  reduce using rule 35 (primitive_type)
+
+
+State 17
+
+   85 method_declaration: VOID_TYPE . IDENTIFIER '(' parameter_list ')' block
+
+    IDENTIFIER  shift, and go to state 48
+
+
+State 18
+
+   36 primitive_type: DECIMAL_TYPE .
+
+    $default  reduce using rule 36 (primitive_type)
+
+
+State 19
+
+   10 namespace_declaration: NAMESPACE . qualified_identifier '{' namespace_body '}'
+
+    IDENTIFIER  shift, and go to state 49
+
+    qualified_identifier  go to state 50
+    simple_identifier     go to state 51
+
+
+State 20
+
+   19 using_directive: USING . qualified_identifier ';'
+   20                | USING . IDENTIFIER '=' qualified_identifier ';'
+
+    IDENTIFIER  shift, and go to state 52
+
+    qualified_identifier  go to state 53
+    simple_identifier     go to state 51
+
+
+State 21
+
+   28 standard_type: BOOL_KW .
+
+    $default  reduce using rule 28 (standard_type)
+
+
+State 22
+
+   25 standard_type: FLOAT_KW .
+
+    $default  reduce using rule 25 (standard_type)
+
+
+State 23
+
+   26 standard_type: DOUBLE_KW .
+
+    $default  reduce using rule 26 (standard_type)
+
+
+State 24
+
+   27 standard_type: DECIMAL_KW .
+
+    $default  reduce using rule 27 (standard_type)
+
+
+State 25
+
+   29 standard_type: INT_KW .
+
+    $default  reduce using rule 29 (standard_type)
+
+
+State 26
+
+   52 struct_decl: STRUCT . IDENTIFIER '{' struct_members_optional '}'
+
+    IDENTIFIER  shift, and go to state 54
+
+
+State 27
+
+   66 enum_decl: ENUM . IDENTIFIER '{' enumerators '}'
+
+    IDENTIFIER  shift, and go to state 55
+
+
+State 28
+
+   94 destructor_decl: TILDE . IDENTIFIER '(' ')' block
+
+    IDENTIFIER  shift, and go to state 56
+
+
+State 29
+
+    2 program: program top_level_declaration .
+
+    $default  reduce using rule 2 (program)
+
+
+State 30
+
+    3 top_level_declaration: namespace_declaration .
+
+    $default  reduce using rule 3 (top_level_declaration)
+
+
+State 31
+
+    4 top_level_declaration: using_directive .
+
+    $default  reduce using rule 4 (top_level_declaration)
+
+
+State 32
+
+    5 top_level_declaration: type_declaration .
+
+    $default  reduce using rule 5 (top_level_declaration)
+
+
+State 33
+
+   37 primitive_type: standard_type .
+
+    $default  reduce using rule 37 (primitive_type)
+
+
+State 34
+
+   80 typed_field_declaration: primitive_type . IDENTIFIER field_init ';'
+   83 method_declaration: primitive_type . IDENTIFIER '(' parameter_list ')' block
+
+    IDENTIFIER  shift, and go to state 57
+
+
+State 35
+
+   21 type_declaration: class_declaration .
+
+    $default  reduce using rule 21 (type_declaration)
+
+
+State 36
+
+   23 type_declaration: struct_decl .
+
+    $default  reduce using rule 23 (type_declaration)
+
+
+State 37
+
+   22 type_declaration: interface_declaration .
+
+    $default  reduce using rule 22 (type_declaration)
+
+
+State 38
+
+   24 type_declaration: enum_decl .
+
+    $default  reduce using rule 24 (type_declaration)
+
+
+State 39
+
+   42 class_declaration: visibility_modifier . CLASS IDENTIFIER '{' class_body '}'
+   53 struct_decl: visibility_modifier . STRUCT IDENTIFIER '{' struct_members_optional '}'
+   67 enum_decl: visibility_modifier . ENUM IDENTIFIER '{' enumerators '}'
+   78 field_declaration: visibility_modifier . primitive_type IDENTIFIER field_init ';'
+   79                  | visibility_modifier . STATIC primitive_type IDENTIFIER field_init ';'
+   84 method_declaration: visibility_modifier . primitive_type IDENTIFIER '(' parameter_list ')' block
+   92 constructor_declaration: visibility_modifier . IDENTIFIER '(' parameter_list ')' block
+
+    IDENTIFIER    shift, and go to state 58
+    CLASS         shift, and go to state 59
+    STATIC        shift, and go to state 60
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+    STRUCT        shift, and go to state 61
+    ENUM          shift, and go to state 62
+
+    standard_type   go to state 33
+    primitive_type  go to state 63
+
+
+State 40
+
+    6 top_level_declaration: field_declaration .
+
+    $default  reduce using rule 6 (top_level_declaration)
+
+
+State 41
+
+   77 field_declaration: typed_field_declaration .
+
+    $default  reduce using rule 77 (field_declaration)
+
+
+State 42
+
+    7 top_level_declaration: method_declaration .
+
+    $default  reduce using rule 7 (top_level_declaration)
+
+
+State 43
+
+    8 top_level_declaration: constructor_declaration .
+
+    $default  reduce using rule 8 (top_level_declaration)
+
+
+State 44
+
+    9 top_level_declaration: destructor_decl .
+
+    $default  reduce using rule 9 (top_level_declaration)
+
+
+State 45
+
+   91 constructor_declaration: IDENTIFIER '(' . parameter_list ')' block
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    $default  reduce using rule 86 (parameter_list)
+
+    standard_type        go to state 33
+    primitive_type       go to state 64
+    parameter_list       go to state 65
+    parameter_list_tail  go to state 66
+    parameter            go to state 67
+
+
+State 46
+
+   41 class_declaration: CLASS IDENTIFIER . class_parent '{' class_body '}'
+
+    ':'  shift, and go to state 68
+
+    $default  reduce using rule 43 (class_parent)
+
+    class_parent  go to state 69
+
+
+State 47
+
+   62 interface_declaration: INTERFACE IDENTIFIER . '{' interface_body '}'
+
+    '{'  shift, and go to state 70
+
+
+State 48
+
+   85 method_declaration: VOID_TYPE IDENTIFIER . '(' parameter_list ')' block
+
+    '('  shift, and go to state 71
+
+
+State 49
+
+  200 simple_identifier: IDENTIFIER .
+
+    $default  reduce using rule 200 (simple_identifier)
+
+
+State 50
+
+   10 namespace_declaration: NAMESPACE qualified_identifier . '{' namespace_body '}'
+  199 qualified_identifier: qualified_identifier . '.' simple_identifier
+
+    '.'  shift, and go to state 72
+    '{'  shift, and go to state 73
+
+
+State 51
+
+  198 qualified_identifier: simple_identifier .
+
+    $default  reduce using rule 198 (qualified_identifier)
+
+
+State 52
+
+   20 using_directive: USING IDENTIFIER . '=' qualified_identifier ';'
+  200 simple_identifier: IDENTIFIER .
+
+    '='  shift, and go to state 74
+
+    $default  reduce using rule 200 (simple_identifier)
+
+
+State 53
+
+   19 using_directive: USING qualified_identifier . ';'
+  199 qualified_identifier: qualified_identifier . '.' simple_identifier
+
+    '.'  shift, and go to state 72
+    ';'  shift, and go to state 75
+
+
+State 54
+
+   52 struct_decl: STRUCT IDENTIFIER . '{' struct_members_optional '}'
+
+    '{'  shift, and go to state 76
+
+
+State 55
+
+   66 enum_decl: ENUM IDENTIFIER . '{' enumerators '}'
+
+    '{'  shift, and go to state 77
+
+
+State 56
+
+   94 destructor_decl: TILDE IDENTIFIER . '(' ')' block
+
+    '('  shift, and go to state 78
+
+
+State 57
+
+   80 typed_field_declaration: primitive_type IDENTIFIER . field_init ';'
+   83 method_declaration: primitive_type IDENTIFIER . '(' parameter_list ')' block
+
+    '='  shift, and go to state 79
+    '('  shift, and go to state 80
+
+    $default  reduce using rule 81 (field_init)
+
+    field_init  go to state 81
+
+
+State 58
+
+   92 constructor_declaration: visibility_modifier IDENTIFIER . '(' parameter_list ')' block
+
+    '('  shift, and go to state 82
+
+
+State 59
+
+   42 class_declaration: visibility_modifier CLASS . IDENTIFIER '{' class_body '}'
+
+    IDENTIFIER  shift, and go to state 83
+
+
+State 60
+
+   79 field_declaration: visibility_modifier STATIC . primitive_type IDENTIFIER field_init ';'
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    standard_type   go to state 33
+    primitive_type  go to state 84
+
+
+State 61
+
+   53 struct_decl: visibility_modifier STRUCT . IDENTIFIER '{' struct_members_optional '}'
+
+    IDENTIFIER  shift, and go to state 85
+
+
+State 62
+
+   67 enum_decl: visibility_modifier ENUM . IDENTIFIER '{' enumerators '}'
+
+    IDENTIFIER  shift, and go to state 86
+
+
+State 63
+
+   78 field_declaration: visibility_modifier primitive_type . IDENTIFIER field_init ';'
+   84 method_declaration: visibility_modifier primitive_type . IDENTIFIER '(' parameter_list ')' block
+
+    IDENTIFIER  shift, and go to state 87
+
+
+State 64
+
+   90 parameter: primitive_type . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 88
+
+
+State 65
+
+   91 constructor_declaration: IDENTIFIER '(' parameter_list . ')' block
+
+    ')'  shift, and go to state 89
+
+
+State 66
+
+   87 parameter_list: parameter_list_tail .
+   89 parameter_list_tail: parameter_list_tail . ',' parameter
+
+    ','  shift, and go to state 90
+
+    $default  reduce using rule 87 (parameter_list)
+
+
+State 67
+
+   88 parameter_list_tail: parameter .
+
+    $default  reduce using rule 88 (parameter_list_tail)
+
+
+State 68
+
+   44 class_parent: ':' . qualified_identifier
+
+    IDENTIFIER  shift, and go to state 49
+
+    qualified_identifier  go to state 91
+    simple_identifier     go to state 51
+
+
+State 69
+
+   41 class_declaration: CLASS IDENTIFIER class_parent . '{' class_body '}'
+
+    '{'  shift, and go to state 92
+
+
+State 70
+
+   62 interface_declaration: INTERFACE IDENTIFIER '{' . interface_body '}'
+
+    $default  reduce using rule 63 (interface_body)
+
+    interface_body  go to state 93
+
+
+State 71
+
+   85 method_declaration: VOID_TYPE IDENTIFIER '(' . parameter_list ')' block
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    $default  reduce using rule 86 (parameter_list)
+
+    standard_type        go to state 33
+    primitive_type       go to state 64
+    parameter_list       go to state 94
+    parameter_list_tail  go to state 66
+    parameter            go to state 67
+
+
+State 72
+
+  199 qualified_identifier: qualified_identifier '.' . simple_identifier
+
+    IDENTIFIER  shift, and go to state 49
+
+    simple_identifier  go to state 95
+
+
+State 73
+
+   10 namespace_declaration: NAMESPACE qualified_identifier '{' . namespace_body '}'
+
+    $default  reduce using rule 11 (namespace_body)
+
+    namespace_body  go to state 96
+
+
+State 74
+
+   20 using_directive: USING IDENTIFIER '=' . qualified_identifier ';'
+
+    IDENTIFIER  shift, and go to state 49
+
+    qualified_identifier  go to state 97
+    simple_identifier     go to state 51
+
+
+State 75
+
+   19 using_directive: USING qualified_identifier ';' .
+
+    $default  reduce using rule 19 (using_directive)
+
+
+State 76
+
+   52 struct_decl: STRUCT IDENTIFIER '{' . struct_members_optional '}'
+
+    STATIC              shift, and go to state 98
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    INT_TYPE            shift, and go to state 11
+    FLOAT_TYPE          shift, and go to state 12
+    DOUBLE_TYPE         shift, and go to state 13
+    BOOL_TYPE           shift, and go to state 14
+    CHAR_TYPE           shift, and go to state 15
+    STRING_TYPE         shift, and go to state 16
+    VOID_TYPE           shift, and go to state 17
+    DECIMAL_TYPE        shift, and go to state 18
+    BOOL_KW             shift, and go to state 21
+    FLOAT_KW            shift, and go to state 22
+    DOUBLE_KW           shift, and go to state 23
+    DECIMAL_KW          shift, and go to state 24
+    INT_KW              shift, and go to state 25
+
+    $default  reduce using rule 60 (struct_members_optional)
+
+    standard_type            go to state 33
+    primitive_type           go to state 34
+    struct_members           go to state 99
+    struct_members_optional  go to state 100
+    visibility_modifier      go to state 101
+    field_declaration        go to state 102
+    typed_field_declaration  go to state 41
+    method_declaration       go to state 103
+    static_constructor_decl  go to state 104
+
+
+State 77
+
+   66 enum_decl: ENUM IDENTIFIER '{' . enumerators '}'
+
+    IDENTIFIER  shift, and go to state 105
+
+    enumerators  go to state 106
+
+
+State 78
+
+   94 destructor_decl: TILDE IDENTIFIER '(' . ')' block
+
+    ')'  shift, and go to state 107
+
+
+State 79
+
+   82 field_init: '=' . expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 128
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 80
+
+   83 method_declaration: primitive_type IDENTIFIER '(' . parameter_list ')' block
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    $default  reduce using rule 86 (parameter_list)
+
+    standard_type        go to state 33
+    primitive_type       go to state 64
+    parameter_list       go to state 141
+    parameter_list_tail  go to state 66
+    parameter            go to state 67
+
+
+State 81
+
+   80 typed_field_declaration: primitive_type IDENTIFIER field_init . ';'
+
+    ';'  shift, and go to state 142
+
+
+State 82
+
+   92 constructor_declaration: visibility_modifier IDENTIFIER '(' . parameter_list ')' block
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    $default  reduce using rule 86 (parameter_list)
+
+    standard_type        go to state 33
+    primitive_type       go to state 64
+    parameter_list       go to state 143
+    parameter_list_tail  go to state 66
+    parameter            go to state 67
+
+
+State 83
+
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER . '{' class_body '}'
+
+    '{'  shift, and go to state 144
+
+
+State 84
+
+   79 field_declaration: visibility_modifier STATIC primitive_type . IDENTIFIER field_init ';'
+
+    IDENTIFIER  shift, and go to state 145
+
+
+State 85
+
+   53 struct_decl: visibility_modifier STRUCT IDENTIFIER . '{' struct_members_optional '}'
+
+    '{'  shift, and go to state 146
+
+
+State 86
+
+   67 enum_decl: visibility_modifier ENUM IDENTIFIER . '{' enumerators '}'
+
+    '{'  shift, and go to state 147
+
+
+State 87
+
+   78 field_declaration: visibility_modifier primitive_type IDENTIFIER . field_init ';'
+   84 method_declaration: visibility_modifier primitive_type IDENTIFIER . '(' parameter_list ')' block
+
+    '='  shift, and go to state 79
+    '('  shift, and go to state 148
+
+    $default  reduce using rule 81 (field_init)
+
+    field_init  go to state 149
+
+
+State 88
+
+   90 parameter: primitive_type IDENTIFIER .
+
+    $default  reduce using rule 90 (parameter)
+
+
+State 89
+
+   91 constructor_declaration: IDENTIFIER '(' parameter_list ')' . block
+
+    '{'  shift, and go to state 150
+
+    block  go to state 151
+
+
+State 90
+
+   89 parameter_list_tail: parameter_list_tail ',' . parameter
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    standard_type   go to state 33
+    primitive_type  go to state 64
+    parameter       go to state 152
+
+
+State 91
+
+   44 class_parent: ':' qualified_identifier .
+  199 qualified_identifier: qualified_identifier . '.' simple_identifier
+
+    '.'  shift, and go to state 72
+
+    $default  reduce using rule 44 (class_parent)
+
+
+State 92
+
+   41 class_declaration: CLASS IDENTIFIER class_parent '{' . class_body '}'
+
+    $default  reduce using rule 45 (class_body)
+
+    class_body  go to state 153
+
+
+State 93
+
+   62 interface_declaration: INTERFACE IDENTIFIER '{' interface_body . '}'
+   64 interface_body: interface_body . interface_member
+
+    IDENTIFIER    shift, and go to state 49
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    VOID_TYPE     shift, and go to state 154
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+    '}'           shift, and go to state 155
+
+    standard_type         go to state 33
+    primitive_type        go to state 156
+    method_return_type    go to state 157
+    interface_member      go to state 158
+    qualified_identifier  go to state 159
+    simple_identifier     go to state 51
+
+
+State 94
+
+   85 method_declaration: VOID_TYPE IDENTIFIER '(' parameter_list . ')' block
+
+    ')'  shift, and go to state 160
+
+
+State 95
+
+  199 qualified_identifier: qualified_identifier '.' simple_identifier .
+
+    $default  reduce using rule 199 (qualified_identifier)
+
+
+State 96
+
+   10 namespace_declaration: NAMESPACE qualified_identifier '{' namespace_body . '}'
+   12 namespace_body: namespace_body . namespace_body_element
+
+    IDENTIFIER          shift, and go to state 3
+    CLASS               shift, and go to state 4
+    INTERFACE           shift, and go to state 5
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    INT_TYPE            shift, and go to state 11
+    FLOAT_TYPE          shift, and go to state 12
+    DOUBLE_TYPE         shift, and go to state 13
+    BOOL_TYPE           shift, and go to state 14
+    CHAR_TYPE           shift, and go to state 15
+    STRING_TYPE         shift, and go to state 16
+    VOID_TYPE           shift, and go to state 17
+    DECIMAL_TYPE        shift, and go to state 18
+    USING               shift, and go to state 20
+    BOOL_KW             shift, and go to state 21
+    FLOAT_KW            shift, and go to state 22
+    DOUBLE_KW           shift, and go to state 23
+    DECIMAL_KW          shift, and go to state 24
+    INT_KW              shift, and go to state 25
+    STRUCT              shift, and go to state 26
+    ENUM                shift, and go to state 27
+    TILDE               shift, and go to state 28
+    '}'                 shift, and go to state 161
+
+    namespace_body_element   go to state 162
+    using_directive          go to state 163
+    type_declaration         go to state 164
+    standard_type            go to state 33
+    primitive_type           go to state 34
+    class_declaration        go to state 35
+    struct_decl              go to state 36
+    interface_declaration    go to state 37
+    enum_decl                go to state 38
+    visibility_modifier      go to state 39
+    field_declaration        go to state 165
+    typed_field_declaration  go to state 41
+    method_declaration       go to state 166
+    constructor_declaration  go to state 167
+    destructor_decl          go to state 168
+
+
+State 97
+
+   20 using_directive: USING IDENTIFIER '=' qualified_identifier . ';'
+  199 qualified_identifier: qualified_identifier . '.' simple_identifier
+
+    '.'  shift, and go to state 72
+    ';'  shift, and go to state 169
+
+
+State 98
+
+   93 static_constructor_decl: STATIC . IDENTIFIER '(' ')' block
+
+    IDENTIFIER  shift, and go to state 170
+
+
+State 99
+
+   57 struct_members: struct_members . field_declaration
+   58               | struct_members . method_declaration
+   59               | struct_members . static_constructor_decl
+   61 struct_members_optional: struct_members .
+
+    STATIC              shift, and go to state 98
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    INT_TYPE            shift, and go to state 11
+    FLOAT_TYPE          shift, and go to state 12
+    DOUBLE_TYPE         shift, and go to state 13
+    BOOL_TYPE           shift, and go to state 14
+    CHAR_TYPE           shift, and go to state 15
+    STRING_TYPE         shift, and go to state 16
+    VOID_TYPE           shift, and go to state 17
+    DECIMAL_TYPE        shift, and go to state 18
+    BOOL_KW             shift, and go to state 21
+    FLOAT_KW            shift, and go to state 22
+    DOUBLE_KW           shift, and go to state 23
+    DECIMAL_KW          shift, and go to state 24
+    INT_KW              shift, and go to state 25
+
+    $default  reduce using rule 61 (struct_members_optional)
+
+    standard_type            go to state 33
+    primitive_type           go to state 34
+    visibility_modifier      go to state 101
+    field_declaration        go to state 171
+    typed_field_declaration  go to state 41
+    method_declaration       go to state 172
+    static_constructor_decl  go to state 173
+
+
+State 100
+
+   52 struct_decl: STRUCT IDENTIFIER '{' struct_members_optional . '}'
+
+    '}'  shift, and go to state 174
+
+
+State 101
+
+   78 field_declaration: visibility_modifier . primitive_type IDENTIFIER field_init ';'
+   79                  | visibility_modifier . STATIC primitive_type IDENTIFIER field_init ';'
+   84 method_declaration: visibility_modifier . primitive_type IDENTIFIER '(' parameter_list ')' block
+
+    STATIC        shift, and go to state 60
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    standard_type   go to state 33
+    primitive_type  go to state 63
+
+
+State 102
+
+   54 struct_members: field_declaration .
+
+    $default  reduce using rule 54 (struct_members)
+
+
+State 103
+
+   55 struct_members: method_declaration .
+
+    $default  reduce using rule 55 (struct_members)
+
+
+State 104
+
+   56 struct_members: static_constructor_decl .
+
+    $default  reduce using rule 56 (struct_members)
+
+
+State 105
+
+   68 enumerators: IDENTIFIER .
+
+    $default  reduce using rule 68 (enumerators)
+
+
+State 106
+
+   66 enum_decl: ENUM IDENTIFIER '{' enumerators . '}'
+   69 enumerators: enumerators . ',' IDENTIFIER
+
+    '}'  shift, and go to state 175
+    ','  shift, and go to state 176
+
+
+State 107
+
+   94 destructor_decl: TILDE IDENTIFIER '(' ')' . block
+
+    '{'  shift, and go to state 150
+
+    block  go to state 177
+
+
+State 108
+
+  175 primary_expression: INTEGER_LITERAL .
+
+    $default  reduce using rule 175 (primary_expression)
+
+
+State 109
+
+  176 primary_expression: FLOAT_LITERAL .
+
+    $default  reduce using rule 176 (primary_expression)
+
+
+State 110
+
+  177 primary_expression: DOUBLE_LITERAL .
+
+    $default  reduce using rule 177 (primary_expression)
+
+
+State 111
+
+  178 primary_expression: DECIMAL_LITERAL .
+
+    $default  reduce using rule 178 (primary_expression)
+
+
+State 112
+
+  179 primary_expression: STRING_LITERAL .
+
+    $default  reduce using rule 179 (primary_expression)
+
+
+State 113
+
+  180 primary_expression: CHAR_LITERAL .
+
+    $default  reduce using rule 180 (primary_expression)
+
+
+State 114
+
+  181 primary_expression: BOOL_LITERAL_TRUE .
+
+    $default  reduce using rule 181 (primary_expression)
+
+
+State 115
+
+  182 primary_expression: BOOL_LITERAL_FALSE .
+
+    $default  reduce using rule 182 (primary_expression)
+
+
+State 116
+
+  174 primary_expression: IDENTIFIER .
+
+    $default  reduce using rule 174 (primary_expression)
+
+
+State 117
+
+  187 primary_expression: THIS .
+
+    $default  reduce using rule 187 (primary_expression)
+
+
+State 118
+
+  185 primary_expression: NULL_LITERAL .
+
+    $default  reduce using rule 185 (primary_expression)
+
+
+State 119
+
+  186 primary_expression: NULL_KW .
+
+    $default  reduce using rule 186 (primary_expression)
+
+
+State 120
+
+  183 primary_expression: TRUE_KW .
+
+    $default  reduce using rule 183 (primary_expression)
+
+
+State 121
+
+  184 primary_expression: FALSE_KW .
+
+    $default  reduce using rule 184 (primary_expression)
+
+
+State 122
+
+  194 interpolated_string: INTERPOLATED_STRING_START . interpolated_string_content INTERPOLATED_STRING_END
+
+    INTERPOLATED_STRING_TEXT  shift, and go to state 178
+    INTERPOLATED_STRING_EXPR  shift, and go to state 179
+
+    $default  reduce using rule 195 (interpolated_string_content)
+
+    interpolated_string_content  go to state 180
+
+
+State 123
+
+  164 unary_expression: INCREMENT . unary_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    unary_expression     go to state 181
+    postfix_expression   go to state 138
+    primary_expression   go to state 139
+    interpolated_string  go to state 140
+
+
+State 124
+
+  165 unary_expression: DECREMENT . unary_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    unary_expression     go to state 182
+    postfix_expression   go to state 138
+    primary_expression   go to state 139
+    interpolated_string  go to state 140
+
+
+State 125
+
+  162 unary_expression: '-' . unary_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    unary_expression     go to state 183
+    postfix_expression   go to state 138
+    primary_expression   go to state 139
+    interpolated_string  go to state 140
+
+
+State 126
+
+  163 unary_expression: '!' . unary_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    unary_expression     go to state 184
+    postfix_expression   go to state 138
+    primary_expression   go to state 139
+    interpolated_string  go to state 140
+
+
+State 127
+
+  188 primary_expression: '(' . expression ')'
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 185
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 128
+
+   82 field_init: '=' expression .
+
+    $default  reduce using rule 82 (field_init)
+
+
+State 129
+
+  129 expression: assignment_expression .
+
+    $default  reduce using rule 129 (expression)
+
+
+State 130
+
+  130 assignment_expression: conditional_expression .
+
+    $default  reduce using rule 130 (assignment_expression)
+
+
+State 131
+
+  139 conditional_expression: logical_or_expression .
+  141 logical_or_expression: logical_or_expression . OR logical_and_expression
+
+    OR  shift, and go to state 186
+
+    $default  reduce using rule 139 (conditional_expression)
+
+
+State 132
+
+  140 logical_or_expression: logical_and_expression .
+  143 logical_and_expression: logical_and_expression . AND equality_expression
+
+    AND  shift, and go to state 187
+
+    $default  reduce using rule 140 (logical_or_expression)
+
+
+State 133
+
+  142 logical_and_expression: equality_expression .
+  145 equality_expression: equality_expression . EQUAL relational_expression
+  146                    | equality_expression . NOT_EQUAL relational_expression
+
+    EQUAL      shift, and go to state 188
+    NOT_EQUAL  shift, and go to state 189
+
+    $default  reduce using rule 142 (logical_and_expression)
+
+
+State 134
+
+  144 equality_expression: relational_expression .
+  148 relational_expression: relational_expression . '<' additive_expression
+  149                      | relational_expression . '>' additive_expression
+  150                      | relational_expression . LESS_EQUAL additive_expression
+  151                      | relational_expression . GREATER_EQUAL additive_expression
+  152                      | relational_expression . LESS_OR_EQUAL additive_expression
+  153                      | relational_expression . GREATER_OR_EQUAL additive_expression
+
+    LESS_EQUAL        shift, and go to state 190
+    GREATER_EQUAL     shift, and go to state 191
+    GREATER_OR_EQUAL  shift, and go to state 192
+    LESS_OR_EQUAL     shift, and go to state 193
+    '<'               shift, and go to state 194
+    '>'               shift, and go to state 195
+
+    $default  reduce using rule 144 (equality_expression)
+
+
+State 135
+
+  147 relational_expression: additive_expression .
+  155 additive_expression: additive_expression . '+' multiplicative_expression
+  156                    | additive_expression . '-' multiplicative_expression
+
+    '+'  shift, and go to state 196
+    '-'  shift, and go to state 197
+
+    $default  reduce using rule 147 (relational_expression)
+
+
+State 136
+
+  154 additive_expression: multiplicative_expression .
+  158 multiplicative_expression: multiplicative_expression . '*' unary_expression
+  159                          | multiplicative_expression . '/' unary_expression
+  160                          | multiplicative_expression . '%' unary_expression
+
+    '*'  shift, and go to state 198
+    '/'  shift, and go to state 199
+    '%'  shift, and go to state 200
+
+    $default  reduce using rule 154 (additive_expression)
+
+
+State 137
+
+  131 assignment_expression: unary_expression . assignment_op assignment_expression
+  157 multiplicative_expression: unary_expression .
+
+    PLUS_ASSIGNMENT   shift, and go to state 201
+    MINUS_ASSIGNMENT  shift, and go to state 202
+    PLUS_ASSIGN       shift, and go to state 203
+    MINUS_ASSIGN      shift, and go to state 204
+    MULTIPLY_ASSIGN   shift, and go to state 205
+    DIVISION_ASSIGN   shift, and go to state 206
+    '='               shift, and go to state 207
+
+    $default  reduce using rule 157 (multiplicative_expression)
+
+    assignment_op  go to state 208
+
+
+State 138
+
+  161 unary_expression: postfix_expression .
+  167 postfix_expression: postfix_expression . '.' IDENTIFIER
+  168                   | postfix_expression . '(' argument_list ')'
+  169                   | postfix_expression . PLUSPLUS
+  170                   | postfix_expression . MINUSMINUS
+  171                   | postfix_expression . NULL_SAFE_DOT IDENTIFIER
+  172                   | postfix_expression . NULL_SAFE_INDEX expression ']'
+  173                   | postfix_expression . '[' expression ']'
+
+    PLUSPLUS         shift, and go to state 209
+    MINUSMINUS       shift, and go to state 210
+    NULL_SAFE_DOT    shift, and go to state 211
+    NULL_SAFE_INDEX  shift, and go to state 212
+    '.'              shift, and go to state 213
+    '['              shift, and go to state 214
+    '('              shift, and go to state 215
+
+    $default  reduce using rule 161 (unary_expression)
+
+
+State 139
+
+  166 postfix_expression: primary_expression .
+
+    $default  reduce using rule 166 (postfix_expression)
+
+
+State 140
+
+  189 primary_expression: interpolated_string .
+
+    $default  reduce using rule 189 (primary_expression)
+
+
+State 141
+
+   83 method_declaration: primitive_type IDENTIFIER '(' parameter_list . ')' block
+
+    ')'  shift, and go to state 216
+
+
+State 142
+
+   80 typed_field_declaration: primitive_type IDENTIFIER field_init ';' .
+
+    $default  reduce using rule 80 (typed_field_declaration)
+
+
+State 143
+
+   92 constructor_declaration: visibility_modifier IDENTIFIER '(' parameter_list . ')' block
+
+    ')'  shift, and go to state 217
+
+
+State 144
+
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER '{' . class_body '}'
+
+    $default  reduce using rule 45 (class_body)
+
+    class_body  go to state 218
+
+
+State 145
+
+   79 field_declaration: visibility_modifier STATIC primitive_type IDENTIFIER . field_init ';'
+
+    '='  shift, and go to state 79
+
+    $default  reduce using rule 81 (field_init)
+
+    field_init  go to state 219
+
+
+State 146
+
+   53 struct_decl: visibility_modifier STRUCT IDENTIFIER '{' . struct_members_optional '}'
+
+    STATIC              shift, and go to state 98
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    INT_TYPE            shift, and go to state 11
+    FLOAT_TYPE          shift, and go to state 12
+    DOUBLE_TYPE         shift, and go to state 13
+    BOOL_TYPE           shift, and go to state 14
+    CHAR_TYPE           shift, and go to state 15
+    STRING_TYPE         shift, and go to state 16
+    VOID_TYPE           shift, and go to state 17
+    DECIMAL_TYPE        shift, and go to state 18
+    BOOL_KW             shift, and go to state 21
+    FLOAT_KW            shift, and go to state 22
+    DOUBLE_KW           shift, and go to state 23
+    DECIMAL_KW          shift, and go to state 24
+    INT_KW              shift, and go to state 25
+
+    $default  reduce using rule 60 (struct_members_optional)
+
+    standard_type            go to state 33
+    primitive_type           go to state 34
+    struct_members           go to state 99
+    struct_members_optional  go to state 220
+    visibility_modifier      go to state 101
+    field_declaration        go to state 102
+    typed_field_declaration  go to state 41
+    method_declaration       go to state 103
+    static_constructor_decl  go to state 104
+
+
+State 147
+
+   67 enum_decl: visibility_modifier ENUM IDENTIFIER '{' . enumerators '}'
+
+    IDENTIFIER  shift, and go to state 105
+
+    enumerators  go to state 221
+
+
+State 148
+
+   84 method_declaration: visibility_modifier primitive_type IDENTIFIER '(' . parameter_list ')' block
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    $default  reduce using rule 86 (parameter_list)
+
+    standard_type        go to state 33
+    primitive_type       go to state 64
+    parameter_list       go to state 222
+    parameter_list_tail  go to state 66
+    parameter            go to state 67
+
+
+State 149
+
+   78 field_declaration: visibility_modifier primitive_type IDENTIFIER field_init . ';'
+
+    ';'  shift, and go to state 223
+
+
+State 150
+
+   95 block: '{' . statement_list '}'
+
+    $default  reduce using rule 96 (statement_list)
+
+    statement_list  go to state 224
+
+
+State 151
+
+   91 constructor_declaration: IDENTIFIER '(' parameter_list ')' block .
+
+    $default  reduce using rule 91 (constructor_declaration)
+
+
+State 152
+
+   89 parameter_list_tail: parameter_list_tail ',' parameter .
+
+    $default  reduce using rule 89 (parameter_list_tail)
+
+
+State 153
+
+   41 class_declaration: CLASS IDENTIFIER class_parent '{' class_body . '}'
+   46 class_body: class_body . class_member
+
+    STATIC              shift, and go to state 98
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    TILDE               shift, and go to state 28
+    '}'                 shift, and go to state 225
+
+    class_member             go to state 226
+    visibility_modifier      go to state 227
+    member_modifiers         go to state 228
+    static_constructor_decl  go to state 229
+    destructor_decl          go to state 230
+
+
+State 154
+
+   39 method_return_type: VOID_TYPE .
+
+    $default  reduce using rule 39 (method_return_type)
+
+
+State 155
+
+   62 interface_declaration: INTERFACE IDENTIFIER '{' interface_body '}' .
+
+    $default  reduce using rule 62 (interface_declaration)
+
+
+State 156
+
+   38 method_return_type: primitive_type .
+
+    $default  reduce using rule 38 (method_return_type)
+
+
+State 157
+
+   65 interface_member: method_return_type . IDENTIFIER '(' parameter_list ')' ';'
+
+    IDENTIFIER  shift, and go to state 231
+
+
+State 158
+
+   64 interface_body: interface_body interface_member .
+
+    $default  reduce using rule 64 (interface_body)
+
+
+State 159
+
+   40 method_return_type: qualified_identifier .
+  199 qualified_identifier: qualified_identifier . '.' simple_identifier
+
+    '.'  shift, and go to state 72
+
+    $default  reduce using rule 40 (method_return_type)
+
+
+State 160
+
+   85 method_declaration: VOID_TYPE IDENTIFIER '(' parameter_list ')' . block
+
+    '{'  shift, and go to state 150
+
+    block  go to state 232
+
+
+State 161
+
+   10 namespace_declaration: NAMESPACE qualified_identifier '{' namespace_body '}' .
+
+    $default  reduce using rule 10 (namespace_declaration)
+
+
+State 162
+
+   12 namespace_body: namespace_body namespace_body_element .
+
+    $default  reduce using rule 12 (namespace_body)
+
+
+State 163
+
+   13 namespace_body_element: using_directive .
+
+    $default  reduce using rule 13 (namespace_body_element)
+
+
+State 164
+
+   14 namespace_body_element: type_declaration .
+
+    $default  reduce using rule 14 (namespace_body_element)
+
+
+State 165
+
+   15 namespace_body_element: field_declaration .
+
+    $default  reduce using rule 15 (namespace_body_element)
+
+
+State 166
+
+   16 namespace_body_element: method_declaration .
+
+    $default  reduce using rule 16 (namespace_body_element)
+
+
+State 167
+
+   17 namespace_body_element: constructor_declaration .
+
+    $default  reduce using rule 17 (namespace_body_element)
+
+
+State 168
+
+   18 namespace_body_element: destructor_decl .
+
+    $default  reduce using rule 18 (namespace_body_element)
+
+
+State 169
+
+   20 using_directive: USING IDENTIFIER '=' qualified_identifier ';' .
+
+    $default  reduce using rule 20 (using_directive)
+
+
+State 170
+
+   93 static_constructor_decl: STATIC IDENTIFIER . '(' ')' block
+
+    '('  shift, and go to state 233
+
+
+State 171
+
+   57 struct_members: struct_members field_declaration .
+
+    $default  reduce using rule 57 (struct_members)
+
+
+State 172
+
+   58 struct_members: struct_members method_declaration .
+
+    $default  reduce using rule 58 (struct_members)
+
+
+State 173
+
+   59 struct_members: struct_members static_constructor_decl .
+
+    $default  reduce using rule 59 (struct_members)
+
+
+State 174
+
+   52 struct_decl: STRUCT IDENTIFIER '{' struct_members_optional '}' .
+
+    $default  reduce using rule 52 (struct_decl)
+
+
+State 175
+
+   66 enum_decl: ENUM IDENTIFIER '{' enumerators '}' .
+
+    $default  reduce using rule 66 (enum_decl)
+
+
+State 176
+
+   69 enumerators: enumerators ',' . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 234
+
+
+State 177
+
+   94 destructor_decl: TILDE IDENTIFIER '(' ')' block .
+
+    $default  reduce using rule 94 (destructor_decl)
+
+
+State 178
+
+  196 interpolated_string_content: INTERPOLATED_STRING_TEXT . interpolated_string_content
+
+    INTERPOLATED_STRING_TEXT  shift, and go to state 178
+    INTERPOLATED_STRING_EXPR  shift, and go to state 179
+
+    $default  reduce using rule 195 (interpolated_string_content)
+
+    interpolated_string_content  go to state 235
+
+
+State 179
+
+  197 interpolated_string_content: INTERPOLATED_STRING_EXPR . expression interpolated_string_content
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 236
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 180
+
+  194 interpolated_string: INTERPOLATED_STRING_START interpolated_string_content . INTERPOLATED_STRING_END
+
+    INTERPOLATED_STRING_END  shift, and go to state 237
+
+
+State 181
+
+  164 unary_expression: INCREMENT unary_expression .
+
+    $default  reduce using rule 164 (unary_expression)
+
+
+State 182
+
+  165 unary_expression: DECREMENT unary_expression .
+
+    $default  reduce using rule 165 (unary_expression)
+
+
+State 183
+
+  162 unary_expression: '-' unary_expression .
+
+    $default  reduce using rule 162 (unary_expression)
+
+
+State 184
+
+  163 unary_expression: '!' unary_expression .
+
+    $default  reduce using rule 163 (unary_expression)
+
+
+State 185
+
+  188 primary_expression: '(' expression . ')'
+
+    ')'  shift, and go to state 238
+
+
+State 186
+
+  141 logical_or_expression: logical_or_expression OR . logical_and_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    logical_and_expression     go to state 239
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 187
+
+  143 logical_and_expression: logical_and_expression AND . equality_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    equality_expression        go to state 241
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 188
+
+  145 equality_expression: equality_expression EQUAL . relational_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    relational_expression      go to state 242
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 189
+
+  146 equality_expression: equality_expression NOT_EQUAL . relational_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    relational_expression      go to state 243
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 190
+
+  150 relational_expression: relational_expression LESS_EQUAL . additive_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    additive_expression        go to state 244
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 191
+
+  151 relational_expression: relational_expression GREATER_EQUAL . additive_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    additive_expression        go to state 245
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 192
+
+  153 relational_expression: relational_expression GREATER_OR_EQUAL . additive_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    additive_expression        go to state 246
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 193
+
+  152 relational_expression: relational_expression LESS_OR_EQUAL . additive_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    additive_expression        go to state 247
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 194
+
+  148 relational_expression: relational_expression '<' . additive_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    additive_expression        go to state 248
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 195
+
+  149 relational_expression: relational_expression '>' . additive_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    additive_expression        go to state 249
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 196
+
+  155 additive_expression: additive_expression '+' . multiplicative_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    multiplicative_expression  go to state 250
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 197
+
+  156 additive_expression: additive_expression '-' . multiplicative_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    multiplicative_expression  go to state 251
+    unary_expression           go to state 240
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 198
+
+  158 multiplicative_expression: multiplicative_expression '*' . unary_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    unary_expression     go to state 252
+    postfix_expression   go to state 138
+    primary_expression   go to state 139
+    interpolated_string  go to state 140
+
+
+State 199
+
+  159 multiplicative_expression: multiplicative_expression '/' . unary_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    unary_expression     go to state 253
+    postfix_expression   go to state 138
+    primary_expression   go to state 139
+    interpolated_string  go to state 140
+
+
+State 200
+
+  160 multiplicative_expression: multiplicative_expression '%' . unary_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    unary_expression     go to state 254
+    postfix_expression   go to state 138
+    primary_expression   go to state 139
+    interpolated_string  go to state 140
+
+
+State 201
+
+  133 assignment_op: PLUS_ASSIGNMENT .
+
+    $default  reduce using rule 133 (assignment_op)
+
+
+State 202
+
+  134 assignment_op: MINUS_ASSIGNMENT .
+
+    $default  reduce using rule 134 (assignment_op)
+
+
+State 203
+
+  135 assignment_op: PLUS_ASSIGN .
+
+    $default  reduce using rule 135 (assignment_op)
+
+
+State 204
+
+  136 assignment_op: MINUS_ASSIGN .
+
+    $default  reduce using rule 136 (assignment_op)
+
+
+State 205
+
+  137 assignment_op: MULTIPLY_ASSIGN .
+
+    $default  reduce using rule 137 (assignment_op)
+
+
+State 206
+
+  138 assignment_op: DIVISION_ASSIGN .
+
+    $default  reduce using rule 138 (assignment_op)
+
+
+State 207
+
+  132 assignment_op: '=' .
+
+    $default  reduce using rule 132 (assignment_op)
+
+
+State 208
+
+  131 assignment_expression: unary_expression assignment_op . assignment_expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    assignment_expression      go to state 255
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 209
+
+  169 postfix_expression: postfix_expression PLUSPLUS .
+
+    $default  reduce using rule 169 (postfix_expression)
+
+
+State 210
+
+  170 postfix_expression: postfix_expression MINUSMINUS .
+
+    $default  reduce using rule 170 (postfix_expression)
+
+
+State 211
+
+  171 postfix_expression: postfix_expression NULL_SAFE_DOT . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 256
+
+
+State 212
+
+  172 postfix_expression: postfix_expression NULL_SAFE_INDEX . expression ']'
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 257
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 213
+
+  167 postfix_expression: postfix_expression '.' . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 258
+
+
+State 214
+
+  173 postfix_expression: postfix_expression '[' . expression ']'
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 259
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 215
+
+  168 postfix_expression: postfix_expression '(' . argument_list ')'
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    $default  reduce using rule 190 (argument_list)
+
+    expression                 go to state 260
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    argument_list              go to state 261
+    expression_list            go to state 262
+    interpolated_string        go to state 140
+
+
+State 216
+
+   83 method_declaration: primitive_type IDENTIFIER '(' parameter_list ')' . block
+
+    '{'  shift, and go to state 150
+
+    block  go to state 263
+
+
+State 217
+
+   92 constructor_declaration: visibility_modifier IDENTIFIER '(' parameter_list ')' . block
+
+    '{'  shift, and go to state 150
+
+    block  go to state 264
+
+
+State 218
+
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER '{' class_body . '}'
+   46 class_body: class_body . class_member
+
+    STATIC              shift, and go to state 98
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    TILDE               shift, and go to state 28
+    '}'                 shift, and go to state 265
+
+    class_member             go to state 226
+    visibility_modifier      go to state 227
+    member_modifiers         go to state 228
+    static_constructor_decl  go to state 229
+    destructor_decl          go to state 230
+
+
+State 219
+
+   79 field_declaration: visibility_modifier STATIC primitive_type IDENTIFIER field_init . ';'
+
+    ';'  shift, and go to state 266
+
+
+State 220
+
+   53 struct_decl: visibility_modifier STRUCT IDENTIFIER '{' struct_members_optional . '}'
+
+    '}'  shift, and go to state 267
+
+
+State 221
+
+   67 enum_decl: visibility_modifier ENUM IDENTIFIER '{' enumerators . '}'
+   69 enumerators: enumerators . ',' IDENTIFIER
+
+    '}'  shift, and go to state 268
+    ','  shift, and go to state 176
+
+
+State 222
+
+   84 method_declaration: visibility_modifier primitive_type IDENTIFIER '(' parameter_list . ')' block
+
+    ')'  shift, and go to state 269
+
+
+State 223
+
+   78 field_declaration: visibility_modifier primitive_type IDENTIFIER field_init ';' .
+
+    $default  reduce using rule 78 (field_declaration)
+
+
+State 224
+
+   95 block: '{' statement_list . '}'
+   97 statement_list: statement_list . statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    IF                         shift, and go to state 270
+    WHILE                      shift, and go to state 271
+    FOR                        shift, and go to state 272
+    RETURN                     shift, and go to state 273
+    BREAK                      shift, and go to state 274
+    CONTINUE                   shift, and go to state 275
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    FOREACH                    shift, and go to state 276
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    '{'                        shift, and go to state 150
+    '}'                        shift, and go to state 277
+    ';'                        shift, and go to state 278
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    block                       go to state 280
+    statement                   go to state 281
+    local_variable_declaration  go to state 282
+    if_statement                go to state 283
+    while_statement             go to state 284
+    for_statement               go to state 285
+    foreach_statement           go to state 286
+    return_statement            go to state 287
+    break_statement             go to state 288
+    continue_statement          go to state 289
+    expression                  go to state 290
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    interpolated_string         go to state 140
+
+
+State 225
+
+   41 class_declaration: CLASS IDENTIFIER class_parent '{' class_body '}' .
+
+    $default  reduce using rule 41 (class_declaration)
+
+
+State 226
+
+   46 class_body: class_body class_member .
+
+    $default  reduce using rule 46 (class_body)
+
+
+State 227
+
+   75 member_modifiers: visibility_modifier .
+   76                 | visibility_modifier . STATIC
+
+    STATIC  shift, and go to state 291
+
+    $default  reduce using rule 75 (member_modifiers)
+
+
+State 228
+
+   47 class_member: member_modifiers . field_declaration
+   48             | member_modifiers . method_declaration
+   49             | member_modifiers . constructor_declaration
+
+    IDENTIFIER          shift, and go to state 3
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    INT_TYPE            shift, and go to state 11
+    FLOAT_TYPE          shift, and go to state 12
+    DOUBLE_TYPE         shift, and go to state 13
+    BOOL_TYPE           shift, and go to state 14
+    CHAR_TYPE           shift, and go to state 15
+    STRING_TYPE         shift, and go to state 16
+    VOID_TYPE           shift, and go to state 17
+    DECIMAL_TYPE        shift, and go to state 18
+    BOOL_KW             shift, and go to state 21
+    FLOAT_KW            shift, and go to state 22
+    DOUBLE_KW           shift, and go to state 23
+    DECIMAL_KW          shift, and go to state 24
+    INT_KW              shift, and go to state 25
+
+    standard_type            go to state 33
+    primitive_type           go to state 34
+    visibility_modifier      go to state 292
+    field_declaration        go to state 293
+    typed_field_declaration  go to state 41
+    method_declaration       go to state 294
+    constructor_declaration  go to state 295
+
+
+State 229
+
+   51 class_member: static_constructor_decl .
+
+    $default  reduce using rule 51 (class_member)
+
+
+State 230
+
+   50 class_member: destructor_decl .
+
+    $default  reduce using rule 50 (class_member)
+
+
+State 231
+
+   65 interface_member: method_return_type IDENTIFIER . '(' parameter_list ')' ';'
+
+    '('  shift, and go to state 296
+
+
+State 232
+
+   85 method_declaration: VOID_TYPE IDENTIFIER '(' parameter_list ')' block .
+
+    $default  reduce using rule 85 (method_declaration)
+
+
+State 233
+
+   93 static_constructor_decl: STATIC IDENTIFIER '(' . ')' block
+
+    ')'  shift, and go to state 297
+
+
+State 234
+
+   69 enumerators: enumerators ',' IDENTIFIER .
+
+    $default  reduce using rule 69 (enumerators)
+
+
+State 235
+
+  196 interpolated_string_content: INTERPOLATED_STRING_TEXT interpolated_string_content .
+
+    $default  reduce using rule 196 (interpolated_string_content)
+
+
+State 236
+
+  197 interpolated_string_content: INTERPOLATED_STRING_EXPR expression . interpolated_string_content
+
+    INTERPOLATED_STRING_TEXT  shift, and go to state 178
+    INTERPOLATED_STRING_EXPR  shift, and go to state 179
+
+    $default  reduce using rule 195 (interpolated_string_content)
+
+    interpolated_string_content  go to state 298
+
+
+State 237
+
+  194 interpolated_string: INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END .
+
+    $default  reduce using rule 194 (interpolated_string)
+
+
+State 238
+
+  188 primary_expression: '(' expression ')' .
+
+    $default  reduce using rule 188 (primary_expression)
+
+
+State 239
+
+  141 logical_or_expression: logical_or_expression OR logical_and_expression .
+  143 logical_and_expression: logical_and_expression . AND equality_expression
+
+    AND  shift, and go to state 187
+
+    $default  reduce using rule 141 (logical_or_expression)
+
+
+State 240
+
+  157 multiplicative_expression: unary_expression .
+
+    $default  reduce using rule 157 (multiplicative_expression)
+
+
+State 241
+
+  143 logical_and_expression: logical_and_expression AND equality_expression .
+  145 equality_expression: equality_expression . EQUAL relational_expression
+  146                    | equality_expression . NOT_EQUAL relational_expression
+
+    EQUAL      shift, and go to state 188
+    NOT_EQUAL  shift, and go to state 189
+
+    $default  reduce using rule 143 (logical_and_expression)
+
+
+State 242
+
+  145 equality_expression: equality_expression EQUAL relational_expression .
+  148 relational_expression: relational_expression . '<' additive_expression
+  149                      | relational_expression . '>' additive_expression
+  150                      | relational_expression . LESS_EQUAL additive_expression
+  151                      | relational_expression . GREATER_EQUAL additive_expression
+  152                      | relational_expression . LESS_OR_EQUAL additive_expression
+  153                      | relational_expression . GREATER_OR_EQUAL additive_expression
+
+    LESS_EQUAL        shift, and go to state 190
+    GREATER_EQUAL     shift, and go to state 191
+    GREATER_OR_EQUAL  shift, and go to state 192
+    LESS_OR_EQUAL     shift, and go to state 193
+    '<'               shift, and go to state 194
+    '>'               shift, and go to state 195
+
+    $default  reduce using rule 145 (equality_expression)
+
+
+State 243
+
+  146 equality_expression: equality_expression NOT_EQUAL relational_expression .
+  148 relational_expression: relational_expression . '<' additive_expression
+  149                      | relational_expression . '>' additive_expression
+  150                      | relational_expression . LESS_EQUAL additive_expression
+  151                      | relational_expression . GREATER_EQUAL additive_expression
+  152                      | relational_expression . LESS_OR_EQUAL additive_expression
+  153                      | relational_expression . GREATER_OR_EQUAL additive_expression
+
+    LESS_EQUAL        shift, and go to state 190
+    GREATER_EQUAL     shift, and go to state 191
+    GREATER_OR_EQUAL  shift, and go to state 192
+    LESS_OR_EQUAL     shift, and go to state 193
+    '<'               shift, and go to state 194
+    '>'               shift, and go to state 195
+
+    $default  reduce using rule 146 (equality_expression)
+
+
+State 244
+
+  150 relational_expression: relational_expression LESS_EQUAL additive_expression .
+  155 additive_expression: additive_expression . '+' multiplicative_expression
+  156                    | additive_expression . '-' multiplicative_expression
+
+    '+'  shift, and go to state 196
+    '-'  shift, and go to state 197
+
+    $default  reduce using rule 150 (relational_expression)
+
+
+State 245
+
+  151 relational_expression: relational_expression GREATER_EQUAL additive_expression .
+  155 additive_expression: additive_expression . '+' multiplicative_expression
+  156                    | additive_expression . '-' multiplicative_expression
+
+    '+'  shift, and go to state 196
+    '-'  shift, and go to state 197
+
+    $default  reduce using rule 151 (relational_expression)
+
+
+State 246
+
+  153 relational_expression: relational_expression GREATER_OR_EQUAL additive_expression .
+  155 additive_expression: additive_expression . '+' multiplicative_expression
+  156                    | additive_expression . '-' multiplicative_expression
+
+    '+'  shift, and go to state 196
+    '-'  shift, and go to state 197
+
+    $default  reduce using rule 153 (relational_expression)
+
+
+State 247
+
+  152 relational_expression: relational_expression LESS_OR_EQUAL additive_expression .
+  155 additive_expression: additive_expression . '+' multiplicative_expression
+  156                    | additive_expression . '-' multiplicative_expression
+
+    '+'  shift, and go to state 196
+    '-'  shift, and go to state 197
+
+    $default  reduce using rule 152 (relational_expression)
+
+
+State 248
+
+  148 relational_expression: relational_expression '<' additive_expression .
+  155 additive_expression: additive_expression . '+' multiplicative_expression
+  156                    | additive_expression . '-' multiplicative_expression
+
+    '+'  shift, and go to state 196
+    '-'  shift, and go to state 197
+
+    $default  reduce using rule 148 (relational_expression)
+
+
+State 249
+
+  149 relational_expression: relational_expression '>' additive_expression .
+  155 additive_expression: additive_expression . '+' multiplicative_expression
+  156                    | additive_expression . '-' multiplicative_expression
+
+    '+'  shift, and go to state 196
+    '-'  shift, and go to state 197
+
+    $default  reduce using rule 149 (relational_expression)
+
+
+State 250
+
+  155 additive_expression: additive_expression '+' multiplicative_expression .
+  158 multiplicative_expression: multiplicative_expression . '*' unary_expression
+  159                          | multiplicative_expression . '/' unary_expression
+  160                          | multiplicative_expression . '%' unary_expression
+
+    '*'  shift, and go to state 198
+    '/'  shift, and go to state 199
+    '%'  shift, and go to state 200
+
+    $default  reduce using rule 155 (additive_expression)
+
+
+State 251
+
+  156 additive_expression: additive_expression '-' multiplicative_expression .
+  158 multiplicative_expression: multiplicative_expression . '*' unary_expression
+  159                          | multiplicative_expression . '/' unary_expression
+  160                          | multiplicative_expression . '%' unary_expression
+
+    '*'  shift, and go to state 198
+    '/'  shift, and go to state 199
+    '%'  shift, and go to state 200
+
+    $default  reduce using rule 156 (additive_expression)
+
+
+State 252
+
+  158 multiplicative_expression: multiplicative_expression '*' unary_expression .
+
+    $default  reduce using rule 158 (multiplicative_expression)
+
+
+State 253
+
+  159 multiplicative_expression: multiplicative_expression '/' unary_expression .
+
+    $default  reduce using rule 159 (multiplicative_expression)
+
+
+State 254
+
+  160 multiplicative_expression: multiplicative_expression '%' unary_expression .
+
+    $default  reduce using rule 160 (multiplicative_expression)
+
+
+State 255
+
+  131 assignment_expression: unary_expression assignment_op assignment_expression .
+
+    $default  reduce using rule 131 (assignment_expression)
+
+
+State 256
+
+  171 postfix_expression: postfix_expression NULL_SAFE_DOT IDENTIFIER .
+
+    $default  reduce using rule 171 (postfix_expression)
+
+
+State 257
+
+  172 postfix_expression: postfix_expression NULL_SAFE_INDEX expression . ']'
+
+    ']'  shift, and go to state 299
+
+
+State 258
+
+  167 postfix_expression: postfix_expression '.' IDENTIFIER .
+
+    $default  reduce using rule 167 (postfix_expression)
+
+
+State 259
+
+  173 postfix_expression: postfix_expression '[' expression . ']'
+
+    ']'  shift, and go to state 300
+
+
+State 260
+
+  192 expression_list: expression .
+
+    $default  reduce using rule 192 (expression_list)
+
+
+State 261
+
+  168 postfix_expression: postfix_expression '(' argument_list . ')'
+
+    ')'  shift, and go to state 301
+
+
+State 262
+
+  191 argument_list: expression_list .
+  193 expression_list: expression_list . ',' expression
+
+    ','  shift, and go to state 302
+
+    $default  reduce using rule 191 (argument_list)
+
+
+State 263
+
+   83 method_declaration: primitive_type IDENTIFIER '(' parameter_list ')' block .
+
+    $default  reduce using rule 83 (method_declaration)
+
+
+State 264
+
+   92 constructor_declaration: visibility_modifier IDENTIFIER '(' parameter_list ')' block .
+
+    $default  reduce using rule 92 (constructor_declaration)
+
+
+State 265
+
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER '{' class_body '}' .
+
+    $default  reduce using rule 42 (class_declaration)
+
+
+State 266
+
+   79 field_declaration: visibility_modifier STATIC primitive_type IDENTIFIER field_init ';' .
+
+    $default  reduce using rule 79 (field_declaration)
+
+
+State 267
+
+   53 struct_decl: visibility_modifier STRUCT IDENTIFIER '{' struct_members_optional '}' .
+
+    $default  reduce using rule 53 (struct_decl)
+
+
+State 268
+
+   67 enum_decl: visibility_modifier ENUM IDENTIFIER '{' enumerators '}' .
+
+    $default  reduce using rule 67 (enum_decl)
+
+
+State 269
+
+   84 method_declaration: visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' . block
+
+    '{'  shift, and go to state 150
+
+    block  go to state 303
+
+
+State 270
+
+  112 if_statement: IF . '(' expression ')' statement
+  113             | IF . '(' expression ')' statement ELSE statement
+
+    '('  shift, and go to state 304
+
+
+State 271
+
+  114 while_statement: WHILE . '(' expression ')' statement
+
+    '('  shift, and go to state 305
+
+
+State 272
+
+  115 for_statement: FOR . '(' for_init_opt ';' expression_opt ';' for_iter_opt ')' statement
+
+    '('  shift, and go to state 306
+
+
+State 273
+
+  125 return_statement: RETURN . ';'
+  126                 | RETURN . expression ';'
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    ';'                        shift, and go to state 307
+
+    expression                 go to state 308
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 274
+
+  127 break_statement: BREAK . ';'
+
+    ';'  shift, and go to state 309
+
+
+State 275
+
+  128 continue_statement: CONTINUE . ';'
+
+    ';'  shift, and go to state 310
+
+
+State 276
+
+  123 foreach_statement: FOREACH . '(' foreach_type IDENTIFIER IN expression ')' statement
+
+    '('  shift, and go to state 311
+
+
+State 277
+
+   95 block: '{' statement_list '}' .
+
+    $default  reduce using rule 95 (block)
+
+
+State 278
+
+  108 statement: ';' .
+
+    $default  reduce using rule 108 (statement)
+
+
+State 279
+
+  109 local_variable_declaration: primitive_type . IDENTIFIER local_init ';'
+
+    IDENTIFIER  shift, and go to state 312
+
+
+State 280
+
+  107 statement: block .
+
+    $default  reduce using rule 107 (statement)
+
+
+State 281
+
+   97 statement_list: statement_list statement .
+
+    $default  reduce using rule 97 (statement_list)
+
+
+State 282
+
+   98 statement: local_variable_declaration .
+
+    $default  reduce using rule 98 (statement)
+
+
+State 283
+
+  100 statement: if_statement .
+
+    $default  reduce using rule 100 (statement)
+
+
+State 284
+
+  101 statement: while_statement .
+
+    $default  reduce using rule 101 (statement)
+
+
+State 285
+
+  102 statement: for_statement .
+
+    $default  reduce using rule 102 (statement)
+
+
+State 286
+
+  103 statement: foreach_statement .
+
+    $default  reduce using rule 103 (statement)
+
+
+State 287
+
+  104 statement: return_statement .
+
+    $default  reduce using rule 104 (statement)
+
+
+State 288
+
+  105 statement: break_statement .
+
+    $default  reduce using rule 105 (statement)
+
+
+State 289
+
+  106 statement: continue_statement .
+
+    $default  reduce using rule 106 (statement)
+
+
+State 290
+
+   99 statement: expression . ';'
+
+    ';'  shift, and go to state 313
+
+
+State 291
+
+   76 member_modifiers: visibility_modifier STATIC .
+
+    $default  reduce using rule 76 (member_modifiers)
+
+
+State 292
+
+   78 field_declaration: visibility_modifier . primitive_type IDENTIFIER field_init ';'
+   79                  | visibility_modifier . STATIC primitive_type IDENTIFIER field_init ';'
+   84 method_declaration: visibility_modifier . primitive_type IDENTIFIER '(' parameter_list ')' block
+   92 constructor_declaration: visibility_modifier . IDENTIFIER '(' parameter_list ')' block
+
+    IDENTIFIER    shift, and go to state 58
+    STATIC        shift, and go to state 60
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    standard_type   go to state 33
+    primitive_type  go to state 63
+
+
+State 293
+
+   47 class_member: member_modifiers field_declaration .
+
+    $default  reduce using rule 47 (class_member)
+
+
+State 294
+
+   48 class_member: member_modifiers method_declaration .
+
+    $default  reduce using rule 48 (class_member)
+
+
+State 295
+
+   49 class_member: member_modifiers constructor_declaration .
+
+    $default  reduce using rule 49 (class_member)
+
+
+State 296
+
+   65 interface_member: method_return_type IDENTIFIER '(' . parameter_list ')' ';'
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    $default  reduce using rule 86 (parameter_list)
+
+    standard_type        go to state 33
+    primitive_type       go to state 64
+    parameter_list       go to state 314
+    parameter_list_tail  go to state 66
+    parameter            go to state 67
+
+
+State 297
+
+   93 static_constructor_decl: STATIC IDENTIFIER '(' ')' . block
+
+    '{'  shift, and go to state 150
+
+    block  go to state 315
+
+
+State 298
+
+  197 interpolated_string_content: INTERPOLATED_STRING_EXPR expression interpolated_string_content .
+
+    $default  reduce using rule 197 (interpolated_string_content)
+
+
+State 299
+
+  172 postfix_expression: postfix_expression NULL_SAFE_INDEX expression ']' .
+
+    $default  reduce using rule 172 (postfix_expression)
+
+
+State 300
+
+  173 postfix_expression: postfix_expression '[' expression ']' .
+
+    $default  reduce using rule 173 (postfix_expression)
+
+
+State 301
+
+  168 postfix_expression: postfix_expression '(' argument_list ')' .
+
+    $default  reduce using rule 168 (postfix_expression)
+
+
+State 302
+
+  193 expression_list: expression_list ',' . expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 316
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 303
+
+   84 method_declaration: visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' block .
+
+    $default  reduce using rule 84 (method_declaration)
+
+
+State 304
+
+  112 if_statement: IF '(' . expression ')' statement
+  113             | IF '(' . expression ')' statement ELSE statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 317
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 305
+
+  114 while_statement: WHILE '(' . expression ')' statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 318
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 306
+
+  115 for_statement: FOR '(' . for_init_opt ';' expression_opt ';' for_iter_opt ')' statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    $default  reduce using rule 116 (for_init_opt)
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    local_variable_declaration  go to state 319
+    for_init_opt                go to state 320
+    expression                  go to state 260
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    expression_list             go to state 321
+    interpolated_string         go to state 140
+
+
+State 307
+
+  125 return_statement: RETURN ';' .
+
+    $default  reduce using rule 125 (return_statement)
+
+
+State 308
+
+  126 return_statement: RETURN expression . ';'
+
+    ';'  shift, and go to state 322
+
+
+State 309
+
+  127 break_statement: BREAK ';' .
+
+    $default  reduce using rule 127 (break_statement)
+
+
+State 310
+
+  128 continue_statement: CONTINUE ';' .
+
+    $default  reduce using rule 128 (continue_statement)
+
+
+State 311
+
+  123 foreach_statement: FOREACH '(' . foreach_type IDENTIFIER IN expression ')' statement
+
+    INT_TYPE      shift, and go to state 11
+    FLOAT_TYPE    shift, and go to state 12
+    DOUBLE_TYPE   shift, and go to state 13
+    BOOL_TYPE     shift, and go to state 14
+    CHAR_TYPE     shift, and go to state 15
+    STRING_TYPE   shift, and go to state 16
+    DECIMAL_TYPE  shift, and go to state 18
+    BOOL_KW       shift, and go to state 21
+    FLOAT_KW      shift, and go to state 22
+    DOUBLE_KW     shift, and go to state 23
+    DECIMAL_KW    shift, and go to state 24
+    INT_KW        shift, and go to state 25
+
+    standard_type   go to state 33
+    primitive_type  go to state 323
+    foreach_type    go to state 324
+
+
+State 312
+
+  109 local_variable_declaration: primitive_type IDENTIFIER . local_init ';'
+
+    '='  shift, and go to state 325
+
+    $default  reduce using rule 110 (local_init)
+
+    local_init  go to state 326
+
+
+State 313
+
+   99 statement: expression ';' .
+
+    $default  reduce using rule 99 (statement)
+
+
+State 314
+
+   65 interface_member: method_return_type IDENTIFIER '(' parameter_list . ')' ';'
+
+    ')'  shift, and go to state 327
+
+
+State 315
+
+   93 static_constructor_decl: STATIC IDENTIFIER '(' ')' block .
+
+    $default  reduce using rule 93 (static_constructor_decl)
+
+
+State 316
+
+  193 expression_list: expression_list ',' expression .
+
+    $default  reduce using rule 193 (expression_list)
+
+
+State 317
+
+  112 if_statement: IF '(' expression . ')' statement
+  113             | IF '(' expression . ')' statement ELSE statement
+
+    ')'  shift, and go to state 328
+
+
+State 318
+
+  114 while_statement: WHILE '(' expression . ')' statement
+
+    ')'  shift, and go to state 329
+
+
+State 319
+
+  117 for_init_opt: local_variable_declaration .
+
+    $default  reduce using rule 117 (for_init_opt)
+
+
+State 320
+
+  115 for_statement: FOR '(' for_init_opt . ';' expression_opt ';' for_iter_opt ')' statement
+
+    ';'  shift, and go to state 330
+
+
+State 321
+
+  118 for_init_opt: expression_list .
+  193 expression_list: expression_list . ',' expression
+
+    ','  shift, and go to state 302
+
+    $default  reduce using rule 118 (for_init_opt)
+
+
+State 322
+
+  126 return_statement: RETURN expression ';' .
+
+    $default  reduce using rule 126 (return_statement)
+
+
+State 323
+
+  124 foreach_type: primitive_type .
+
+    $default  reduce using rule 124 (foreach_type)
+
+
+State 324
+
+  123 foreach_statement: FOREACH '(' foreach_type . IDENTIFIER IN expression ')' statement
+
+    IDENTIFIER  shift, and go to state 331
+
+
+State 325
+
+  111 local_init: '=' . expression
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 332
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 326
+
+  109 local_variable_declaration: primitive_type IDENTIFIER local_init . ';'
+
+    ';'  shift, and go to state 333
+
+
+State 327
+
+   65 interface_member: method_return_type IDENTIFIER '(' parameter_list ')' . ';'
+
+    ';'  shift, and go to state 334
+
+
+State 328
+
+  112 if_statement: IF '(' expression ')' . statement
+  113             | IF '(' expression ')' . statement ELSE statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    IF                         shift, and go to state 270
+    WHILE                      shift, and go to state 271
+    FOR                        shift, and go to state 272
+    RETURN                     shift, and go to state 273
+    BREAK                      shift, and go to state 274
+    CONTINUE                   shift, and go to state 275
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    FOREACH                    shift, and go to state 276
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    '{'                        shift, and go to state 150
+    ';'                        shift, and go to state 278
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    block                       go to state 280
+    statement                   go to state 335
+    local_variable_declaration  go to state 282
+    if_statement                go to state 283
+    while_statement             go to state 284
+    for_statement               go to state 285
+    foreach_statement           go to state 286
+    return_statement            go to state 287
+    break_statement             go to state 288
+    continue_statement          go to state 289
+    expression                  go to state 290
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    interpolated_string         go to state 140
+
+
+State 329
+
+  114 while_statement: WHILE '(' expression ')' . statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    IF                         shift, and go to state 270
+    WHILE                      shift, and go to state 271
+    FOR                        shift, and go to state 272
+    RETURN                     shift, and go to state 273
+    BREAK                      shift, and go to state 274
+    CONTINUE                   shift, and go to state 275
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    FOREACH                    shift, and go to state 276
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    '{'                        shift, and go to state 150
+    ';'                        shift, and go to state 278
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    block                       go to state 280
+    statement                   go to state 336
+    local_variable_declaration  go to state 282
+    if_statement                go to state 283
+    while_statement             go to state 284
+    for_statement               go to state 285
+    foreach_statement           go to state 286
+    return_statement            go to state 287
+    break_statement             go to state 288
+    continue_statement          go to state 289
+    expression                  go to state 290
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    interpolated_string         go to state 140
+
+
+State 330
+
+  115 for_statement: FOR '(' for_init_opt ';' . expression_opt ';' for_iter_opt ')' statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    $default  reduce using rule 121 (expression_opt)
+
+    expression_opt             go to state 337
+    expression                 go to state 338
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 331
+
+  123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER . IN expression ')' statement
+
+    IN  shift, and go to state 339
+
+
+State 332
+
+  111 local_init: '=' expression .
+
+    $default  reduce using rule 111 (local_init)
+
+
+State 333
+
+  109 local_variable_declaration: primitive_type IDENTIFIER local_init ';' .
+
+    $default  reduce using rule 109 (local_variable_declaration)
+
+
+State 334
+
+   65 interface_member: method_return_type IDENTIFIER '(' parameter_list ')' ';' .
+
+    $default  reduce using rule 65 (interface_member)
+
+
+State 335
+
+  112 if_statement: IF '(' expression ')' statement .
+  113             | IF '(' expression ')' statement . ELSE statement
+
+    ELSE  shift, and go to state 340
+
+    $default  reduce using rule 112 (if_statement)
+
+
+State 336
+
+  114 while_statement: WHILE '(' expression ')' statement .
+
+    $default  reduce using rule 114 (while_statement)
+
+
+State 337
+
+  115 for_statement: FOR '(' for_init_opt ';' expression_opt . ';' for_iter_opt ')' statement
+
+    ';'  shift, and go to state 341
+
+
+State 338
+
+  122 expression_opt: expression .
+
+    $default  reduce using rule 122 (expression_opt)
+
+
+State 339
+
+  123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN . expression ')' statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 342
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 340
+
+  113 if_statement: IF '(' expression ')' statement ELSE . statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    IF                         shift, and go to state 270
+    WHILE                      shift, and go to state 271
+    FOR                        shift, and go to state 272
+    RETURN                     shift, and go to state 273
+    BREAK                      shift, and go to state 274
+    CONTINUE                   shift, and go to state 275
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    FOREACH                    shift, and go to state 276
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    '{'                        shift, and go to state 150
+    ';'                        shift, and go to state 278
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    block                       go to state 280
+    statement                   go to state 343
+    local_variable_declaration  go to state 282
+    if_statement                go to state 283
+    while_statement             go to state 284
+    for_statement               go to state 285
+    foreach_statement           go to state 286
+    return_statement            go to state 287
+    break_statement             go to state 288
+    continue_statement          go to state 289
+    expression                  go to state 290
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    interpolated_string         go to state 140
+
+
+State 341
+
+  115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' . for_iter_opt ')' statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    $default  reduce using rule 119 (for_iter_opt)
+
+    for_iter_opt               go to state 344
+    expression                 go to state 260
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    expression_list            go to state 345
+    interpolated_string        go to state 140
+
+
+State 342
+
+  123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN expression . ')' statement
+
+    ')'  shift, and go to state 346
+
+
+State 343
+
+  113 if_statement: IF '(' expression ')' statement ELSE statement .
+
+    $default  reduce using rule 113 (if_statement)
+
+
+State 344
+
+  115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' for_iter_opt . ')' statement
+
+    ')'  shift, and go to state 347
+
+
+State 345
+
+  120 for_iter_opt: expression_list .
+  193 expression_list: expression_list . ',' expression
+
+    ','  shift, and go to state 302
+
+    $default  reduce using rule 120 (for_iter_opt)
+
+
+State 346
+
+  123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN expression ')' . statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    IF                         shift, and go to state 270
+    WHILE                      shift, and go to state 271
+    FOR                        shift, and go to state 272
+    RETURN                     shift, and go to state 273
+    BREAK                      shift, and go to state 274
+    CONTINUE                   shift, and go to state 275
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    FOREACH                    shift, and go to state 276
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    '{'                        shift, and go to state 150
+    ';'                        shift, and go to state 278
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    block                       go to state 280
+    statement                   go to state 348
+    local_variable_declaration  go to state 282
+    if_statement                go to state 283
+    while_statement             go to state 284
+    for_statement               go to state 285
+    foreach_statement           go to state 286
+    return_statement            go to state 287
+    break_statement             go to state 288
+    continue_statement          go to state 289
+    expression                  go to state 290
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    interpolated_string         go to state 140
+
+
+State 347
+
+  115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' for_iter_opt ')' . statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    IF                         shift, and go to state 270
+    WHILE                      shift, and go to state 271
+    FOR                        shift, and go to state 272
+    RETURN                     shift, and go to state 273
+    BREAK                      shift, and go to state 274
+    CONTINUE                   shift, and go to state 275
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    FOREACH                    shift, and go to state 276
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    '{'                        shift, and go to state 150
+    ';'                        shift, and go to state 278
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    block                       go to state 280
+    statement                   go to state 349
+    local_variable_declaration  go to state 282
+    if_statement                go to state 283
+    while_statement             go to state 284
+    for_statement               go to state 285
+    foreach_statement           go to state 286
+    return_statement            go to state 287
+    break_statement             go to state 288
+    continue_statement          go to state 289
+    expression                  go to state 290
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    interpolated_string         go to state 140
+
+
+State 348
+
+  123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN expression ')' statement .
+
+    $default  reduce using rule 123 (foreach_statement)
+
+
+State 349
+
+  115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' for_iter_opt ')' statement .
+
+    $default  reduce using rule 115 (for_statement)
