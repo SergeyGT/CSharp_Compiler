@@ -64,7 +64,6 @@ void yyerror(const char *s);
 %right '!' INCREMENT DECREMENT
 %right UMINUS
 %left '(' '.' '[' ']' NULL_SAFE_DOT NULL_SAFE_INDEX
-
 %nonassoc FIELD
 
 %start program
@@ -160,7 +159,7 @@ method_return_type:
 
 class_declaration:
       CLASS IDENTIFIER class_parent '{' class_body '}'
-    | visibility_modifier CLASS IDENTIFIER '{' class_body '}'
+    | visibility_modifier CLASS IDENTIFIER class_parent '{' class_body '}'
     ;
 
 class_parent:

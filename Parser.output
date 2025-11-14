@@ -65,7 +65,7 @@ Grammar
    40                   | qualified_identifier
 
    41 class_declaration: CLASS IDENTIFIER class_parent '{' class_body '}'
-   42                  | visibility_modifier CLASS IDENTIFIER '{' class_body '}'
+   42                  | visibility_modifier CLASS IDENTIFIER class_parent '{' class_body '}'
 
    43 class_parent: %empty
    44             | ':' qualified_identifier
@@ -431,7 +431,7 @@ Nonterminals, with rules where they appear
         on right: 21
     class_parent (117)
         on left: 43 44
-        on right: 41
+        on right: 41 42
     class_body (118)
         on left: 45 46
         on right: 41 42 46
@@ -934,7 +934,7 @@ State 38
 
 State 39
 
-   42 class_declaration: visibility_modifier . CLASS IDENTIFIER '{' class_body '}'
+   42 class_declaration: visibility_modifier . CLASS IDENTIFIER class_parent '{' class_body '}'
    53 struct_decl: visibility_modifier . STRUCT IDENTIFIER '{' struct_members_optional '}'
    67 enum_decl: visibility_modifier . ENUM IDENTIFIER '{' enumerators '}'
    78 field_declaration: visibility_modifier . primitive_type IDENTIFIER field_init ';'
@@ -1135,7 +1135,7 @@ State 58
 
 State 59
 
-   42 class_declaration: visibility_modifier CLASS . IDENTIFIER '{' class_body '}'
+   42 class_declaration: visibility_modifier CLASS . IDENTIFIER class_parent '{' class_body '}'
 
     IDENTIFIER  shift, and go to state 83
 
@@ -1455,9 +1455,13 @@ State 82
 
 State 83
 
-   42 class_declaration: visibility_modifier CLASS IDENTIFIER . '{' class_body '}'
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER . class_parent '{' class_body '}'
 
-    '{'  shift, and go to state 144
+    ':'  shift, and go to state 68
+
+    $default  reduce using rule 43 (class_parent)
+
+    class_parent  go to state 144
 
 
 State 84
@@ -2180,9 +2184,9 @@ State 138
     MINUSMINUS       shift, and go to state 210
     NULL_SAFE_DOT    shift, and go to state 211
     NULL_SAFE_INDEX  shift, and go to state 212
-    '.'              shift, and go to state 213
-    '['              shift, and go to state 214
-    '('              shift, and go to state 215
+    '('              shift, and go to state 213
+    '.'              shift, and go to state 214
+    '['              shift, and go to state 215
 
     $default  reduce using rule 161 (unary_expression)
 
@@ -2224,11 +2228,9 @@ State 143
 
 State 144
 
-   42 class_declaration: visibility_modifier CLASS IDENTIFIER '{' . class_body '}'
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER class_parent . '{' class_body '}'
 
-    $default  reduce using rule 45 (class_body)
-
-    class_body  go to state 218
+    '{'  shift, and go to state 218
 
 
 State 145
@@ -3277,53 +3279,6 @@ State 212
 
 State 213
 
-  167 postfix_expression: postfix_expression '.' . IDENTIFIER
-
-    IDENTIFIER  shift, and go to state 258
-
-
-State 214
-
-  173 postfix_expression: postfix_expression '[' . expression ']'
-
-    INTEGER_LITERAL            shift, and go to state 108
-    FLOAT_LITERAL              shift, and go to state 109
-    DOUBLE_LITERAL             shift, and go to state 110
-    DECIMAL_LITERAL            shift, and go to state 111
-    STRING_LITERAL             shift, and go to state 112
-    CHAR_LITERAL               shift, and go to state 113
-    BOOL_LITERAL_TRUE          shift, and go to state 114
-    BOOL_LITERAL_FALSE         shift, and go to state 115
-    IDENTIFIER                 shift, and go to state 116
-    THIS                       shift, and go to state 117
-    NULL_LITERAL               shift, and go to state 118
-    NULL_KW                    shift, and go to state 119
-    TRUE_KW                    shift, and go to state 120
-    FALSE_KW                   shift, and go to state 121
-    INTERPOLATED_STRING_START  shift, and go to state 122
-    INCREMENT                  shift, and go to state 123
-    DECREMENT                  shift, and go to state 124
-    '-'                        shift, and go to state 125
-    '!'                        shift, and go to state 126
-    '('                        shift, and go to state 127
-
-    expression                 go to state 259
-    assignment_expression      go to state 129
-    conditional_expression     go to state 130
-    logical_or_expression      go to state 131
-    logical_and_expression     go to state 132
-    equality_expression        go to state 133
-    relational_expression      go to state 134
-    additive_expression        go to state 135
-    multiplicative_expression  go to state 136
-    unary_expression           go to state 137
-    postfix_expression         go to state 138
-    primary_expression         go to state 139
-    interpolated_string        go to state 140
-
-
-State 215
-
   168 postfix_expression: postfix_expression '(' . argument_list ')'
 
     INTEGER_LITERAL            shift, and go to state 108
@@ -3349,7 +3304,7 @@ State 215
 
     $default  reduce using rule 190 (argument_list)
 
-    expression                 go to state 260
+    expression                 go to state 258
     assignment_expression      go to state 129
     conditional_expression     go to state 130
     logical_or_expression      go to state 131
@@ -3361,8 +3316,55 @@ State 215
     unary_expression           go to state 137
     postfix_expression         go to state 138
     primary_expression         go to state 139
-    argument_list              go to state 261
-    expression_list            go to state 262
+    argument_list              go to state 259
+    expression_list            go to state 260
+    interpolated_string        go to state 140
+
+
+State 214
+
+  167 postfix_expression: postfix_expression '.' . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 261
+
+
+State 215
+
+  173 postfix_expression: postfix_expression '[' . expression ']'
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 262
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
     interpolated_string        go to state 140
 
 
@@ -3386,23 +3388,11 @@ State 217
 
 State 218
 
-   42 class_declaration: visibility_modifier CLASS IDENTIFIER '{' class_body . '}'
-   46 class_body: class_body . class_member
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER class_parent '{' . class_body '}'
 
-    STATIC              shift, and go to state 98
-    PUBLIC              shift, and go to state 6
-    PRIVATE             shift, and go to state 7
-    PROTECTED           shift, and go to state 8
-    INTERNAL            shift, and go to state 9
-    PROTECTED_INTERNAL  shift, and go to state 10
-    TILDE               shift, and go to state 28
-    '}'                 shift, and go to state 265
+    $default  reduce using rule 45 (class_body)
 
-    class_member             go to state 226
-    visibility_modifier      go to state 227
-    member_modifiers         go to state 228
-    static_constructor_decl  go to state 229
-    destructor_decl          go to state 230
+    class_body  go to state 265
 
 
 State 219
@@ -3864,40 +3854,40 @@ State 257
 
 State 258
 
-  167 postfix_expression: postfix_expression '.' IDENTIFIER .
-
-    $default  reduce using rule 167 (postfix_expression)
-
-
-State 259
-
-  173 postfix_expression: postfix_expression '[' expression . ']'
-
-    ']'  shift, and go to state 300
-
-
-State 260
-
   192 expression_list: expression .
 
     $default  reduce using rule 192 (expression_list)
 
 
-State 261
+State 259
 
   168 postfix_expression: postfix_expression '(' argument_list . ')'
 
-    ')'  shift, and go to state 301
+    ')'  shift, and go to state 300
 
 
-State 262
+State 260
 
   191 argument_list: expression_list .
   193 expression_list: expression_list . ',' expression
 
-    ','  shift, and go to state 302
+    ','  shift, and go to state 301
 
     $default  reduce using rule 191 (argument_list)
+
+
+State 261
+
+  167 postfix_expression: postfix_expression '.' IDENTIFIER .
+
+    $default  reduce using rule 167 (postfix_expression)
+
+
+State 262
+
+  173 postfix_expression: postfix_expression '[' expression . ']'
+
+    ']'  shift, and go to state 302
 
 
 State 263
@@ -3916,9 +3906,23 @@ State 264
 
 State 265
 
-   42 class_declaration: visibility_modifier CLASS IDENTIFIER '{' class_body '}' .
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER class_parent '{' class_body . '}'
+   46 class_body: class_body . class_member
 
-    $default  reduce using rule 42 (class_declaration)
+    STATIC              shift, and go to state 98
+    PUBLIC              shift, and go to state 6
+    PRIVATE             shift, and go to state 7
+    PROTECTED           shift, and go to state 8
+    INTERNAL            shift, and go to state 9
+    PROTECTED_INTERNAL  shift, and go to state 10
+    TILDE               shift, and go to state 28
+    '}'                 shift, and go to state 303
+
+    class_member             go to state 226
+    visibility_modifier      go to state 227
+    member_modifiers         go to state 228
+    static_constructor_decl  go to state 229
+    destructor_decl          go to state 230
 
 
 State 266
@@ -3948,7 +3952,7 @@ State 269
 
     '{'  shift, and go to state 150
 
-    block  go to state 303
+    block  go to state 304
 
 
 State 270
@@ -3956,21 +3960,21 @@ State 270
   112 if_statement: IF . '(' expression ')' statement
   113             | IF . '(' expression ')' statement ELSE statement
 
-    '('  shift, and go to state 304
+    '('  shift, and go to state 305
 
 
 State 271
 
   114 while_statement: WHILE . '(' expression ')' statement
 
-    '('  shift, and go to state 305
+    '('  shift, and go to state 306
 
 
 State 272
 
   115 for_statement: FOR . '(' for_init_opt ';' expression_opt ';' for_iter_opt ')' statement
 
-    '('  shift, and go to state 306
+    '('  shift, and go to state 307
 
 
 State 273
@@ -3998,9 +4002,9 @@ State 273
     '-'                        shift, and go to state 125
     '!'                        shift, and go to state 126
     '('                        shift, and go to state 127
-    ';'                        shift, and go to state 307
+    ';'                        shift, and go to state 308
 
-    expression                 go to state 308
+    expression                 go to state 309
     assignment_expression      go to state 129
     conditional_expression     go to state 130
     logical_or_expression      go to state 131
@@ -4019,21 +4023,21 @@ State 274
 
   127 break_statement: BREAK . ';'
 
-    ';'  shift, and go to state 309
+    ';'  shift, and go to state 310
 
 
 State 275
 
   128 continue_statement: CONTINUE . ';'
 
-    ';'  shift, and go to state 310
+    ';'  shift, and go to state 311
 
 
 State 276
 
   123 foreach_statement: FOREACH . '(' foreach_type IDENTIFIER IN expression ')' statement
 
-    '('  shift, and go to state 311
+    '('  shift, and go to state 312
 
 
 State 277
@@ -4054,7 +4058,7 @@ State 279
 
   109 local_variable_declaration: primitive_type . IDENTIFIER local_init ';'
 
-    IDENTIFIER  shift, and go to state 312
+    IDENTIFIER  shift, and go to state 313
 
 
 State 280
@@ -4131,7 +4135,7 @@ State 290
 
    99 statement: expression . ';'
 
-    ';'  shift, and go to state 313
+    ';'  shift, and go to state 314
 
 
 State 291
@@ -4209,7 +4213,7 @@ State 296
 
     standard_type        go to state 33
     primitive_type       go to state 64
-    parameter_list       go to state 314
+    parameter_list       go to state 315
     parameter_list_tail  go to state 66
     parameter            go to state 67
 
@@ -4220,7 +4224,7 @@ State 297
 
     '{'  shift, and go to state 150
 
-    block  go to state 315
+    block  go to state 316
 
 
 State 298
@@ -4239,69 +4243,14 @@ State 299
 
 State 300
 
-  173 postfix_expression: postfix_expression '[' expression ']' .
-
-    $default  reduce using rule 173 (postfix_expression)
-
-
-State 301
-
   168 postfix_expression: postfix_expression '(' argument_list ')' .
 
     $default  reduce using rule 168 (postfix_expression)
 
 
-State 302
+State 301
 
   193 expression_list: expression_list ',' . expression
-
-    INTEGER_LITERAL            shift, and go to state 108
-    FLOAT_LITERAL              shift, and go to state 109
-    DOUBLE_LITERAL             shift, and go to state 110
-    DECIMAL_LITERAL            shift, and go to state 111
-    STRING_LITERAL             shift, and go to state 112
-    CHAR_LITERAL               shift, and go to state 113
-    BOOL_LITERAL_TRUE          shift, and go to state 114
-    BOOL_LITERAL_FALSE         shift, and go to state 115
-    IDENTIFIER                 shift, and go to state 116
-    THIS                       shift, and go to state 117
-    NULL_LITERAL               shift, and go to state 118
-    NULL_KW                    shift, and go to state 119
-    TRUE_KW                    shift, and go to state 120
-    FALSE_KW                   shift, and go to state 121
-    INTERPOLATED_STRING_START  shift, and go to state 122
-    INCREMENT                  shift, and go to state 123
-    DECREMENT                  shift, and go to state 124
-    '-'                        shift, and go to state 125
-    '!'                        shift, and go to state 126
-    '('                        shift, and go to state 127
-
-    expression                 go to state 316
-    assignment_expression      go to state 129
-    conditional_expression     go to state 130
-    logical_or_expression      go to state 131
-    logical_and_expression     go to state 132
-    equality_expression        go to state 133
-    relational_expression      go to state 134
-    additive_expression        go to state 135
-    multiplicative_expression  go to state 136
-    unary_expression           go to state 137
-    postfix_expression         go to state 138
-    primary_expression         go to state 139
-    interpolated_string        go to state 140
-
-
-State 303
-
-   84 method_declaration: visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' block .
-
-    $default  reduce using rule 84 (method_declaration)
-
-
-State 304
-
-  112 if_statement: IF '(' . expression ')' statement
-  113             | IF '(' . expression ')' statement ELSE statement
 
     INTEGER_LITERAL            shift, and go to state 108
     FLOAT_LITERAL              shift, and go to state 109
@@ -4339,9 +4288,31 @@ State 304
     interpolated_string        go to state 140
 
 
+State 302
+
+  173 postfix_expression: postfix_expression '[' expression ']' .
+
+    $default  reduce using rule 173 (postfix_expression)
+
+
+State 303
+
+   42 class_declaration: visibility_modifier CLASS IDENTIFIER class_parent '{' class_body '}' .
+
+    $default  reduce using rule 42 (class_declaration)
+
+
+State 304
+
+   84 method_declaration: visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' block .
+
+    $default  reduce using rule 84 (method_declaration)
+
+
 State 305
 
-  114 while_statement: WHILE '(' . expression ')' statement
+  112 if_statement: IF '(' . expression ')' statement
+  113             | IF '(' . expression ')' statement ELSE statement
 
     INTEGER_LITERAL            shift, and go to state 108
     FLOAT_LITERAL              shift, and go to state 109
@@ -4380,6 +4351,46 @@ State 305
 
 
 State 306
+
+  114 while_statement: WHILE '(' . expression ')' statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    THIS                       shift, and go to state 117
+    NULL_LITERAL               shift, and go to state 118
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+
+    expression                 go to state 319
+    assignment_expression      go to state 129
+    conditional_expression     go to state 130
+    logical_or_expression      go to state 131
+    logical_and_expression     go to state 132
+    equality_expression        go to state 133
+    relational_expression      go to state 134
+    additive_expression        go to state 135
+    multiplicative_expression  go to state 136
+    unary_expression           go to state 137
+    postfix_expression         go to state 138
+    primary_expression         go to state 139
+    interpolated_string        go to state 140
+
+
+State 307
 
   115 for_statement: FOR '(' . for_init_opt ';' expression_opt ';' for_iter_opt ')' statement
 
@@ -4420,9 +4431,9 @@ State 306
 
     standard_type               go to state 33
     primitive_type              go to state 279
-    local_variable_declaration  go to state 319
-    for_init_opt                go to state 320
-    expression                  go to state 260
+    local_variable_declaration  go to state 320
+    for_init_opt                go to state 321
+    expression                  go to state 258
     assignment_expression       go to state 129
     conditional_expression      go to state 130
     logical_or_expression       go to state 131
@@ -4434,39 +4445,39 @@ State 306
     unary_expression            go to state 137
     postfix_expression          go to state 138
     primary_expression          go to state 139
-    expression_list             go to state 321
+    expression_list             go to state 322
     interpolated_string         go to state 140
 
 
-State 307
+State 308
 
   125 return_statement: RETURN ';' .
 
     $default  reduce using rule 125 (return_statement)
 
 
-State 308
+State 309
 
   126 return_statement: RETURN expression . ';'
 
-    ';'  shift, and go to state 322
+    ';'  shift, and go to state 323
 
 
-State 309
+State 310
 
   127 break_statement: BREAK ';' .
 
     $default  reduce using rule 127 (break_statement)
 
 
-State 310
+State 311
 
   128 continue_statement: CONTINUE ';' .
 
     $default  reduce using rule 128 (continue_statement)
 
 
-State 311
+State 312
 
   123 foreach_statement: FOREACH '(' . foreach_type IDENTIFIER IN expression ')' statement
 
@@ -4484,110 +4495,110 @@ State 311
     INT_KW        shift, and go to state 25
 
     standard_type   go to state 33
-    primitive_type  go to state 323
-    foreach_type    go to state 324
-
-
-State 312
-
-  109 local_variable_declaration: primitive_type IDENTIFIER . local_init ';'
-
-    '='  shift, and go to state 325
-
-    $default  reduce using rule 110 (local_init)
-
-    local_init  go to state 326
+    primitive_type  go to state 324
+    foreach_type    go to state 325
 
 
 State 313
+
+  109 local_variable_declaration: primitive_type IDENTIFIER . local_init ';'
+
+    '='  shift, and go to state 326
+
+    $default  reduce using rule 110 (local_init)
+
+    local_init  go to state 327
+
+
+State 314
 
    99 statement: expression ';' .
 
     $default  reduce using rule 99 (statement)
 
 
-State 314
+State 315
 
    65 interface_member: method_return_type IDENTIFIER '(' parameter_list . ')' ';'
 
-    ')'  shift, and go to state 327
+    ')'  shift, and go to state 328
 
 
-State 315
+State 316
 
    93 static_constructor_decl: STATIC IDENTIFIER '(' ')' block .
 
     $default  reduce using rule 93 (static_constructor_decl)
 
 
-State 316
+State 317
 
   193 expression_list: expression_list ',' expression .
 
     $default  reduce using rule 193 (expression_list)
 
 
-State 317
+State 318
 
   112 if_statement: IF '(' expression . ')' statement
   113             | IF '(' expression . ')' statement ELSE statement
-
-    ')'  shift, and go to state 328
-
-
-State 318
-
-  114 while_statement: WHILE '(' expression . ')' statement
 
     ')'  shift, and go to state 329
 
 
 State 319
 
+  114 while_statement: WHILE '(' expression . ')' statement
+
+    ')'  shift, and go to state 330
+
+
+State 320
+
   117 for_init_opt: local_variable_declaration .
 
     $default  reduce using rule 117 (for_init_opt)
 
 
-State 320
+State 321
 
   115 for_statement: FOR '(' for_init_opt . ';' expression_opt ';' for_iter_opt ')' statement
 
-    ';'  shift, and go to state 330
+    ';'  shift, and go to state 331
 
 
-State 321
+State 322
 
   118 for_init_opt: expression_list .
   193 expression_list: expression_list . ',' expression
 
-    ','  shift, and go to state 302
+    ','  shift, and go to state 301
 
     $default  reduce using rule 118 (for_init_opt)
 
 
-State 322
+State 323
 
   126 return_statement: RETURN expression ';' .
 
     $default  reduce using rule 126 (return_statement)
 
 
-State 323
+State 324
 
   124 foreach_type: primitive_type .
 
     $default  reduce using rule 124 (foreach_type)
 
 
-State 324
+State 325
 
   123 foreach_statement: FOREACH '(' foreach_type . IDENTIFIER IN expression ')' statement
 
-    IDENTIFIER  shift, and go to state 331
+    IDENTIFIER  shift, and go to state 332
 
 
-State 325
+State 326
 
   111 local_init: '=' . expression
 
@@ -4612,7 +4623,7 @@ State 325
     '!'                        shift, and go to state 126
     '('                        shift, and go to state 127
 
-    expression                 go to state 332
+    expression                 go to state 333
     assignment_expression      go to state 129
     conditional_expression     go to state 130
     logical_or_expression      go to state 131
@@ -4627,97 +4638,24 @@ State 325
     interpolated_string        go to state 140
 
 
-State 326
-
-  109 local_variable_declaration: primitive_type IDENTIFIER local_init . ';'
-
-    ';'  shift, and go to state 333
-
-
 State 327
 
-   65 interface_member: method_return_type IDENTIFIER '(' parameter_list ')' . ';'
+  109 local_variable_declaration: primitive_type IDENTIFIER local_init . ';'
 
     ';'  shift, and go to state 334
 
 
 State 328
 
-  112 if_statement: IF '(' expression ')' . statement
-  113             | IF '(' expression ')' . statement ELSE statement
+   65 interface_member: method_return_type IDENTIFIER '(' parameter_list ')' . ';'
 
-    INTEGER_LITERAL            shift, and go to state 108
-    FLOAT_LITERAL              shift, and go to state 109
-    DOUBLE_LITERAL             shift, and go to state 110
-    DECIMAL_LITERAL            shift, and go to state 111
-    STRING_LITERAL             shift, and go to state 112
-    CHAR_LITERAL               shift, and go to state 113
-    BOOL_LITERAL_TRUE          shift, and go to state 114
-    BOOL_LITERAL_FALSE         shift, and go to state 115
-    IDENTIFIER                 shift, and go to state 116
-    IF                         shift, and go to state 270
-    WHILE                      shift, and go to state 271
-    FOR                        shift, and go to state 272
-    RETURN                     shift, and go to state 273
-    BREAK                      shift, and go to state 274
-    CONTINUE                   shift, and go to state 275
-    THIS                       shift, and go to state 117
-    INT_TYPE                   shift, and go to state 11
-    FLOAT_TYPE                 shift, and go to state 12
-    DOUBLE_TYPE                shift, and go to state 13
-    BOOL_TYPE                  shift, and go to state 14
-    CHAR_TYPE                  shift, and go to state 15
-    STRING_TYPE                shift, and go to state 16
-    DECIMAL_TYPE               shift, and go to state 18
-    FOREACH                    shift, and go to state 276
-    NULL_LITERAL               shift, and go to state 118
-    BOOL_KW                    shift, and go to state 21
-    FLOAT_KW                   shift, and go to state 22
-    DOUBLE_KW                  shift, and go to state 23
-    DECIMAL_KW                 shift, and go to state 24
-    INT_KW                     shift, and go to state 25
-    NULL_KW                    shift, and go to state 119
-    TRUE_KW                    shift, and go to state 120
-    FALSE_KW                   shift, and go to state 121
-    INTERPOLATED_STRING_START  shift, and go to state 122
-    INCREMENT                  shift, and go to state 123
-    DECREMENT                  shift, and go to state 124
-    '-'                        shift, and go to state 125
-    '!'                        shift, and go to state 126
-    '('                        shift, and go to state 127
-    '{'                        shift, and go to state 150
-    ';'                        shift, and go to state 278
-
-    standard_type               go to state 33
-    primitive_type              go to state 279
-    block                       go to state 280
-    statement                   go to state 335
-    local_variable_declaration  go to state 282
-    if_statement                go to state 283
-    while_statement             go to state 284
-    for_statement               go to state 285
-    foreach_statement           go to state 286
-    return_statement            go to state 287
-    break_statement             go to state 288
-    continue_statement          go to state 289
-    expression                  go to state 290
-    assignment_expression       go to state 129
-    conditional_expression      go to state 130
-    logical_or_expression       go to state 131
-    logical_and_expression      go to state 132
-    equality_expression         go to state 133
-    relational_expression       go to state 134
-    additive_expression         go to state 135
-    multiplicative_expression   go to state 136
-    unary_expression            go to state 137
-    postfix_expression          go to state 138
-    primary_expression          go to state 139
-    interpolated_string         go to state 140
+    ';'  shift, and go to state 335
 
 
 State 329
 
-  114 while_statement: WHILE '(' expression ')' . statement
+  112 if_statement: IF '(' expression ')' . statement
+  113             | IF '(' expression ')' . statement ELSE statement
 
     INTEGER_LITERAL            shift, and go to state 108
     FLOAT_LITERAL              shift, and go to state 109
@@ -4790,6 +4728,79 @@ State 329
 
 State 330
 
+  114 while_statement: WHILE '(' expression ')' . statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    IF                         shift, and go to state 270
+    WHILE                      shift, and go to state 271
+    FOR                        shift, and go to state 272
+    RETURN                     shift, and go to state 273
+    BREAK                      shift, and go to state 274
+    CONTINUE                   shift, and go to state 275
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    FOREACH                    shift, and go to state 276
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    '{'                        shift, and go to state 150
+    ';'                        shift, and go to state 278
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    block                       go to state 280
+    statement                   go to state 337
+    local_variable_declaration  go to state 282
+    if_statement                go to state 283
+    while_statement             go to state 284
+    for_statement               go to state 285
+    foreach_statement           go to state 286
+    return_statement            go to state 287
+    break_statement             go to state 288
+    continue_statement          go to state 289
+    expression                  go to state 290
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    interpolated_string         go to state 140
+
+
+State 331
+
   115 for_statement: FOR '(' for_init_opt ';' . expression_opt ';' for_iter_opt ')' statement
 
     INTEGER_LITERAL            shift, and go to state 108
@@ -4815,8 +4826,8 @@ State 330
 
     $default  reduce using rule 121 (expression_opt)
 
-    expression_opt             go to state 337
-    expression                 go to state 338
+    expression_opt             go to state 338
+    expression                 go to state 339
     assignment_expression      go to state 129
     conditional_expression     go to state 130
     logical_or_expression      go to state 131
@@ -4831,66 +4842,66 @@ State 330
     interpolated_string        go to state 140
 
 
-State 331
+State 332
 
   123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER . IN expression ')' statement
 
-    IN  shift, and go to state 339
+    IN  shift, and go to state 340
 
 
-State 332
+State 333
 
   111 local_init: '=' expression .
 
     $default  reduce using rule 111 (local_init)
 
 
-State 333
+State 334
 
   109 local_variable_declaration: primitive_type IDENTIFIER local_init ';' .
 
     $default  reduce using rule 109 (local_variable_declaration)
 
 
-State 334
+State 335
 
    65 interface_member: method_return_type IDENTIFIER '(' parameter_list ')' ';' .
 
     $default  reduce using rule 65 (interface_member)
 
 
-State 335
+State 336
 
   112 if_statement: IF '(' expression ')' statement .
   113             | IF '(' expression ')' statement . ELSE statement
 
-    ELSE  shift, and go to state 340
+    ELSE  shift, and go to state 341
 
     $default  reduce using rule 112 (if_statement)
 
 
-State 336
+State 337
 
   114 while_statement: WHILE '(' expression ')' statement .
 
     $default  reduce using rule 114 (while_statement)
 
 
-State 337
+State 338
 
   115 for_statement: FOR '(' for_init_opt ';' expression_opt . ';' for_iter_opt ')' statement
 
-    ';'  shift, and go to state 341
+    ';'  shift, and go to state 342
 
 
-State 338
+State 339
 
   122 expression_opt: expression .
 
     $default  reduce using rule 122 (expression_opt)
 
 
-State 339
+State 340
 
   123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN . expression ')' statement
 
@@ -4915,7 +4926,7 @@ State 339
     '!'                        shift, and go to state 126
     '('                        shift, and go to state 127
 
-    expression                 go to state 342
+    expression                 go to state 343
     assignment_expression      go to state 129
     conditional_expression     go to state 130
     logical_or_expression      go to state 131
@@ -4930,7 +4941,7 @@ State 339
     interpolated_string        go to state 140
 
 
-State 340
+State 341
 
   113 if_statement: IF '(' expression ')' statement ELSE . statement
 
@@ -4979,7 +4990,7 @@ State 340
     standard_type               go to state 33
     primitive_type              go to state 279
     block                       go to state 280
-    statement                   go to state 343
+    statement                   go to state 344
     local_variable_declaration  go to state 282
     if_statement                go to state 283
     while_statement             go to state 284
@@ -5003,7 +5014,7 @@ State 340
     interpolated_string         go to state 140
 
 
-State 341
+State 342
 
   115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' . for_iter_opt ')' statement
 
@@ -5030,8 +5041,8 @@ State 341
 
     $default  reduce using rule 119 (for_iter_opt)
 
-    for_iter_opt               go to state 344
-    expression                 go to state 260
+    for_iter_opt               go to state 345
+    expression                 go to state 258
     assignment_expression      go to state 129
     conditional_expression     go to state 130
     logical_or_expression      go to state 131
@@ -5043,117 +5054,44 @@ State 341
     unary_expression           go to state 137
     postfix_expression         go to state 138
     primary_expression         go to state 139
-    expression_list            go to state 345
+    expression_list            go to state 346
     interpolated_string        go to state 140
 
 
-State 342
+State 343
 
   123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN expression . ')' statement
 
-    ')'  shift, and go to state 346
+    ')'  shift, and go to state 347
 
 
-State 343
+State 344
 
   113 if_statement: IF '(' expression ')' statement ELSE statement .
 
     $default  reduce using rule 113 (if_statement)
 
 
-State 344
+State 345
 
   115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' for_iter_opt . ')' statement
 
-    ')'  shift, and go to state 347
-
-
-State 345
-
-  120 for_iter_opt: expression_list .
-  193 expression_list: expression_list . ',' expression
-
-    ','  shift, and go to state 302
-
-    $default  reduce using rule 120 (for_iter_opt)
+    ')'  shift, and go to state 348
 
 
 State 346
 
-  123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN expression ')' . statement
+  120 for_iter_opt: expression_list .
+  193 expression_list: expression_list . ',' expression
 
-    INTEGER_LITERAL            shift, and go to state 108
-    FLOAT_LITERAL              shift, and go to state 109
-    DOUBLE_LITERAL             shift, and go to state 110
-    DECIMAL_LITERAL            shift, and go to state 111
-    STRING_LITERAL             shift, and go to state 112
-    CHAR_LITERAL               shift, and go to state 113
-    BOOL_LITERAL_TRUE          shift, and go to state 114
-    BOOL_LITERAL_FALSE         shift, and go to state 115
-    IDENTIFIER                 shift, and go to state 116
-    IF                         shift, and go to state 270
-    WHILE                      shift, and go to state 271
-    FOR                        shift, and go to state 272
-    RETURN                     shift, and go to state 273
-    BREAK                      shift, and go to state 274
-    CONTINUE                   shift, and go to state 275
-    THIS                       shift, and go to state 117
-    INT_TYPE                   shift, and go to state 11
-    FLOAT_TYPE                 shift, and go to state 12
-    DOUBLE_TYPE                shift, and go to state 13
-    BOOL_TYPE                  shift, and go to state 14
-    CHAR_TYPE                  shift, and go to state 15
-    STRING_TYPE                shift, and go to state 16
-    DECIMAL_TYPE               shift, and go to state 18
-    FOREACH                    shift, and go to state 276
-    NULL_LITERAL               shift, and go to state 118
-    BOOL_KW                    shift, and go to state 21
-    FLOAT_KW                   shift, and go to state 22
-    DOUBLE_KW                  shift, and go to state 23
-    DECIMAL_KW                 shift, and go to state 24
-    INT_KW                     shift, and go to state 25
-    NULL_KW                    shift, and go to state 119
-    TRUE_KW                    shift, and go to state 120
-    FALSE_KW                   shift, and go to state 121
-    INTERPOLATED_STRING_START  shift, and go to state 122
-    INCREMENT                  shift, and go to state 123
-    DECREMENT                  shift, and go to state 124
-    '-'                        shift, and go to state 125
-    '!'                        shift, and go to state 126
-    '('                        shift, and go to state 127
-    '{'                        shift, and go to state 150
-    ';'                        shift, and go to state 278
+    ','  shift, and go to state 301
 
-    standard_type               go to state 33
-    primitive_type              go to state 279
-    block                       go to state 280
-    statement                   go to state 348
-    local_variable_declaration  go to state 282
-    if_statement                go to state 283
-    while_statement             go to state 284
-    for_statement               go to state 285
-    foreach_statement           go to state 286
-    return_statement            go to state 287
-    break_statement             go to state 288
-    continue_statement          go to state 289
-    expression                  go to state 290
-    assignment_expression       go to state 129
-    conditional_expression      go to state 130
-    logical_or_expression       go to state 131
-    logical_and_expression      go to state 132
-    equality_expression         go to state 133
-    relational_expression       go to state 134
-    additive_expression         go to state 135
-    multiplicative_expression   go to state 136
-    unary_expression            go to state 137
-    postfix_expression          go to state 138
-    primary_expression          go to state 139
-    interpolated_string         go to state 140
+    $default  reduce using rule 120 (for_iter_opt)
 
 
 State 347
 
-  115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' for_iter_opt ')' . statement
+  123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN expression ')' . statement
 
     INTEGER_LITERAL            shift, and go to state 108
     FLOAT_LITERAL              shift, and go to state 109
@@ -5226,12 +5164,85 @@ State 347
 
 State 348
 
+  115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' for_iter_opt ')' . statement
+
+    INTEGER_LITERAL            shift, and go to state 108
+    FLOAT_LITERAL              shift, and go to state 109
+    DOUBLE_LITERAL             shift, and go to state 110
+    DECIMAL_LITERAL            shift, and go to state 111
+    STRING_LITERAL             shift, and go to state 112
+    CHAR_LITERAL               shift, and go to state 113
+    BOOL_LITERAL_TRUE          shift, and go to state 114
+    BOOL_LITERAL_FALSE         shift, and go to state 115
+    IDENTIFIER                 shift, and go to state 116
+    IF                         shift, and go to state 270
+    WHILE                      shift, and go to state 271
+    FOR                        shift, and go to state 272
+    RETURN                     shift, and go to state 273
+    BREAK                      shift, and go to state 274
+    CONTINUE                   shift, and go to state 275
+    THIS                       shift, and go to state 117
+    INT_TYPE                   shift, and go to state 11
+    FLOAT_TYPE                 shift, and go to state 12
+    DOUBLE_TYPE                shift, and go to state 13
+    BOOL_TYPE                  shift, and go to state 14
+    CHAR_TYPE                  shift, and go to state 15
+    STRING_TYPE                shift, and go to state 16
+    DECIMAL_TYPE               shift, and go to state 18
+    FOREACH                    shift, and go to state 276
+    NULL_LITERAL               shift, and go to state 118
+    BOOL_KW                    shift, and go to state 21
+    FLOAT_KW                   shift, and go to state 22
+    DOUBLE_KW                  shift, and go to state 23
+    DECIMAL_KW                 shift, and go to state 24
+    INT_KW                     shift, and go to state 25
+    NULL_KW                    shift, and go to state 119
+    TRUE_KW                    shift, and go to state 120
+    FALSE_KW                   shift, and go to state 121
+    INTERPOLATED_STRING_START  shift, and go to state 122
+    INCREMENT                  shift, and go to state 123
+    DECREMENT                  shift, and go to state 124
+    '-'                        shift, and go to state 125
+    '!'                        shift, and go to state 126
+    '('                        shift, and go to state 127
+    '{'                        shift, and go to state 150
+    ';'                        shift, and go to state 278
+
+    standard_type               go to state 33
+    primitive_type              go to state 279
+    block                       go to state 280
+    statement                   go to state 350
+    local_variable_declaration  go to state 282
+    if_statement                go to state 283
+    while_statement             go to state 284
+    for_statement               go to state 285
+    foreach_statement           go to state 286
+    return_statement            go to state 287
+    break_statement             go to state 288
+    continue_statement          go to state 289
+    expression                  go to state 290
+    assignment_expression       go to state 129
+    conditional_expression      go to state 130
+    logical_or_expression       go to state 131
+    logical_and_expression      go to state 132
+    equality_expression         go to state 133
+    relational_expression       go to state 134
+    additive_expression         go to state 135
+    multiplicative_expression   go to state 136
+    unary_expression            go to state 137
+    postfix_expression          go to state 138
+    primary_expression          go to state 139
+    interpolated_string         go to state 140
+
+
+State 349
+
   123 foreach_statement: FOREACH '(' foreach_type IDENTIFIER IN expression ')' statement .
 
     $default  reduce using rule 123 (foreach_statement)
 
 
-State 349
+State 350
 
   115 for_statement: FOR '(' for_init_opt ';' expression_opt ';' for_iter_opt ')' statement .
 
