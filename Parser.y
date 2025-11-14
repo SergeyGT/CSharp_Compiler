@@ -33,7 +33,7 @@ void yyerror(const char *s);
 %token IF ELSE WHILE FOR RETURN BREAK CONTINUE
 %token CLASS INTERFACE STATIC NEW THIS
 %token PUBLIC PRIVATE PROTECTED INTERNAL PROTECTED_INTERNAL
-%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VAR_TYPE VOID_TYPE DECIMAL_TYPE
+%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VOID_TYPE DECIMAL_TYPE
 %token NAMESPACE USING
 %token FOREACH IN NULL_LITERAL
 
@@ -258,7 +258,6 @@ member_modifiers:
 
 field_declaration:
       typed_field_declaration
-    | var_field_declaration
     | visibility_modifier primitive_type IDENTIFIER field_init ';'
     | visibility_modifier STATIC primitive_type IDENTIFIER field_init ';'
     ;
@@ -270,10 +269,6 @@ typed_field_declaration:
 field_init:
     /* empty */
     | '=' expression
-    ;
-
-var_field_declaration:
-    VAR_TYPE IDENTIFIER '=' expression ';'
     ;
 
 // ============================================================================
@@ -346,7 +341,6 @@ statement:
 
 local_variable_declaration:
       primitive_type IDENTIFIER local_init ';'
-    | VAR_TYPE IDENTIFIER '=' expression ';'
     ;
 
 local_init:
@@ -387,7 +381,6 @@ foreach_statement:
 
 foreach_type:
       primitive_type
-    | VAR_TYPE
     ;
 
 return_statement:
