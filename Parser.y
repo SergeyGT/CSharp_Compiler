@@ -48,7 +48,7 @@ void yyerror(const char *s);
 %token LESS GREATER GREATER_OR_EQUAL LESS_OR_EQUAL
 %token BITWISE_OR BITWISE_AND
 
-%type <type_value> primitive_type method_return_type standard_type
+%type <type_value> primitive_type method_return_type standard_type array_type
 %type <string_value> simple_identifier qualified_identifier
 
 %nonassoc THEN
@@ -65,6 +65,7 @@ void yyerror(const char *s);
 %right UMINUS
 %left '(' '.' '[' ']' NULL_SAFE_DOT NULL_SAFE_INDEX
 %nonassoc FIELD
+
 
 %start program
 
@@ -144,8 +145,12 @@ primitive_type:
     | STRING_TYPE  { $$ = 6; }
     | DECIMAL_TYPE { $$ = 7; }
     | standard_type { $$ = $1; }
+    | array_type   { $$ = $1; }
     ;
 	
+array_type:
+    primitive_type '[' ']' { $$ = 200 + $1; }  // 200+ для обозначения массива
+    ;
 
 method_return_type:
       primitive_type { $$ = $1; }
@@ -456,17 +461,20 @@ unary_expression:
     | '!' unary_expression
     | INCREMENT unary_expression
     | DECREMENT unary_expression
+	| '(' primitive_type ')' unary_expression 
     ;
 
 postfix_expression:
       primary_expression
     | postfix_expression '.' IDENTIFIER
     | postfix_expression '(' argument_list ')'
+    | postfix_expression '[' expression ']'
     | postfix_expression PLUSPLUS
-    | postfix_expression MINUSMINUS
+    | postfix_expression MINUSMINUS 
     | postfix_expression NULL_SAFE_DOT IDENTIFIER
     | postfix_expression NULL_SAFE_INDEX expression ']'
-    | postfix_expression '[' expression ']'
+    | NEW qualified_identifier '(' argument_list ')'
+    | NEW primitive_type '[' expression ']'
     ;
 
 primary_expression:
