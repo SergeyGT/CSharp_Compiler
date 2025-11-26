@@ -37,8 +37,6 @@ void yyerror(const char *s);
 %token NAMESPACE USING
 %token FOREACH IN NULL_LITERAL
 
-%token BOOL_KW FLOAT_KW DOUBLE_KW DECIMAL_KW INT_KW
-%token NULL_KW TRUE_KW FALSE_KW
 %token STRUCT ENUM
 %token TILDE
 %token INTERPOLATED_STRING_START INTERPOLATED_STRING_END
@@ -48,7 +46,7 @@ void yyerror(const char *s);
 %token LESS GREATER GREATER_OR_EQUAL LESS_OR_EQUAL
 %token BITWISE_OR BITWISE_AND
 
-%type <type_value> primitive_type method_return_type standard_type array_type
+%type <type_value> primitive_type method_return_type array_type
 %type <string_value> simple_identifier qualified_identifier
 
 %nonassoc THEN
@@ -77,13 +75,8 @@ program:
     ;
 
 top_level_declaration:
-      namespace_declaration
-    | using_directive
-    | type_declaration
-    | field_declaration
-    | method_declaration
-    | constructor_declaration
-    | destructor_decl
+      using_directive
+      | namespace_declaration
     ;
 
 // ============================================================================
@@ -128,14 +121,6 @@ type_declaration:
 // ТИПЫ ДАННЫХ
 // ============================================================================
 
-standard_type: 
-      FLOAT_KW     { $$ = 2; }
-    | DOUBLE_KW    { $$ = 3; }
-    | DECIMAL_KW   { $$ = 7; }
-    | BOOL_KW      { $$ = 4; }
-    | INT_KW       { $$ = 1; }
-    ;	
-
 primitive_type:
       INT_TYPE     { $$ = 1; }
     | FLOAT_TYPE   { $$ = 2; }
@@ -144,7 +129,6 @@ primitive_type:
     | CHAR_TYPE    { $$ = 5; }
     | STRING_TYPE  { $$ = 6; }
     | DECIMAL_TYPE { $$ = 7; }
-    | standard_type { $$ = $1; }
     | array_type   { $$ = $1; }
     ;
 	
@@ -487,10 +471,7 @@ primary_expression:
     | CHAR_LITERAL
     | BOOL_LITERAL_TRUE 
     | BOOL_LITERAL_FALSE
-    | TRUE_KW
-    | FALSE_KW
     | NULL_LITERAL
-    | NULL_KW
     | THIS 
     | '(' expression ')'
     | interpolated_string
