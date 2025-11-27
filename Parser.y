@@ -159,9 +159,9 @@ class_body:
     ;
 
 class_member:
-      member_modifiers field_declaration
-    | member_modifiers method_declaration
-    | member_modifiers constructor_declaration
+      field_declaration
+    | method_declaration
+    | constructor_declaration
     | destructor_decl
     | static_constructor_decl
     ;
@@ -178,7 +178,8 @@ struct_decl:
 struct_members: 
       field_declaration                              
     | method_declaration                              
-    | static_constructor_decl                  
+    | static_constructor_decl   
+    | constructor_declaration               
     | struct_members field_declaration                
     | struct_members method_declaration               
     | struct_members static_constructor_decl   
@@ -232,11 +233,6 @@ visibility_modifier:
     | PROTECTED_INTERNAL   
     ;
 
-member_modifiers:
-      visibility_modifier 
-    | visibility_modifier STATIC
-    ;
-
 // ============================================================================
 // ПОЛЯ И ПЕРЕМЕННЫЕ
 // ============================================================================
@@ -245,6 +241,7 @@ field_declaration:
       typed_field_declaration
     | visibility_modifier primitive_type IDENTIFIER field_init ';'
     | visibility_modifier STATIC primitive_type IDENTIFIER field_init ';'
+    | STATIC visibility_modifier primitive_type IDENTIFIER field_init ';'
     ;
 
 typed_field_declaration:
@@ -261,11 +258,16 @@ field_init:
 // ============================================================================
 
 
-// 
 method_declaration:
       primitive_type IDENTIFIER '(' parameter_list ')' block
+    | primitive_type STATIC IDENTIFIER '(' parameter_list ')' block
     | visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' block
-	| VOID_TYPE IDENTIFIER '(' parameter_list ')' block
+    | visibility_modifier STATIC primitive_type IDENTIFIER '(' parameter_list ')' block
+    | VOID_TYPE IDENTIFIER '(' parameter_list ')' block
+    | VOID_TYPE STATIC IDENTIFIER '(' parameter_list ')' block
+    | STATIC primitive_type IDENTIFIER '(' parameter_list ')' block
+    | STATIC visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' block
+    | STATIC VOID_TYPE IDENTIFIER '(' parameter_list ')' block
     ;
 
 parameter_list:
