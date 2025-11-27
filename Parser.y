@@ -27,7 +27,7 @@ void yyerror(const char *s);
 %token <bool_value> BOOL_LITERAL_TRUE BOOL_LITERAL_FALSE
 %token <string_value> IDENTIFIER
 
-%token PLUSPLUS MINUSMINUS NULL_COALESCE NULL_SAFE_DOT NULL_SAFE_INDEX
+%token PLUSPLUS MINUSMINUS NULL_SAFE_DOT NULL_SAFE_INDEX
 %token AND OR EQUAL NOT_EQUAL LESS_EQUAL GREATER_EQUAL
 %token PLUS_ASSIGNMENT MINUS_ASSIGNMENT
 %token IF ELSE WHILE FOR RETURN BREAK CONTINUE
@@ -44,12 +44,10 @@ void yyerror(const char *s);
 %token PLUS_ASSIGN MINUS_ASSIGN MULTIPLY_ASSIGN DIVISION_ASSIGN
 %token INCREMENT DECREMENT
 %token LESS GREATER GREATER_OR_EQUAL LESS_OR_EQUAL
-%token BITWISE_OR BITWISE_AND
 
 %type <type_value> primitive_type method_return_type array_type
 %type <string_value> simple_identifier qualified_identifier
 
-%nonassoc THEN
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
@@ -62,7 +60,6 @@ void yyerror(const char *s);
 %right '!' INCREMENT DECREMENT
 %right UMINUS
 %left '(' '.' '[' ']' NULL_SAFE_DOT NULL_SAFE_INDEX
-%nonassoc FIELD
 
 
 %start program
@@ -420,7 +417,9 @@ relational_expression:
       additive_expression
     | relational_expression '<' additive_expression
     | relational_expression '>' additive_expression
-    | relational_expression LESS_EQUAL additive_expression
+	| relational_expression GREATER additive_expression
+	| relational_expression LESS additive_expression
+    | relational_expression LESS_EQUAL additive_expression	
     | relational_expression GREATER_EQUAL additive_expression
     | relational_expression LESS_OR_EQUAL additive_expression
     | relational_expression GREATER_OR_EQUAL additive_expression
