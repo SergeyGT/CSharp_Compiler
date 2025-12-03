@@ -86,8 +86,12 @@ namespace_declaration:
 
 namespace_body:
     /* empty */
-    | namespace_body namespace_body_element
+    | namespace_full
     ;
+
+namespace_full:
+    namespace_body namespace_body_element
+	
 
 namespace_body_element:
       using_directive
