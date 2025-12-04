@@ -73,7 +73,7 @@ program:
 
 top_level_declaration:
       using_directive
-      | namespace_declaration
+    | namespace_declaration
     ;
 
 // ============================================================================
@@ -86,20 +86,12 @@ namespace_declaration:
 
 namespace_body:
     /* empty */
-    | namespace_full
-    ;
-
-namespace_full:
-    namespace_body namespace_body_element
-	
+    | namespace_body namespace_body_element
+    ;	
 
 namespace_body_element:
       using_directive
     | type_declaration
-    | field_declaration
-    | method_declaration
-    | constructor_declaration
-    | destructor_decl
     ;
 
 using_directive:
