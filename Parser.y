@@ -254,15 +254,15 @@ field_init:
 
 
 method_declaration:
-      primitive_type IDENTIFIER '(' parameter_list ')' block
-    | primitive_type STATIC IDENTIFIER '(' parameter_list ')' block
-    | visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' block
-    | visibility_modifier STATIC primitive_type IDENTIFIER '(' parameter_list ')' block
-    | VOID_TYPE IDENTIFIER '(' parameter_list ')' block
-    | VOID_TYPE STATIC IDENTIFIER '(' parameter_list ')' block
-    | STATIC primitive_type IDENTIFIER '(' parameter_list ')' block
-    | STATIC visibility_modifier primitive_type IDENTIFIER '(' parameter_list ')' block
-    | STATIC VOID_TYPE IDENTIFIER '(' parameter_list ')' block
+    method_modifiers method_return_type IDENTIFIER '(' parameter_list ')' block
+    ;
+
+method_modifiers:
+    /* empty */
+    | visibility_modifier
+    | STATIC
+    | visibility_modifier STATIC
+    | STATIC visibility_modifier
     ;
 
 parameter_list:
