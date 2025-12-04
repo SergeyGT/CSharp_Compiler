@@ -122,7 +122,6 @@ primitive_type:
     | CHAR_TYPE    { $$ = 5; }
     | STRING_TYPE  { $$ = 6; }
     | DECIMAL_TYPE { $$ = 7; }
-    | array_type   { $$ = $1; }
     ;
 	
 array_type:
