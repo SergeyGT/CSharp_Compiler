@@ -68,6 +68,12 @@ extern struct Program* treeRoot;
     struct UsingDirectiveNode* _usingDirective;
     struct UsingDirectives* _usingDirectives;
     struct NamespaceDeclSeq* _namespaceDeclSeq;
+	
+	struct ConstructorDeclNode* _constructorDecl;
+    struct DestructorDeclNode* _destructorDecl;
+    struct InterfaceDeclNode* _interfaceDecl;
+    struct InterfaceMemberNode* _interfaceMember;
+    struct InterfaceMembersNode* _interfaceMembers;
 }
 
 %type <_accessExpr> access_expr
@@ -104,9 +110,13 @@ extern struct Program* treeRoot;
 %type <_usingDirectives> using_directives using_directives_optional
 %type <_namespaceDeclSeq> namespace_decl_seq
 
+%type <_constructorDecl> constructor_decl
+%type <_destructorDecl> destructor_decl
+%type <_interfaceDecl> interface_decl
+%type <_interfaceMember> interface_member
+%type <_interfaceMembers> interface_members interface_members_optional
 
-%token LESS
-%token GREATER
+
 %token EQUAL
 %token NOT_EQUAL
 %token GREATER_OR_EQUAL
@@ -155,6 +165,10 @@ extern struct Program* treeRoot;
 %token OBJECT
 %token OPERATOR
 %token VAR
+%token INTERFACE
+%token TILDE
+%token INTERNAL
+%token PROTECTED_INTERNAL
 
 %right '=' PLUS_ASSIGN MINUS_ASSIGN MULTIPLY_ASSIGN DIVISION_ASSIGN
 %left OR
@@ -166,6 +180,7 @@ extern struct Program* treeRoot;
 %left UNARY_MINUS UNARY_PLUS
 %left '.' ']' '['
 %nonassoc '(' ')'
+
 
 
 %start program
@@ -181,11 +196,12 @@ program:
 // ============================================================================
 // NAMESPACE И USING
 // ============================================================================
-
 namespace_members: enum_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }           
                 | class_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }           
+                | interface_decl                { $$ = new NamespaceMembersNode(); $$ -> Add($1); }
                 | namespace_members enum_decl   { $$ -> Add($2); }           
                 | namespace_members class_decl  { $$ -> Add($2); }
+                | namespace_members interface_decl  { $$ -> Add($2); }
 ;
 
 namespace_members_optional:                         { $$ = new NamespaceMembersNode(); }
@@ -252,15 +268,38 @@ class_decl: PUBLIC CLASS IDENTIFIER '{' class_members_optional '}'              
 class_members: method_decl                          { $$ = new ClassMembersNode(); $$ -> Add($1); }
                 | field_decl                        { $$ = new ClassMembersNode(); $$ -> Add($1); }
                 | operator_overload                 { $$ = new ClassMembersNode(); $$ -> Add($1); }
+                | constructor_decl                  { $$ = new ClassMembersNode(); $$ -> Add($1); }
+                | destructor_decl                   { $$ = new ClassMembersNode(); $$ -> Add($1); }
                 | class_members method_decl         { $$ -> Add($2); }
                 | class_members field_decl          { $$ -> Add($2); }
                 | class_members operator_overload   { $$ -> Add($2); }
+                | class_members constructor_decl    { $$ -> Add($2); }
+                | class_members destructor_decl     { $$ -> Add($2); }
 ;
 
 class_members_optional:                     { $$ = new ClassMembersNode(); }
                          | class_members    { $$ = $1; }
 ;
 
+
+
+// ============================================================================
+// ИНТЕРФЕЙСЫ
+// ============================================================================
+interface_decl: PUBLIC INTERFACE IDENTIFIER '{' interface_members_optional '}'                 { $$ = new InterfaceDeclNode($3, $5); }
+;
+
+interface_member: type IDENTIFIER '(' method_arguments_optional ')' ';'                   { $$ = new InterfaceMemberNode($1, $2, $4); }
+                | VOID_KW IDENTIFIER '(' method_arguments_optional ')' ';'                   { $$ = new InterfaceMemberNode(nullptr, $2, $4); }
+;
+
+interface_members: interface_member                           { $$ = new InterfaceMembersNode(); $$ -> Add($1); }
+                | interface_members interface_member          { $$ -> Add($2); }
+;
+
+interface_members_optional:                           { $$ = new InterfaceMembersNode(); }
+                         | interface_members          { $$ = $1; }
+;
 
 
 // ============================================================================
@@ -283,7 +322,9 @@ enum_decl: PUBLIC ENUM IDENTIFIER '{' enumerators '}' { Print("Found enum declar
 
 visibility_modifier: PUBLIC         { $$ = VisibilityModifier::Public; }
                    | PROTECTED      { $$ = VisibilityModifier::Protected; }
-                   | PRIVATE        { $$ = VisibilityModifier::Private; }
+                   | PRIVATE        { $$ = VisibilityModifier::Private; }				   
+                   | INTERNAL                { $$ = VisibilityModifier::Internal; }
+                   | PROTECTED_INTERNAL      { $$ = VisibilityModifier::ProtectedInternal; }
 ;
 
 
@@ -294,8 +335,6 @@ visibility_modifier: PUBLIC         { $$ = VisibilityModifier::Public; }
 field_decl: visibility_modifier var_decl ';'              { $$ = new FieldDeclNode($1, $2); }
           | visibility_modifier var_decl_with_init ';'    { $$ = new FieldDeclNode($1, $2); }
 ;
-
-
 var_decl: type IDENTIFIER                           { $$ = new VarDeclNode($1, $2, nullptr); }
         | VAR IDENTIFIER                            { $$ = new VarDeclNode(nullptr, $2, nullptr, true); }
 ;
@@ -313,6 +352,8 @@ method_decl: visibility_modifier type IDENTIFIER '(' method_arguments_optional '
            | visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'             { $$ = new MethodDeclNode($1, nullptr, $3, $5, $8); }
            | visibility_modifier STATIC VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode($1, nullptr, $4, $6, $9, /* isStatic = */ true); }
            | STATIC visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode($2, nullptr, $4, $6, $9, /* isStatic = */ true); }
+		   | visibility_modifier STATIC type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode($1, $3, $4, $6, $9, /* isStatic = */ true); }
+           | STATIC visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode($2, $3, $4, $6, $9, /* isStatic = */ true); }
 ;
 
 
@@ -339,6 +380,17 @@ operator_overload:    visibility_modifier STATIC type OPERATOR '+'              
                     | visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::UnaryPlus,         $7, $10);     }
 ;
 
+
+
+// ============================================================================
+// КОНСТРУКТОРЫ И ДЕСТРУКТОРЫ
+// ============================================================================
+
+constructor_decl: visibility_modifier IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'                   { $$ = new ConstructorDeclNode($1, $2, $4, $7); }
+			
+;
+destructor_decl: TILDE IDENTIFIER '(' ')' '{' stmt_seq_optional '}'                  { $$ = new DestructorDeclNode($2, $6); }
+;
 
 // ============================================================================
 // БЛОКИ И УТВЕРЖДЕНИЯ
