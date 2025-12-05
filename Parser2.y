@@ -1,676 +1,482 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
+#ifdef _MSC_VER
+#pragma warning( push, 0 )
+#pragma warning( disable : 6011 )
+#pragma warning( disable : 26819 )
+#pragma warning( disable : 26812 )
+#pragma warning( disable : 6387 )
+#endif // _MSC_VER
 
-extern int yylex(void);
-extern FILE* yyin;
-extern int yylineno;
-extern char* yytext;
+#include <cstdio>
+#include <iostream>
 
-void yyerror(const char *s) {
-    fprintf(stderr, "Syntax Error at line %d near '%s': %s\n", yylineno, yytext, s);
-    fprintf(stderr, "DEBUG PARSER: Current token: %s\n", yytext); // ДОБАВЬ ЭТУ СТРОКУ
+#include "Tree/Program.h"
+
+void __cdecl yyerror(const char* s) {
+	std::cerr << s << std::endl;
 }
+
+template <char Separator = ' ', typename... Args>
+void Print(Args&&... args) {
+    ((std::cout << args << Separator), ...);
+    std::cout << std::endl;
+}
+
+int yylex();
+int yyparse();
+extern FILE* yyin;
+extern struct Program* treeRoot;
 %}
 
-%debug
-
 %union {
-    int int_value;
-    float float_value;
-    double double_value;
-    char* string_value;
-    char char_value;
-    int bool_value;
-    int type_value;
+    int _integer;
+    char* _string;
+    char* _identifier;
+    double _floatingPoint;
+    char _character;
+
+    struct AccessExpr* _accessExpr;
+    struct ExprNode* _expr;
+    struct ExprSeqNode* _exprSeq;
+    
+    enum class StandardType _standardType;
+    struct StandardArrayType* _standardArrayType;
+    struct TypeNode* _type;
+    
+    struct VarDeclNode* _varDecl;
+    struct WhileNode* _while;
+    struct DoWhileNode* _doWhile;
+    struct ForNode* _for;
+    struct ForEachNode* _foreach;
+    struct StmtSeqNode* _stmtSeq;
+    struct IfNode* _if;
+    struct StmtNode* _stmt;
+    
+    enum class VisibilityModifier _visibiltyModifier;
+    struct FieldDeclNode* _fieldDecl;
+    struct MethodArguments* _methodArguments;
+    struct MethodDeclNode* _methodDecl;
+    struct ClassMembersNode* _classMembers;
+    struct ClassDeclNode* _classDecl;
+
+    struct IdentifierList* _enumerators;
+    struct EnumDeclNode* _enumDecl;
+
+    struct IdentifierList* _usingArg;
+    struct NamespaceMembersNode* _namespaceMembers;
+    struct NamespaceDeclNode* _namespaceDecl;
+    struct UsingDirectiveNode* _usingDirective;
+    struct UsingDirectives* _usingDirectives;
+    struct NamespaceDeclSeq* _namespaceDeclSeq;
 }
 
-// Literals
-%token <int_value> INTEGER_LITERAL
-%token <float_value> FLOAT_LITERAL  
-%token <double_value> DOUBLE_LITERAL
-%token <double_value> DECIMAL_LITERAL
-%token <string_value> STRING_LITERAL
-%token <char_value> CHAR_LITERAL
-%token <bool_value> BOOL_LITERAL_TRUE BOOL_LITERAL_FALSE
-%token <string_value> IDENTIFIER
+%type <_accessExpr> access_expr
+%type <_expr> expr expr_optional
+%type <_exprSeq> expr_seq expr_seq_optional
 
-%type <type_value> type return_type
+%type <_standardType> standard_type
+%type <_standardArrayType> standard_array_type
+%type <_type> type;
 
-<<<<<<< HEAD
-%token IF ELSE WHILE FOR DO RETURN
-%token CLASS PUBLIC PRIVATE PROTECTED STATIC 
-%token NEW THIS
-%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VOID VAR
-%token AND OR EQUAL NOT_EQUAL LESS_EQUAL GREATER_EQUAL
-%token NAMESPACE USING
-%token FOREACH IN
-%token PLUS_ASSIGNMENT MINUS_ASSIGNMENT MUL_ASSIGNMENT DIV_ASSIGNMENT MOD_ASSIGNMENT OR_ASSIGNMENT
-%token NULL_LITERAL
-%token INCREMENT DECREMENT
+%type <_varDecl> var_decl var_decl_with_init
+%type <_while> while_stmt
+%type <_doWhile> do_while_stmt
+%type <_for> for_stmt
+%type <_foreach> foreach_stmt
+%type <_stmtSeq> stmt_seq stmt_seq_optional
+%type <_if> if_stmt
+%type <_stmt> stmt
 
-%token CONSOLE_WRITELINE CONSOLE_WRITE CONSOLE_READLINE CONSOLE_READ
-%token DECIMAL_TYPE INTERNAL VIRTUAL OVERRIDE ABSTRACT SEALED BASE
-%token GET SET STRUCT INTERFACE ENUM SWITCH CASE DEFAULT BREAK CONTINUE GOTO
-%token NULL_COALESCING NAMESPACE_ACCESS
-=======
+%type <_visibiltyModifier> visibility_modifier
+%type <_fieldDecl> field_decl
+%type <_methodArguments> method_arguments method_arguments_optional
+%type <_methodDecl> method_decl operator_overload
+%type <_classMembers> class_members class_members_optional
+%type <_classDecl> class_decl
 
-// Operators
-%token PLUSPLUS MINUSMINUS 
-%token OR_ASSIGNMENT NULL_COALESCE SCOPE
-%token AND OR EQUAL NOT_EQUAL LESS_EQUAL GREATER_EQUAL
-%token PLUS_ASSIGNMENT MINUS_ASSIGNMENT MUL_ASSIGNMENT DIV_ASSIGNMENT MOD_ASSIGNMENT
+%type <_enumerators> enumerators
+%type <_enumDecl> enum_decl
 
-// Keywords
-%token IF ELSE WHILE FOR RETURN BREAK CONTINUE FOREACH DO
-%token CLASS STRUCT ENUM INTERFACE 
-%token PUBLIC PRIVATE INTERNAL PROTECTED 
-%token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VAR_TYPE VOID_TYPE DECIMAL_TYPE
-%token NEW THIS
-%token OUT REF
-%token NAMESPACE USING 
-%token ABSTRACT STATIC SEALED VIRTUAL OVERRIDE BASE
-%token SWITCH CASE DEFAULT GOTO
-%token NULL_LITERAL CONSOLE_METHOD OPERATOR
->>>>>>> feat/parser
+%type <_usingArg> using_arg
+%type <_namespaceMembers> namespace_members namespace_members_optional
+%type <_namespaceDecl> namespace_decl
+%type <_usingDirective> using_directive
+%type <_usingDirectives> using_directives using_directives_optional
+%type <_namespaceDeclSeq> namespace_decl_seq
 
-// Precedence
-%nonassoc LOWEST
-<<<<<<< HEAD
-%right '=' PLUS_ASSIGNMENT MINUS_ASSIGNMENT MUL_ASSIGNMENT DIV_ASSIGNMENT MOD_ASSIGNMENT OR_ASSIGNMENT
-%left INCREMENT DECREMENT
-=======
-%nonassoc THEN
-%nonassoc ELSE
-%right '='
->>>>>>> feat/parser
+
+%token LESS
+%token GREATER
+%token EQUAL
+%token NOT_EQUAL
+%token GREATER_OR_EQUAL
+%token LESS_OR_EQUAL
+%token OR
+%token AND
+
+%token PLUS_ASSIGN
+%token MINUS_ASSIGN
+%token MULTIPLY_ASSIGN
+%token DIVISION_ASSIGN
+%token INCREMENT
+%token DECREMENT
+
+%token <_identifier> IDENTIFIER
+%token <_integer> INTEGER
+%token <_floatingPoint> FLOATING_POINT
+%token <_string> STRING
+%token <_character> CHARACTER
+%token RETURN
+%token IF
+%token ELSE
+%token WHILE
+%token DO
+%token FOR
+%token CHAR_KW
+%token INT_KW
+%token STRING_KW
+%token BOOL_KW
+%token FLOAT_KW
+%token VOID_KW
+%token NEW
+%token NULL_KW
+%token TRUE_KW
+%token FALSE_KW
+%token PUBLIC
+%token PROTECTED
+%token PRIVATE
+%token STATIC
+%token CLASS
+%token ENUM
+%token USING
+%token NAMESPACE
+%token FOREACH
+%token IN_KW
+%token OBJECT
+%token OPERATOR
+%token VAR
+
+%right '=' PLUS_ASSIGN MINUS_ASSIGN MULTIPLY_ASSIGN DIVISION_ASSIGN
 %left OR
 %left AND
-%left EQUAL NOT_EQUAL
-%left '<' '>' LESS_EQUAL GREATER_EQUAL
+%left '<' '>' EQUAL NOT_EQUAL LESS_OR_EQUAL GREATER_OR_EQUAL
 %left '+' '-'
-%left '*' '/' '%'
-%left '!' UMINUS
-%left '.' '[' ']'
-%nonassoc '(' ')' '{' '}' ',' ';' ':'
-%left NULL_COALESCING
-%left NAMESPACE_ACCESS
+%left '*' '/'
+%right '!' INCREMENT DECREMENT
+%left UNARY_MINUS UNARY_PLUS
+%left '.' ']' '['
+%nonassoc '(' ')'
+
 
 %start program
 
 %%
 
 program: 
-<<<<<<< HEAD
-    | program class_declaration 
-    | program statement 
-    ;
-
-class_declaration: 
-    CLASS IDENTIFIER '{' class_members '}'  { printf("Class: %s\n", $2); }
-    ;
-
-class_members:
-    | class_members class_member
-    ;
-
-class_member: 
-    field_declaration { printf("Class field\n"); }
-    | method_declaration { printf("Class method\n"); }
-    ;
-
-field_declaration: 
-    visibility_modifier type IDENTIFIER ';' { printf("Field: %s\n", $3); }
-    | visibility_modifier type IDENTIFIER '=' expression ';' { printf("Field with init: %s\n", $3); }
-    | visibility_modifier array_type IDENTIFIER ';' { printf("Array field: %s\n", $3); }
-    | visibility_modifier array_type IDENTIFIER '=' expression ';' { printf("Array field with init: %s\n", $3); }
-    ;
-
-visibility_modifier: 
-    PUBLIC { printf("Public "); }
-    | PRIVATE { printf("Private "); }
-    | PROTECTED { printf("Protected "); }
-    | INTERNAL { printf("Internal "); }
-    | /* empty */ { printf("Default "); }
-    ;
-
-type: 
-    INT_TYPE { printf("int "); }
-    | FLOAT_TYPE { printf("float "); }
-    | DOUBLE_TYPE { printf("double "); }
-    | BOOL_TYPE { printf("bool "); }
-    | CHAR_TYPE { printf("char "); }
-    | STRING_TYPE { printf("string "); }
-    | DECIMAL_TYPE { printf("decimal "); }
-    | VOID { printf("void "); }
-    | IDENTIFIER { printf("user_type:%s ", $1); }
-    ;
-
-array_type:
-    type '[' ']' { printf("1D array of "); }
-    | type '[' ',' ']' { printf("2D array of "); }
-    ;
-
-method_declaration: 
-    visibility_modifier type IDENTIFIER '(' parameters ')' block { printf("Method: %s\n", $3); }
-    | visibility_modifier VOID IDENTIFIER '(' parameters ')' block { printf("Method: void %s\n", $3); }
-    | visibility_modifier STATIC type IDENTIFIER '(' parameters ')' block { printf("Static method: %s\n", $4); }
-    | visibility_modifier STATIC VOID IDENTIFIER '(' parameters ')' block { printf("Static void method: %s\n", $4); }
-    | visibility_modifier VIRTUAL type IDENTIFIER '(' parameters ')' block { printf("Virtual method: %s\n", $4); }
-    | visibility_modifier OVERRIDE type IDENTIFIER '(' parameters ')' block { printf("Override method: %s\n", $4); }
-    ;
-
-parameters:
-    | parameter_list
-    | /* empty */ { printf("No parameters "); }
-    ;
-
-parameter_list:
-    parameter { printf("Parameter "); }
-    | parameter_list ',' parameter 	{ printf("Additional parameter "); }
-    ;
-
-parameter:
-    type IDENTIFIER { printf("param:%s ", $2); }
-    | array_type IDENTIFIER { printf("array param:%s ", $2); }
-    ;
-
-block: '{' statements '}' { printf("Block\n"); }
-    ;
-
-statements:
-    | statements statement
-    ;
-
-statement: 
-    expression ';' { printf("Expression statement\n"); }
-    | if_statement 
-    | while_statement 
-    | for_statement
-    | foreach_statement
-    | do_while_statement
-    | switch_statement
-    | return_statement 
-    | break_statement
-    | continue_statement
-    | console_statement
-    | variable_declaration
-    | block 
-    | ';' { printf("Empty statement\n"); }
-    ;
-
-if_statement: 
-    IF '(' expression ')' statement { printf("If statement\n"); }
-    | IF '(' expression ')' statement ELSE statement { printf("If-else statement\n"); }
-    ;
-
-while_statement: 
-    WHILE '(' expression ')' statement { printf("While statement\n"); }
-    ;
-
-for_statement:
-    FOR '(' for_initializer ';' expression ';' for_iterator ')' statement { printf("For statement\n"); }
-    ;
-
-foreach_statement:
-    FOREACH '(' type IDENTIFIER IN expression ')' statement { printf("Foreach statement\n"); }
-    | FOREACH '(' array_type IDENTIFIER IN expression ')' statement { printf("Foreach array statement\n"); }
-    | FOREACH '(' VAR IDENTIFIER IN expression ')' statement { printf("Foreach statement with var\n"); }
-    ;
-
-do_while_statement:
-    DO statement WHILE '(' expression ')' ';' { printf("Do-while statement\n"); }
-    ;
-
-switch_statement:
-    SWITCH '(' expression ')' '{' case_entries '}' { printf("Switch statement\n"); }
-    ;
-
-case_entries:
-    | case_entries case_entry
-    ;
-
-case_entry:
-    CASE expression ':' statements { printf("Case entry\n"); }
-    | DEFAULT ':' statements { printf("Default entry\n"); }
-    ;
-
-return_statement: 
-    RETURN ';' { printf("Return;\n"); }
-    | RETURN expression ';' { printf("Return with value\n"); }
-    ;
-
-break_statement:
-    BREAK ';' { printf("Break;\n"); }
-    ;
-
-continue_statement:
-    CONTINUE ';' { printf("Continue;\n"); }
-    ;
-
-console_statement:
-    CONSOLE_WRITELINE '(' expression ')' ';' { printf("Console.WriteLine\n"); }
-    | CONSOLE_WRITE '(' expression ')' ';' { printf("Console.Write\n"); }
-    | CONSOLE_READLINE '(' ')' ';' { printf("Console.ReadLine\n"); }
-    | CONSOLE_READ '(' ')' ';' { printf("Console.Read\n"); }
-    ;
-
-variable_declaration:
-    type IDENTIFIER ';' { printf("Variable: %s\n", $2); }
-    | type IDENTIFIER '=' expression ';' { printf("Variable with init: %s\n", $2); }
-    | array_type IDENTIFIER ';' { printf("Array variable: %s\n", $2); }
-    | array_type IDENTIFIER '=' expression ';' { printf("Array variable with init: %s\n", $2); }
-    | VAR IDENTIFIER '=' expression ';' { printf("Var variable: %s\n", $2); }
-    ;
-
-for_initializer:
-    | variable_declaration_no_semicolon
-    | expression
-    | /* empty */ { printf("No for initializer "); }
-    ;
-
-for_iterator:
-    | expression
-    | /* empty */ { printf("No for iterator "); }
-    ;
-
-variable_declaration_no_semicolon:
-    type IDENTIFIER '=' expression { printf("For loop variable: %s ", $2); }
-    | array_type IDENTIFIER '=' expression { printf("For loop array variable: %s ", $2); }
-    | VAR IDENTIFIER '=' expression { printf("For loop var variable: %s ", $2); }
-    ;
-
-expression: 
-    primary 
-    | expression '+' expression { printf("Addition\n"); }
-    | expression '-' expression { printf("Subtraction\n"); }
-    | expression '*' expression { printf("Multiplication\n"); }
-    | expression '/' expression { printf("Division\n"); }
-    | expression '%' expression { printf("Modulo\n"); }
-    | expression '<' expression { printf("Less than\n"); }
-    | expression '>' expression { printf("Greater than\n"); }
-    | expression EQUAL expression { printf("Equals\n"); }
-    | expression NOT_EQUAL expression { printf("Not equals\n"); }
-    | expression LESS_EQUAL expression { printf("Less or equal\n"); }
-    | expression GREATER_EQUAL expression { printf("Greater or equal\n"); }
-    | expression AND expression { printf("Logical AND\n"); }
-    | expression OR expression { printf("Logical OR\n"); }
-    | expression '[' expression ']' { printf("Array access\n"); }
-    | expression '[' expression ',' expression ']' { printf("2D array access\n"); }
-    | expression '.' IDENTIFIER { printf("Member access: %s\n", $3); }
-    | expression '.' IDENTIFIER '(' argument_list ')' { printf("Method call: %s\n", $3); }
-    | expression '=' expression { printf("Assignment\n"); }
-    | expression PLUS_ASSIGNMENT expression { printf("Plus assignment\n"); }
-    | expression MINUS_ASSIGNMENT expression { printf("Minus assignment\n"); }
-    | expression MUL_ASSIGNMENT expression { printf("Multiply assignment\n"); }
-    | expression DIV_ASSIGNMENT expression { printf("Divide assignment\n"); }
-    | expression MOD_ASSIGNMENT expression { printf("Modulo assignment\n"); }
-    | expression OR_ASSIGNMENT expression { printf("Or assignment\n"); }
-    | '!' expression { printf("Logical NOT\n"); }
-    | '-' expression %prec UMINUS { printf("Unary minus\n"); }
-    | INCREMENT expression { printf("Pre-increment\n"); }           
-    | DECREMENT expression { printf("Pre-decrement\n"); }          
-    | expression INCREMENT { printf("Post-increment\n"); }          
-    | expression DECREMENT { printf("Post-decrement\n"); }   
-    | NEW type '(' argument_list ')' { printf("New object\n"); }
-    | NEW type '[' expression ']' { printf("New 1D array\n"); }
-    | NEW type '[' expression ',' expression ']' { printf("New 2D array\n"); }
-    | BASE '.' IDENTIFIER '(' argument_list ')' { printf("Base method call\n"); }
-    | '(' expression ')' { printf("Parenthesized expression\n"); }
-    | expression NULL_COALESCING expression { printf("Null coalescing\n"); }
-    | expression NAMESPACE_ACCESS IDENTIFIER { printf("Namespace access\n"); }
-    ;
-
-primary: 
-    IDENTIFIER { printf("Identifier: %s\n", $1); }
-    | INTEGER_LITERAL { printf("Integer: %d\n", $1); }
-    | FLOAT_LITERAL { printf("Float: %f\n", $1); }
-    | DOUBLE_LITERAL { printf("Double: %f\n", $1); }
-    | STRING_LITERAL { printf("String: %s\n", $1); }
-    | CHAR_LITERAL { printf("Char: %c\n", $1); }
-    | BOOL_LITERAL_TRUE { printf("Boolean: true\n"); }
-    | BOOL_LITERAL_FALSE { printf("Boolean: false\n"); }
-    | NULL_LITERAL { printf("Null literal\n"); }
-    | THIS { printf("This\n"); }
-    | BASE { printf("Base\n"); }
-    ;
-
-argument_list: 
-    | expression { printf("Argument "); }
-    | argument_list ',' expression { printf("Additional argument "); }
-=======
-    | program top_level_declaration
-    ;
-
-top_level_declaration:
-    namespace_declaration
-    | using_directive  
-    | type_declaration
-    | field_declaration
-    | method_declaration
-    | statement
-    ;
-
-namespace_declaration: 
-    NAMESPACE IDENTIFIER '{' namespace_body '}' 
-    { printf("Namespace: %s\n", $2); }
-    ;
-
-namespace_body:
-    | namespace_body using_directive
-    | namespace_body type_declaration
-    ;
-
-type_declaration:
-    class_declaration
-    | interface_declaration
-    ;
-
-using_directive: 
-    USING IDENTIFIER ';' 
-    { printf("Using: %s\n", $2); }
-    | USING IDENTIFIER '=' IDENTIFIER ';' 
-    { printf("Using alias: %s = %s\n", $2, $4); }
-    ;
-
-// Class declarations
-class_declaration: 
-    CLASS IDENTIFIER '{' class_body '}' 
-    { printf("Class: %s\n", $2); }
-    ;
-
-class_body:
-    | class_body class_member
-    ;
-
-class_member: 
-    field_declaration
-    | method_declaration  
-    | constructor_declaration
-    | static_member_declaration
-    ;
-
-static_member_declaration:
-    STATIC field_declaration
-    { printf("Static field\n"); }
-    | STATIC method_declaration
-    { printf("Static method\n"); }
-    ;
-
-constructor_declaration:
-    access_modifier IDENTIFIER '(' ')' block
-    { printf("Constructor: %s\n", $2); }
-    | access_modifier IDENTIFIER '(' parameter_list ')' block
-    { printf("Constructor with params: %s\n", $2); }
-    ;
-
-access_modifier:
-    /* empty */ 
-    { printf("Default access\n"); }
-    | PUBLIC 
-    { printf("Public\n"); }
-    | PRIVATE 
-    { printf("Private\n"); }
-    | PROTECTED 
-    { printf("Protected\n"); }
-    | INTERNAL 
-    { printf("Internal\n"); }
-    ;
-
-field_declaration: 
-    access_modifier type IDENTIFIER ';' 
-    { printf("Field: %s\n", $3); }
-    | access_modifier type IDENTIFIER '=' expression ';'
-    { printf("Initialized field: %s\n", $3); }
-    | access_modifier VAR_TYPE IDENTIFIER '=' expression ';'
-    { printf("Var field: %s\n", $3); }
-    ;
-
-type:
-    INT_TYPE { printf("int "); $$ = 1; }
-    | FLOAT_TYPE { printf("float "); $$ = 2; }
-    | DOUBLE_TYPE { printf("double "); $$ = 3; }
-    | BOOL_TYPE { printf("bool "); $$ = 4; }
-    | CHAR_TYPE { printf("char "); $$ = 5; }
-    | STRING_TYPE { printf("string "); $$ = 6; }
-    ;
-
-return_type:
-    type { $$ = $1; }
-    | VOID_TYPE { printf("void "); $$ = 0; }
-    ;
-
-// Method declarations  
-method_declaration: 
-    return_type IDENTIFIER '(' ')' block
-    { printf("Method: %s\n", $2); }
-    | return_type IDENTIFIER '(' parameter_list ')' block
-    { printf("Method with params: %s\n", $2); }
-    ;
-
-parameter_list:
-    parameter
-    | parameter_list ',' parameter
-    ;
-
-parameter:
-    type IDENTIFIER 
-    { printf("Parameter: %s\n", $2); }
-    ;
-
-// Interface declarations
-interface_declaration: 
-    INTERFACE IDENTIFIER '{' interface_body '}' ';'
-    { printf("Interface: %s\n", $2); }
-    ;
-
-interface_body:
-    | interface_body interface_member
-    ;
-
-interface_member:
-    return_type IDENTIFIER '(' parameter_list ')' ';'
-    { printf("Interface method: %s\n", $2); }
-    ;
-
-// Statements
-block: 
-    '{' statement_list '}' 
-    { printf("Block\n"); }
-    ;
-
-statement_list:
-    | statement_list statement
-    ;
-
-statement: 
-    expression_statement
-    | local_variable_declaration
-    | if_statement 
-    | while_statement 
-    | return_statement 
-    | block 
-    ;
-
-expression_statement:
-    expression ';' 
-    { printf("Expression statement\n"); }
-    ;
-
-local_variable_declaration:
-    type IDENTIFIER ';'
-    { printf("Local variable: %s\n", $2); }
-    | type IDENTIFIER '=' expression ';'
-    { printf("Initialized local variable: %s\n", $2); }
-    | VAR_TYPE IDENTIFIER '=' expression ';'
-    { printf("Var local variable: %s\n", $2); }
-    ;
-
-if_statement: 
-    IF '(' expression ')' statement %prec THEN
-    { printf("If\n"); }
-    | IF '(' expression ')' statement ELSE statement 
-    { printf("If-else\n"); }
-    ;
-
-while_statement: 
-    WHILE '(' expression ')' statement 
-    { printf("While\n"); }
-    ;
-
-return_statement: 
-    RETURN ';' 
-    { printf("Return void\n"); }
-    | RETURN expression ';' 
-    { printf("Return value\n"); }
-    ;
-
-// Expressions
-expression: 
-    assignment_expression
-    ;
-
-assignment_expression:
-    conditional_expression
-    | IDENTIFIER '=' expression
-    { printf("Assignment\n"); }
-    ;
-
-conditional_expression:
-    logical_or_expression
-    ;
-
-logical_or_expression:
-    logical_and_expression
-    | logical_or_expression OR logical_and_expression
-    { printf("Logical OR\n"); }
-    ;
-
-logical_and_expression:
-    equality_expression
-    | logical_and_expression AND equality_expression
-    { printf("Logical AND\n"); }
-    ;
-
-equality_expression:
-    relational_expression
-    | equality_expression EQUAL relational_expression
-    { printf("Equals\n"); }
-    | equality_expression NOT_EQUAL relational_expression
-    { printf("Not equals\n"); }
-    ;
-
-relational_expression:
-    additive_expression
-    | relational_expression '<' additive_expression
-    { printf("Less than\n"); }
-    | relational_expression '>' additive_expression
-    { printf("Greater than\n"); }
-    | relational_expression LESS_EQUAL additive_expression
-    { printf("Less or equal\n"); }
-    | relational_expression GREATER_EQUAL additive_expression
-    { printf("Greater or equal\n"); }
-    ;
-
-additive_expression:
-    multiplicative_expression
-    | additive_expression '+' multiplicative_expression
-    { printf("Addition\n"); }
-    | additive_expression '-' multiplicative_expression
-    { printf("Subtraction\n"); }
-    ;
-
-multiplicative_expression:
-    unary_expression
-    | multiplicative_expression '*' unary_expression
-    { printf("Multiplication\n"); }
-    | multiplicative_expression '/' unary_expression
-    { printf("Division\n"); }
-    ;
-
-unary_expression:
-    postfix_expression
-    | '-' unary_expression %prec UMINUS
-    { printf("Unary minus\n"); }
-    | '!' unary_expression
-    { printf("Logical NOT\n"); }
-    ;
-
-postfix_expression:
-    primary_expression
-    | member_expression  // ДОБАВЬТЕ ЭТУ СТРОКУ
-    | postfix_expression '.' IDENTIFIER
-    { printf("Member access: %s\n", $3); }
-    | postfix_expression '(' argument_list ')'
-    { printf("Method call\n"); }
-    ;
-
-member_expression:
-    IDENTIFIER '.' IDENTIFIER
-    { printf("Member access: %s.%s\n", $1, $3); }
-    | member_expression '.' IDENTIFIER
-    { printf("Member access: %s\n", $3); }
-    | member_expression '(' argument_list ')'
-    { printf("Method call\n"); }
-    ;
-
-primary_expression:
-    IDENTIFIER 
-    { printf("Identifier: %s\n", $1); }
-    | INTEGER_LITERAL 
-    { printf("Integer: %d\n", $1); }
-    | FLOAT_LITERAL 
-    { printf("Float: %f\n", $1); }
-    | DOUBLE_LITERAL 
-    { printf("Double: %f\n", $1); }
-    | DECIMAL_LITERAL 
-    { printf("Decimal: %f\n", $1); }
-    | STRING_LITERAL 
-    { printf("String: %s\n", $1); }  // УБЕДИСЬ ЧТО ЭТО ЕСТЬ
-    | CHAR_LITERAL 
-    { printf("Char: %c\n", $1); }
-    | BOOL_LITERAL_TRUE 
-    { printf("Boolean: true\n"); }
-    | BOOL_LITERAL_FALSE 
-    { printf("Boolean: false\n"); }
-    | THIS 
-    { printf("This\n"); }
-    | '(' expression ')'
-    { printf("Parenthesized expression\n"); }
-    ;
-
-
-
-argument_list:
-    /* empty */
-    { printf("Empty arguments\n"); }
-    | expression_list
-    ;
-
-expression_list:
-    expression
-    | expression_list ',' expression
->>>>>>> feat/parser
-    ;
+	/* empty */
+	| using_directives_optional namespace_decl_seq { treeRoot = new Program($1, $2); }
+;
+
+
+// ============================================================================
+// NAMESPACE И USING
+// ============================================================================
+
+namespace_members: enum_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }           
+                | class_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }           
+                | namespace_members enum_decl   { $$ -> Add($2); }           
+                | namespace_members class_decl  { $$ -> Add($2); }
+;
+
+namespace_members_optional:                         { $$ = new NamespaceMembersNode(); }
+                            | namespace_members     { $$ = $1; }
+;
+
+namespace_decl: NAMESPACE IDENTIFIER '{' namespace_members_optional '}' { $$ = new NamespaceDeclNode($2, $4);  }
+;
+
+namespace_decl_seq: namespace_decl                      { $$ = new NamespaceDeclSeq($1); }
+                   | namespace_decl_seq namespace_decl  { $$ -> Add($2); }
+;
+
+
+using_arg: IDENTIFIER                   { $$ = new IdentifierList(); $$ -> Add($1); }
+         | using_arg '.' IDENTIFIER     { $$ -> Add($3); }
+;
+
+using_directive: USING using_arg ';'    { $$ = new UsingDirectiveNode($2); }
+;
+
+using_directives:  using_directive                  { $$ = new UsingDirectives($1); }
+                | using_directives using_directive  { $$ -> Add($2); }
+;
+
+using_directives_optional:                  { $$ = UsingDirectives::MakeEmpty();  }
+                        | using_directives  { $$ = $1; }
+;
+
+
+
+// ============================================================================
+// ТИПЫ ДАННЫХ
+// ============================================================================
+
+standard_type: CHAR_KW      { $$ = StandardType::Char; }
+             | INT_KW       { $$ = StandardType::Int; }
+             | BOOL_KW      { $$ = StandardType::Bool; }
+             | FLOAT_KW     { $$ = StandardType::Float; }
+             | STRING_KW    { $$ = StandardType::String; }
+;
+
+standard_array_type: standard_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
+                   | standard_array_type '[' ']'    { $$ -> Arity += 1; }
+;
+
+type: standard_type         { $$ = new TypeNode($1); }
+    | standard_array_type   { $$ = new TypeNode(* $1); delete $1; }
+    | access_expr           { $$ = new TypeNode($1); }
+;
+
+
+// ============================================================================
+// КЛАССЫ
+// ============================================================================
+
+
+
+class_decl: PUBLIC CLASS IDENTIFIER '{' class_members_optional '}'                  { $$ = new ClassDeclNode($3, nullptr, $5); }
+          | PUBLIC CLASS IDENTIFIER ':' using_arg '{' class_members_optional '}'    { $$ = new ClassDeclNode($3, $5, $7); }
+          | PUBLIC CLASS IDENTIFIER ':' OBJECT '{' class_members_optional '}'       { $$ = new ClassDeclNode($3, nullptr, $7); }
+;
+
+class_members: method_decl                          { $$ = new ClassMembersNode(); $$ -> Add($1); }
+                | field_decl                        { $$ = new ClassMembersNode(); $$ -> Add($1); }
+                | operator_overload                 { $$ = new ClassMembersNode(); $$ -> Add($1); }
+                | class_members method_decl         { $$ -> Add($2); }
+                | class_members field_decl          { $$ -> Add($2); }
+                | class_members operator_overload   { $$ -> Add($2); }
+;
+
+class_members_optional:                     { $$ = new ClassMembersNode(); }
+                         | class_members    { $$ = $1; }
+;
+
+
+
+// ============================================================================
+// ПЕРЕЧИСЛЕНИЯ
+// ============================================================================
+
+enumerators: IDENTIFIER                     { $$ = new IdentifierList(); $$ -> Add($1); }
+            | enumerators ',' IDENTIFIER    { $$ -> Add($3); }
+;
+
+enum_decl: PUBLIC ENUM IDENTIFIER '{' enumerators '}' { Print("Found enum declaration with name:", $3); }
+;
+
+
+
+// ============================================================================
+// МОДИФИКАТОРЫ ДОСТУПА
+// ============================================================================
+
+
+visibility_modifier: PUBLIC         { $$ = VisibilityModifier::Public; }
+                   | PROTECTED      { $$ = VisibilityModifier::Protected; }
+                   | PRIVATE        { $$ = VisibilityModifier::Private; }
+;
+
+
+// ============================================================================
+// ПОЛЯ И ПЕРЕМЕННЫЕ
+// ============================================================================
+
+field_decl: visibility_modifier var_decl ';'              { $$ = new FieldDeclNode($1, $2); }
+          | visibility_modifier var_decl_with_init ';'    { $$ = new FieldDeclNode($1, $2); }
+;
+
+
+var_decl: type IDENTIFIER                           { $$ = new VarDeclNode($1, $2, nullptr); }
+        | VAR IDENTIFIER                            { $$ = new VarDeclNode(nullptr, $2, nullptr, true); }
+;
+var_decl_with_init: type IDENTIFIER '=' expr        { $$ = new VarDeclNode($1, $2, $4); }
+                    | VAR IDENTIFIER '=' expr       { $$ = new VarDeclNode(nullptr, $2, $4, true); }
+;
+
+
+
+// ============================================================================
+// МЕТОДЫ
+// ============================================================================
+
+method_decl: visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'                { $$ = new MethodDeclNode($1, $2, $3, $5, $8); }
+           | visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'             { $$ = new MethodDeclNode($1, nullptr, $3, $5, $8); }
+           | visibility_modifier STATIC VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode($1, nullptr, $4, $6, $9, /* isStatic = */ true); }
+           | STATIC visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode($2, nullptr, $4, $6, $9, /* isStatic = */ true); }
+;
+
+
+method_arguments: var_decl                          { $$ = new MethodArguments($1); }
+                | method_arguments ',' var_decl     { $$ -> Add($3); }
+;
+method_arguments_optional:                          { $$ = MethodArguments::MakeEmpty(); }
+                         | method_arguments         { $$ = $1; }
+;
+operator_overload:    visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Plus,              $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Minus,             $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '*'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Multiply,          $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '/'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Divide,            $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '<'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Less,              $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '>'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Greater,           $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR EQUAL            '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Equal,             $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR NOT_EQUAL        '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::NotEqual,          $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR LESS_OR_EQUAL    '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::LessOrEqual,       $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR GREATER_OR_EQUAL '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::GreaterOrEqual,    $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '!'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Not,               $7, $10);     }
+                    | visibility_modifier STATIC type OPERATOR DECREMENT        '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Decrement,         $7, $10);     }
+                    | visibility_modifier STATIC type OPERATOR INCREMENT        '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Increment,         $7, $10);     }
+                    | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::UnaryMinus,        $7, $10);     }
+                    | visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::UnaryPlus,         $7, $10);     }
+;
+
+
+// ============================================================================
+// БЛОКИ И УТВЕРЖДЕНИЯ
+// ============================================================================
+
+
+stmt: ';'                           { $$ = new StmtNode(); }
+    | expr ';'                      { $$ = new StmtNode($1, /* isReturn= */ false); }
+    | var_decl ';'                  { $$ = new StmtNode($1); }
+    | var_decl_with_init ';'        { $$ = new StmtNode($1); }
+    | while_stmt                    { $$ = new StmtNode($1); }
+    | do_while_stmt                 { $$ = new StmtNode($1); }
+    | for_stmt                      { $$ = new StmtNode($1); }
+    | if_stmt                       { $$ = new StmtNode($1); }
+    | foreach_stmt                  { $$ = new StmtNode($1); }
+    | '{' stmt_seq_optional '}'     { $$ = new StmtNode($2); }
+    | RETURN expr_optional ';'      { $$ = new StmtNode($2, /* isReturn= */ true); }
+;
+
+stmt_seq: stmt              { $$ = new StmtSeqNode($1); }
+        | stmt_seq stmt     { $$ -> Add($2); }
+;
+stmt_seq_optional:          { $$ = StmtSeqNode::MakeEmpty(); }
+                | stmt_seq  { $$ = $1; }
+;
+
+while_stmt: WHILE '(' expr ')' stmt                 { $$ = new WhileNode($3, $5); }
+;
+do_while_stmt: DO stmt WHILE '(' expr ')'';'        { $$ = new DoWhileNode($5, $2); }
+;
+
+for_stmt: FOR '(' var_decl ';' expr_optional ';' expr_optional ')' stmt                     { $$ = new ForNode($3, $5, $7, $9); }
+        |  FOR '(' var_decl_with_init ';' expr_optional ';' expr_optional ')' stmt          { $$ = new ForNode($3, $5, $7, $9); }
+        |  FOR '(' expr_optional ';' expr_optional ';' expr_optional ')' stmt               { $$ = new ForNode($3, $5, $7, $9); }
+;
+
+if_stmt: IF '(' expr ')' stmt               { $$ = new IfNode($3, $5); }
+        | IF '(' expr ')' stmt ELSE stmt    { $$ = new IfNode($3, $5, $7); }
+;
+
+foreach_stmt: FOREACH '(' var_decl IN_KW expr ')' stmt      { $$ = new ForEachNode($3, $5, $7); }
+;
+
+
+// ============================================================================
+// ВЫРАЖЕНИЯ
+// ============================================================================
+
+
+access_expr:  '(' expr ')'                                                  { $$ = AccessExpr::FromExpr($2); }
+            |  access_expr '[' expr ']'                                     { $$ = AccessExpr::FromBrackets($1, $3); }
+            |  access_expr '[' ']'                                          { $$ = AccessExpr::FromBrackets($1); }
+            | INTEGER                                                       { $$ = AccessExpr::FromInt($1); }
+            | FLOATING_POINT                                                { $$ = AccessExpr::FromFloat($1); }
+            | STRING                                                        { $$ = AccessExpr::FromString($1); }
+            | CHARACTER                                                     { $$ = AccessExpr::FromChar($1); }
+            | TRUE_KW                                                       { $$ = AccessExpr::FromBool(true); }
+            | FALSE_KW                                                      { $$ = AccessExpr::FromBool(false); }
+            | IDENTIFIER                                                    { $$ = AccessExpr::FromId($1); }
+            | IDENTIFIER '(' expr_seq_optional ')'                          { $$ = AccessExpr::FromCall($1, $3); }
+            | access_expr '.' IDENTIFIER                                    { $$ = AccessExpr::FromDot($1, $3); }
+            | access_expr '.' IDENTIFIER '(' expr_seq_optional ')'          { $$ = AccessExpr::FromDot($1, $3, $5); }
+;
+
+
+expr: expr '+' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::BinPlus, $1, $3); }
+    | expr '-' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::BinMinus, $1, $3); }
+    | expr '*' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Multiply, $1, $3); }
+    | expr '/' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Divide, $1, $3); }
+    | expr '=' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Assign, $1, $3); }
+    | expr PLUS_ASSIGN expr                     { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Plus_assign, $1, $3); }
+    | expr MINUS_ASSIGN expr                    { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Minus_assign, $1, $3); }
+    | expr MULTIPLY_ASSIGN expr                 { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Multiply_assign, $1, $3); }
+    | expr DIVISION_ASSIGN expr                 { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Division_assign, $1, $3); }
+    | expr '<' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Less, $1, $3); }
+    | expr '>' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Greater, $1, $3); }
+    | expr EQUAL expr                           { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Equal, $1, $3); }
+    | expr NOT_EQUAL expr                       { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::NotEqual, $1, $3); }
+    | expr LESS_OR_EQUAL expr                   { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::LessOrEqual, $1, $3); }
+    | expr GREATER_OR_EQUAL expr                { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::GreaterOrEqual, $1, $3); }
+    | expr AND expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::And, $1, $3); }
+    | expr OR expr                              { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::Or, $1, $3); }
+    | '!' expr                                  { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::Not, $2); }
+    | INCREMENT expr                            { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::Increment, $2); }
+    | DECREMENT expr                            { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::Decrement, $2); }
+    | '+' expr %prec UNARY_PLUS                 { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryPlus, $2); }
+    | '-' expr %prec UNARY_MINUS                { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryMinus, $2); }
+    | NULL_KW                                   { $$ = ExprNode::FromNull(); }
+    | access_expr                               { $$ = ExprNode::FromAccessExpr($1); }
+    | NEW type                                  { $$ = ExprNode::FromNew($2); }
+    | NEW type '{' expr_seq_optional '}'        { $$ = ExprNode::FromNew($2, $4); }
+    | NEW '[' ']' '{' expr_seq_optional '}'     { $$ = ExprNode::FromNew(nullptr, $5); }
+    | '(' standard_type ')' expr                { $$ = ExprNode::FromCast($2, $4); }
+    | NEW standard_type '[' expr ']'            { $$ = ExprNode::FromNew($2, $4); }
+;
+
+expr_optional:                  { $$ = nullptr; }
+              | expr            { $$ = $1; }
+;
+
+expr_seq: expr                  { $$ = new ExprSeqNode($1); }
+        | expr_seq ',' expr     { $$ -> Add($3); }
+;
+
+expr_seq_optional:              { $$ = ExprSeqNode::MakeEmpty(); }
+                 | expr_seq     { $$ = $1; }
+;
+
+				   
+				   
 
 %%
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Error at line %d: %s\n", yylineno, s);
+}
 
 int main(int argc, char** argv) {
     if (argc > 1) {
         yyin = fopen(argv[1], "r");
         if (!yyin) {
-            printf("Cannot open file %s\n", argv[1]);
+            perror("fopen");
             return 1;
         }
     } else {
         yyin = stdin;
         printf("Enter C# code (Ctrl+D to end):\n");
+        fflush(stdout);
     }
-
-    if (yyparse() == 0) {
+    
+    int result = yyparse();
+    
+    if (result == 0) {
         printf("=== Parsing completed successfully! ===\n");
+    } else {
+        printf("=== Parsing failed with errors ===\n");
     }
 
-    if (yyin != stdin) fclose(yyin);
-    return 0;
+    if (yyin && yyin != stdin) fclose(yyin);
+    return result;
 }
