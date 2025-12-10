@@ -1,3 +1,14 @@
+%code requires {
+    typedef struct {
+        char** items;      
+        int count;         
+    } StringArray;
+    
+    StringArray* create_string_array(const char* str);
+    void add_to_string_array(StringArray* array, const char* str);
+    void free_string_array(StringArray* array);
+}
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +27,8 @@ void yyerror(const char *s);
     char char_value;
     int bool_value;
     int type_value;
+
+    StringArray* string_array;
 }
 
 %token <int_value> INTEGER_LITERAL
@@ -27,6 +40,8 @@ void yyerror(const char *s);
 %token <bool_value> BOOL_LITERAL_TRUE BOOL_LITERAL_FALSE
 %token <string_value> IDENTIFIER
 
+%token <string_value> INTERPOLATED_STRING_TEXT
+
 %token PLUSPLUS MINUSMINUS NULL_SAFE_DOT NULL_SAFE_INDEX
 %token AND OR EQUAL NOT_EQUAL LESS_EQUAL GREATER_EQUAL
 %token PLUS_ASSIGNMENT MINUS_ASSIGNMENT
@@ -36,17 +51,19 @@ void yyerror(const char *s);
 %token INT_TYPE FLOAT_TYPE DOUBLE_TYPE BOOL_TYPE CHAR_TYPE STRING_TYPE VOID_TYPE DECIMAL_TYPE
 %token NAMESPACE USING
 %token FOREACH IN NULL_LITERAL
+%token INTERPOLATED_EXPR_END
 
 %token STRUCT ENUM
 %token TILDE
 %token INTERPOLATED_STRING_START INTERPOLATED_STRING_END
-%token INTERPOLATED_STRING_TEXT INTERPOLATED_STRING_EXPR
+
 %token PLUS_ASSIGN MINUS_ASSIGN MULTIPLY_ASSIGN DIVISION_ASSIGN
 %token INCREMENT DECREMENT
 %token LESS GREATER GREATER_OR_EQUAL LESS_OR_EQUAL
 
 %type <type_value> primitive_type method_return_type array_type
-%type <string_value> simple_identifier qualified_identifier
+%type <string_array> qualified_identifier
+%type <string_value> simple_identifier
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -487,33 +504,61 @@ expression_list:
 // ИНТЕРПОЛИРОВАННЫЕ СТРОКИ
 // ============================================================================
 
-interpolated_string: 
-      INTERPOLATED_STRING_START interpolated_string_content INTERPOLATED_STRING_END 
-    ;
+interpolated_string: INTERPOLATED_STRING_START interpolation_parts INTERPOLATED_STRING_END 
+;
 
-interpolated_string_content: 
-      /* empty */                           
-    | INTERPOLATED_STRING_TEXT interpolated_string_content 
-    | INTERPOLATED_STRING_EXPR expression interpolated_string_content 
-    ;
+interpolation_parts: /* empty */
+				   | interpolation_parts interpolation_part 
+;
+
+interpolation_part:INTERPOLATED_STRING_TEXT
+				  | '{' expression '}'  
+;
 
 // ============================================================================
 // IDENTIFIERS
 // ============================================================================
 
-qualified_identifier:
-      simple_identifier
-    | qualified_identifier '.' simple_identifier
-    {
-        char* temp = malloc(strlen($1) + strlen($3) + 2);
-        sprintf(temp, "%s.%s", $1, $3);
-        $$ = temp;
-    }
-    ;
-
+qualified_identifier: simple_identifier{       $$ = create_string_array($1); free($1); }
+					| qualified_identifier '.' simple_identifier{        add_to_string_array($1, $3);free($3); $$ = $1;  }
+;
+	
 simple_identifier: IDENTIFIER { $$ = $1; } ;
 
 %%
+
+StringArray* create_string_array(const char* str) {
+    StringArray* array = (StringArray*)malloc(sizeof(StringArray));
+    if (!array) return NULL;
+    
+    array->items = (char**)malloc(sizeof(char*));
+    array->items[0] = strdup(str);
+    array->count = 1;
+    
+    return array;
+}
+
+void add_to_string_array(StringArray* array, const char* str) {
+    if (!array || !str) return;
+    
+    // Увеличиваем массив на 1 элемент
+    array->items = (char**)realloc(array->items, (array->count + 1) * sizeof(char*));
+    if (!array->items) return;
+    
+    // Добавляем новый элемент
+    array->items[array->count] = strdup(str);
+    array->count++;
+}
+
+void free_string_array(StringArray* array) {
+    if (!array) return;
+    
+    for (int i = 0; i < array->count; i++) {
+        free(array->items[i]);
+    }
+    free(array->items);
+    free(array);
+}
 
 void yyerror(const char *s) {
     fprintf(stderr, "Error at line %d: %s\n", yylineno, s);
