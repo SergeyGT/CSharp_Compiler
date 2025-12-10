@@ -58,6 +58,7 @@ extern struct Program* treeRoot;
     struct MethodDeclNode* _methodDecl;
     struct ClassMembersNode* _classMembers;
     struct ClassDeclNode* _classDecl;
+    struct StructDeclNode* _structDecl;
 
     struct IdentifierList* _enumerators;
     struct EnumDeclNode* _enumDecl;
@@ -99,6 +100,10 @@ extern struct Program* treeRoot;
 %type <_methodDecl> method_decl operator_overload
 %type <_classMembers> class_members class_members_optional
 %type <_classDecl> class_decl
+
+%type <_structDecl> struct_decl
+%type <_structMembers> struct_members struct_members_optional
+
 
 %type <_enumerators> enumerators
 %type <_enumDecl> enum_decl
@@ -157,6 +162,7 @@ extern struct Program* treeRoot;
 %token PRIVATE
 %token STATIC
 %token CLASS
+%token STRUCT
 %token ENUM
 %token USING
 %token NAMESPACE
@@ -182,6 +188,8 @@ extern struct Program* treeRoot;
 %nonassoc '(' ')'
 
 
+%expect 2
+
 
 %start program
 
@@ -199,9 +207,11 @@ program:
 namespace_members: enum_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }           
                 | class_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }           
                 | interface_decl                { $$ = new NamespaceMembersNode(); $$ -> Add($1); }
+                | struct_decl                   { $$ = new NamespaceMembersNode(); $$ -> Add($1); }
                 | namespace_members enum_decl   { $$ -> Add($2); }           
                 | namespace_members class_decl  { $$ -> Add($2); }
                 | namespace_members interface_decl  { $$ -> Add($2); }
+                | namespace_members struct_decl { $$ -> Add($2); } 
 ;
 
 namespace_members_optional:                         { $$ = new NamespaceMembersNode(); }
@@ -281,6 +291,31 @@ class_members_optional:                     { $$ = new ClassMembersNode(); }
                          | class_members    { $$ = $1; }
 ;
 
+
+// ============================================================================
+// СТРУКТУРЫ
+// ============================================================================
+
+struct_decl: 
+    PUBLIC STRUCT IDENTIFIER '{' struct_members_optional '}' { $$ = new StructDeclNode($3, $5); }
+    | STRUCT IDENTIFIER '{' struct_members_optional '}' { $$ = new StructDeclNode($2, $4); }
+;
+
+
+struct_members: field_decl ';'                                  { $$ = new StructMembersNode(); $$->Add($1); }
+ 		| method_decl                                   { $$ = new StructMembersNode(); $$->Add($1); }
+    		| constructor_decl                              { $$ = new StructMembersNode(); $$->Add($1); }
+    		| destructor_decl                               { $$ = new StructMembersNode(); $$->Add($1); }
+    		| struct_members field_decl ';'                 { $$->Add($2); }
+    		| struct_members method_decl                    { $$->Add($2); }
+    		| struct_members constructor_decl               { $$->Add($2); }
+    		| struct_members destructor_decl                { $$->Add($2); }
+;
+
+struct_members_optional: 
+    /* empty */ { $$ = new StructMembersNode(); }
+    | struct_members { $$ = $1; }
+;
 
 
 // ============================================================================
@@ -386,9 +421,11 @@ operator_overload:    visibility_modifier STATIC type OPERATOR '+'              
 // КОНСТРУКТОРЫ И ДЕСТРУКТОРЫ
 // ============================================================================
 
-constructor_decl: visibility_modifier IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'                   { $$ = new ConstructorDeclNode($1, $2, $4, $7); }
-			
+constructor_decl: 
+    visibility_modifier IDENTIFIER '(' ')' '{' stmt_seq_optional '}'                   { $$ = new ConstructorDeclNode($1, $2, MethodArguments::MakeEmpty(), $6); }
+    | visibility_modifier IDENTIFIER '(' method_arguments ')' '{' stmt_seq_optional '}'  { $$ = new ConstructorDeclNode($1, $2, $4, $7); }
 ;
+
 destructor_decl: TILDE IDENTIFIER '(' ')' '{' stmt_seq_optional '}'                  { $$ = new DestructorDeclNode($2, $6); }
 ;
 
