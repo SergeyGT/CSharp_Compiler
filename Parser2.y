@@ -196,10 +196,10 @@ program:
 // ============================================================================
 // NAMESPACE И USING
 // ============================================================================
-namespace_members: enum_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }           
-                | class_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }           
+namespace_members: enum_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }
+                | class_decl                    { $$ = new NamespaceMembersNode(); $$ -> Add($1); }
                 | interface_decl                { $$ = new NamespaceMembersNode(); $$ -> Add($1); }
-                | namespace_members enum_decl   { $$ -> Add($2); }           
+                | namespace_members enum_decl   { $$ -> Add($2); }
                 | namespace_members class_decl  { $$ -> Add($2); }
                 | namespace_members interface_decl  { $$ -> Add($2); }
 ;
