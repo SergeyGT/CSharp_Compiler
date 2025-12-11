@@ -81,8 +81,7 @@ extern struct Program* treeRoot;
 %type <_exprSeq> expr_seq expr_seq_optional
 
 %type <_standardType> standard_type
-%type <_qualified_array_type> qualified_array_type;
-%type <_standard_array_type> standard_array_type;
+%type <_array_type> array_type;
 %type <_qualified_type> qualified_type;
 %type <_type> type;
 
@@ -261,8 +260,9 @@ standard_type: CHAR_KW      { $$ = StandardType::Char; }
              | STRING_KW    { $$ = StandardType::String; }
 ;
 
-standard_array_type: standard_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
-                   | standard_array_type '[' ']'    { $$ -> Arity += 1; }
+array_type: standard_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
+		   | qualified_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
+		   | array_type '[' ']'    { $$ -> Arity += 1; }
 ;
 
 
@@ -270,14 +270,9 @@ qualified_type:    IDENTIFIER                                                   
             | qualified_type '.' IDENTIFIER                                    { $$ = AccessExpr::FromDot($1, $3); }			
 ;
 
-qualified_array_type: qualified_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
-                   | qualified_array_type '[' ']'    { $$ -> Arity += 1; }
-;
-
 type: standard_type         { $$ = new TypeNode($1); }
-    | standard_array_type   { $$ = new TypeNode(* $1); delete $1; }
+    | array_type   { $$ = new TypeNode(* $1); delete $1; }
     | qualified_type         { $$ = new TypeNode($1); }
-    | qualified_array_type   { $$ = new TypeNode(* $1); delete $1; }
 ;
 
 
