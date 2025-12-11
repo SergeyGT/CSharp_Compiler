@@ -319,11 +319,11 @@ struct_decl:
 ;
 
 
-struct_members: field_decl ';'                                  { $$ = new StructMembersNode(); $$->Add($1); }
+struct_members: field_decl                                      { $$ = new StructMembersNode(); $$->Add($1); }
  		| method_decl                                   { $$ = new StructMembersNode(); $$->Add($1); }
     		| constructor_decl                              { $$ = new StructMembersNode(); $$->Add($1); }
     		| destructor_decl                               { $$ = new StructMembersNode(); $$->Add($1); }
-    		| struct_members field_decl ';'                 { $$->Add($2); }
+    		| struct_members field_decl                     { $$->Add($2); }
     		| struct_members method_decl                    { $$->Add($2); }
     		| struct_members constructor_decl               { $$->Add($2); }
     		| struct_members destructor_decl                { $$->Add($2); }
