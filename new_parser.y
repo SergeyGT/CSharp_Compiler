@@ -104,6 +104,12 @@ extern struct Program* treeRoot;
 %type <_structDecl> struct_decl
 %type <_structMembers> struct_members struct_members_optional
 
+%token INTERPOLATED_STRING_START INTERPOLATED_STRING_END
+
+%token <_string> INTERPOLATED_STRING_TEXT
+%type <_accessExpr> interpolated_string
+%type <_expr> interpolation_part
+%type <_exprSeq> interpolation_parts
 
 %type <_enumerators> enumerators
 %type <_enumDecl> enum_decl
@@ -490,6 +496,7 @@ access_expr:  '(' expr ')'                                                  { $$
             | IDENTIFIER '(' expr_seq_optional ')'                          { $$ = AccessExpr::FromCall($1, $3); }
             | access_expr '.' IDENTIFIER                                    { $$ = AccessExpr::FromDot($1, $3); }
             | access_expr '.' IDENTIFIER '(' expr_seq_optional ')'          { $$ = AccessExpr::FromDot($1, $3, $5); }
+			| interpolated_string										    { $$ = AccessExpr::FromInterpolatedString($1); }
 ;
 
 
@@ -536,7 +543,20 @@ expr_seq_optional:              { $$ = ExprSeqNode::MakeEmpty(); }
                  | expr_seq     { $$ = $1; }
 ;
 
-				   
+// ============================================================================
+// ИНТЕРПОЛИРОВАННЫЕ СТРОКИ
+// ============================================================================
+
+interpolated_string: INTERPOLATED_STRING_START interpolation_parts INTERPOLATED_STRING_END { $$ = AccessExpr::FromInterpolatedString($2);}
+;
+
+interpolation_parts: /* empty */ {$$ = ExprSeqNode::MakeEmpty();}
+				   | interpolation_parts interpolation_part {$$->Add($2);} 
+;
+
+interpolation_part:INTERPOLATED_STRING_TEXT	{$$ = ExprNode::FromString($1);}
+				  | '{' expr '}'  {$$ = $2;}
+;				   
 				   
 
 %%
