@@ -513,14 +513,20 @@ expr: expr '+' expr                             { $$ = ExprNode::FromBinaryExpre
     | '+' expr %prec UNARY_PLUS                 { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryPlus, $2); }
     | '-' expr %prec UNARY_MINUS                { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryMinus, $2); }
     | NULL_KW                                   { $$ = ExprNode::FromNull(); }
-    
     | INTEGER                                                       { $$ = AccessExpr::FromInt($1); }
     | STRING                                                        { $$ = AccessExpr::FromString($1); }
     | CHARACTER                                                     { $$ = AccessExpr::FromChar($1); }
     | TRUE_KW                                                       { $$ = AccessExpr::FromBool(true); }
     | FALSE_KW                                                      { $$ = AccessExpr::FromBool(false); }
-	| interpolated_string										    { $$ = AccessExpr::FromInterpolatedString($1); }
-    | NEW type                                  { $$ = ExprNode::FromNew($2); }
+    | interpolated_string										    { $$ = AccessExpr::FromInterpolatedString($1); }
+    | '(' expr ')'                           { $$ = $2; } 
+    | expr '[' expr ']'                      { $$ = ExprNode::FromIndexAccess($1, $3); }
+    | expr '.' IDENTIFIER                    { $$ = ExprNode::FromMemberAccess($1, $3); }
+    | IDENTIFIER                        {  }
+    | IDENTIFIER '(' expr_seq_optional ')'   { $$ = ExprNode::FromMethodCall($1, $3); }
+    | expr '.' IDENTIFIER '(' expr_seq_optional ')' { $$ = ExprNode::FromMemberMethodCall($1, $3, $5); }
+    | NEW type '(' expr_seq_optional ')'                                  { $$ = ExprNode::FromNew($2); }
+    | NEW type '[' expr ']'                                  { $$ = ExprNode::FromNew($2); }
     | NEW type '{' expr_seq_optional '}'        { $$ = ExprNode::FromNew($2, $4); }
     | NEW '[' ']' '{' expr_seq_optional '}'     { $$ = ExprNode::FromNew(nullptr, $5); }
     | '(' standard_type ')' expr                { $$ = ExprNode::FromCast($2, $4); }
