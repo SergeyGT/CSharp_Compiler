@@ -69,21 +69,22 @@ extern struct Program* treeRoot;
     struct UsingDirectiveNode* _usingDirective;
     struct UsingDirectives* _usingDirectives;
     struct NamespaceDeclSeq* _namespaceDeclSeq;
-	
-	struct ConstructorDeclNode* _constructorDecl;
+    
+    struct ConstructorDeclNode* _constructorDecl;
     struct DestructorDeclNode* _destructorDecl;
     struct InterfaceDeclNode* _interfaceDecl;
     struct InterfaceMemberNode* _interfaceMember;
     struct InterfaceMembersNode* _interfaceMembers;
+    struct QualifiedOrExprNode* _qualifiedOrExpr;
 }
 
 %type <_expr> expr expr_optional
 %type <_exprSeq> expr_seq expr_seq_optional
+%type <_qualifiedOrExpr> qualified_or_expr
 
 %type <_standardType> standard_type
-%type <_array_type> array_type;
-%type <_qualified_type> qualified_type;
-%type <_type> type;
+%type <_standardArrayType> array_type
+%type <_type> type
 
 %type <_varDecl> var_decl var_decl_with_init
 %type <_while> while_stmt
@@ -126,7 +127,6 @@ extern struct Program* treeRoot;
 %type <_interfaceDecl> interface_decl
 %type <_interfaceMember> interface_member
 %type <_interfaceMembers> interface_members interface_members_optional
-
 
 %token EQUAL
 %token NOT_EQUAL
@@ -193,9 +193,7 @@ extern struct Program* treeRoot;
 %left '.' ']' '['
 %nonassoc '(' ')'
 
-
 %expect 2
-
 
 %start program
 
@@ -205,7 +203,6 @@ program:
 	/* empty */
 	| using_directives_optional namespace_decl_seq { treeRoot = new Program($1, $2); }
 ;
-
 
 // ============================================================================
 // NAMESPACE И USING
@@ -217,7 +214,7 @@ namespace_members: enum_decl                    { $$ = new NamespaceMembersNode(
                 | namespace_members enum_decl   { $$ -> Add($2); }           
                 | namespace_members class_decl  { $$ -> Add($2); }
                 | namespace_members interface_decl  { $$ -> Add($2); }
-                | namespace_members struct_decl { $$ -> Add($2); } 
+                | namespace_members struct_decl { $$ -> Add($2); }
 ;
 
 namespace_members_optional:                         { $$ = new NamespaceMembersNode(); }
@@ -230,7 +227,6 @@ namespace_decl: NAMESPACE IDENTIFIER '{' namespace_members_optional '}' { $$ = n
 namespace_decl_seq: namespace_decl                      { $$ = new NamespaceDeclSeq($1); }
                    | namespace_decl_seq namespace_decl  { $$ -> Add($2); }
 ;
-
 
 using_arg: IDENTIFIER                   { $$ = new IdentifierList(); $$ -> Add($1); }
          | using_arg '.' IDENTIFIER     { $$ -> Add($3); }
@@ -247,8 +243,6 @@ using_directives_optional:                  { $$ = UsingDirectives::MakeEmpty();
                         | using_directives  { $$ = $1; }
 ;
 
-
-
 // ============================================================================
 // ТИПЫ ДАННЫХ
 // ============================================================================
@@ -261,26 +255,22 @@ standard_type: CHAR_KW      { $$ = StandardType::Char; }
 ;
 
 array_type: standard_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
-		   | qualified_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
-		   | array_type '[' ']'    { $$ -> Arity += 1; }
+           | qualified_or_expr '[' ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
+           | array_type '[' ']'            { $$ -> Arity += 1; }
 ;
 
-
-qualified_type:    IDENTIFIER                                                    { $$ = AccessExpr::FromId($1); }
-            | qualified_type '.' IDENTIFIER                                    { $$ = AccessExpr::FromDot($1, $3); }			
+qualified_or_expr: IDENTIFIER                       { $$ = new QualifiedOrExprNode($1); }
+                 | qualified_or_expr '.' IDENTIFIER { $$ = new QualifiedOrExprNode($1, $3); }
 ;
 
-type: standard_type         { $$ = new TypeNode($1); }
-    | array_type   { $$ = new TypeNode(* $1); delete $1; }
-    | qualified_type         { $$ = new TypeNode($1); }
+type: standard_type              { $$ = new TypeNode($1); }
+    | array_type                 { $$ = new TypeNode(*$1); delete $1; }
+    | qualified_or_expr          { $$ = new TypeNode($1); }
 ;
-
 
 // ============================================================================
 // КЛАССЫ
 // ============================================================================
-
-
 
 class_decl: PUBLIC CLASS IDENTIFIER '{' class_members_optional '}'                  { $$ = new ClassDeclNode($3, nullptr, $5); }
           | PUBLIC CLASS IDENTIFIER ':' using_arg '{' class_members_optional '}'    { $$ = new ClassDeclNode($3, $5, $7); }
@@ -303,7 +293,6 @@ class_members_optional:                     { $$ = new ClassMembersNode(); }
                          | class_members    { $$ = $1; }
 ;
 
-
 // ============================================================================
 // СТРУКТУРЫ
 // ============================================================================
@@ -313,22 +302,20 @@ struct_decl:
     | STRUCT IDENTIFIER '{' struct_members_optional '}' { $$ = new StructDeclNode($2, $4); }
 ;
 
-
 struct_members: field_decl                                      { $$ = new StructMembersNode(); $$->Add($1); }
- 		| method_decl                                   { $$ = new StructMembersNode(); $$->Add($1); }
-    		| constructor_decl                              { $$ = new StructMembersNode(); $$->Add($1); }
-    		| destructor_decl                               { $$ = new StructMembersNode(); $$->Add($1); }
-    		| struct_members field_decl                     { $$->Add($2); }
-    		| struct_members method_decl                    { $$->Add($2); }
-    		| struct_members constructor_decl               { $$->Add($2); }
-    		| struct_members destructor_decl                { $$->Add($2); }
+        | method_decl                                   { $$ = new StructMembersNode(); $$->Add($1); }
+            | constructor_decl                              { $$ = new StructMembersNode(); $$->Add($1); }
+            | destructor_decl                               { $$ = new StructMembersNode(); $$->Add($1); }
+            | struct_members field_decl                     { $$->Add($2); }
+            | struct_members method_decl                    { $$->Add($2); }
+            | struct_members constructor_decl               { $$->Add($2); }
+            | struct_members destructor_decl                { $$->Add($2); }
 ;
 
 struct_members_optional: 
     /* empty */ { $$ = new StructMembersNode(); }
     | struct_members { $$ = $1; }
 ;
-
 
 // ============================================================================
 // ИНТЕРФЕЙСЫ
@@ -348,7 +335,6 @@ interface_members_optional:                           { $$ = new InterfaceMember
                          | interface_members          { $$ = $1; }
 ;
 
-
 // ============================================================================
 // ПЕРЕЧИСЛЕНИЯ
 // ============================================================================
@@ -360,12 +346,9 @@ enumerators: IDENTIFIER                     { $$ = new IdentifierList(); $$ -> A
 enum_decl: PUBLIC ENUM IDENTIFIER '{' enumerators '}' { Print("Found enum declaration with name:", $3); }
 ;
 
-
-
 // ============================================================================
 // МОДИФИКАТОРЫ ДОСТУПА
 // ============================================================================
-
 
 visibility_modifier: PUBLIC         { $$ = VisibilityModifier::Public; }
                    | PROTECTED      { $$ = VisibilityModifier::Protected; }
@@ -373,7 +356,6 @@ visibility_modifier: PUBLIC         { $$ = VisibilityModifier::Public; }
                    | INTERNAL                { $$ = VisibilityModifier::Internal; }
                    | PROTECTED_INTERNAL      { $$ = VisibilityModifier::ProtectedInternal; }
 ;
-
 
 // ============================================================================
 // ПОЛЯ И ПЕРЕМЕННЫЕ
@@ -389,8 +371,6 @@ var_decl_with_init: type IDENTIFIER '=' expr        { $$ = new VarDeclNode($1, $
                     | VAR IDENTIFIER '=' expr       { $$ = new VarDeclNode(nullptr, $2, $4, true); }
 ;
 
-
-
 // ============================================================================
 // МЕТОДЫ
 // ============================================================================
@@ -399,10 +379,9 @@ method_decl: visibility_modifier type IDENTIFIER '(' method_arguments_optional '
            | visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'             { $$ = new MethodDeclNode($1, nullptr, $3, $5, $8); }
            | visibility_modifier STATIC VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode($1, nullptr, $4, $6, $9, /* isStatic = */ true); }
            | STATIC visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode($2, nullptr, $4, $6, $9, /* isStatic = */ true); }
-		   | visibility_modifier STATIC type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode($1, $3, $4, $6, $9, /* isStatic = */ true); }
+           | visibility_modifier STATIC type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode($1, $3, $4, $6, $9, /* isStatic = */ true); }
            | STATIC visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode($2, $3, $4, $6, $9, /* isStatic = */ true); }
 ;
-
 
 method_arguments: var_decl                          { $$ = new MethodArguments($1); }
                 | method_arguments ',' var_decl     { $$ -> Add($3); }
@@ -410,6 +389,7 @@ method_arguments: var_decl                          { $$ = new MethodArguments($
 method_arguments_optional:                          { $$ = MethodArguments::MakeEmpty(); }
                          | method_arguments         { $$ = $1; }
 ;
+
 operator_overload:    visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Plus,              $7, $9, $12); }
                     | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Minus,             $7, $9, $12); }
                     | visibility_modifier STATIC type OPERATOR '*'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Multiply,          $7, $9, $12); }
@@ -427,8 +407,6 @@ operator_overload:    visibility_modifier STATIC type OPERATOR '+'              
                     | visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::UnaryPlus,         $7, $10);     }
 ;
 
-
-
 // ============================================================================
 // КОНСТРУКТОРЫ И ДЕСТРУКТОРЫ
 // ============================================================================
@@ -444,7 +422,6 @@ destructor_decl: TILDE IDENTIFIER '(' ')' '{' stmt_seq_optional '}'             
 // ============================================================================
 // БЛОКИ И УТВЕРЖДЕНИЯ
 // ============================================================================
-
 
 stmt: ';'                           { $$ = new StmtNode(); }
     | expr ';'                      { $$ = new StmtNode($1, /* isReturn= */ false); }
@@ -483,12 +460,9 @@ if_stmt: IF '(' expr ')' stmt               { $$ = new IfNode($3, $5); }
 foreach_stmt: FOREACH '(' var_decl IN_KW expr ')' stmt      { $$ = new ForEachNode($3, $5, $7); }
 ;
 
-
 // ============================================================================
 // ВЫРАЖЕНИЯ
 // ============================================================================
-
-
 
 expr: expr '+' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::BinPlus, $1, $3); }
     | expr '-' expr                             { $$ = ExprNode::FromBinaryExpression(ExprNode::TypeT::BinMinus, $1, $3); }
@@ -513,20 +487,19 @@ expr: expr '+' expr                             { $$ = ExprNode::FromBinaryExpre
     | '+' expr %prec UNARY_PLUS                 { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryPlus, $2); }
     | '-' expr %prec UNARY_MINUS                { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryMinus, $2); }
     | NULL_KW                                   { $$ = ExprNode::FromNull(); }
-    | INTEGER                                                       { $$ = AccessExpr::FromInt($1); }
-    | STRING                                                        { $$ = AccessExpr::FromString($1); }
-    | CHARACTER                                                     { $$ = AccessExpr::FromChar($1); }
-    | TRUE_KW                                                       { $$ = AccessExpr::FromBool(true); }
-    | FALSE_KW                                                      { $$ = AccessExpr::FromBool(false); }
-    | interpolated_string										    { $$ = AccessExpr::FromInterpolatedString($1); }
-    | '(' expr ')'                           { $$ = $2; } 
-    | expr '[' expr ']'                      { $$ = ExprNode::FromIndexAccess($1, $3); }
-    | expr '.' IDENTIFIER                    { $$ = ExprNode::FromMemberAccess($1, $3); }
-    | IDENTIFIER                        {  }
-    | IDENTIFIER '(' expr_seq_optional ')'   { $$ = ExprNode::FromMethodCall($1, $3); }
+    | INTEGER                                   { $$ = AccessExpr::FromInt($1); }
+    | STRING                                    { $$ = AccessExpr::FromString($1); }
+    | CHARACTER                                 { $$ = AccessExpr::FromChar($1); }
+    | TRUE_KW                                   { $$ = AccessExpr::FromBool(true); }
+    | FALSE_KW                                  { $$ = AccessExpr::FromBool(false); }
+    | interpolated_string                       { $$ = AccessExpr::FromInterpolatedString($1); }
+    | '(' expr ')'                              { $$ = $2; }
+    | expr '[' expr ']'                         { $$ = ExprNode::FromIndexAccess($1, $3); }
+    | qualified_or_expr                         { $$ = ExprNode::FromQualifiedOrExpr($1); }
+    | IDENTIFIER '(' expr_seq_optional ')'      { $$ = ExprNode::FromMethodCall($1, $3); }
     | expr '.' IDENTIFIER '(' expr_seq_optional ')' { $$ = ExprNode::FromMemberMethodCall($1, $3, $5); }
-    | NEW type '(' expr_seq_optional ')'                                  { $$ = ExprNode::FromNew($2); }
-    | NEW type '[' expr ']'                                  { $$ = ExprNode::FromNew($2); }
+    | NEW type '(' expr_seq_optional ')'        { $$ = ExprNode::FromNew($2); }
+    | NEW type '[' expr ']'                     { $$ = ExprNode::FromNew($2, $4); }
     | NEW type '{' expr_seq_optional '}'        { $$ = ExprNode::FromNew($2, $4); }
     | NEW '[' ']' '{' expr_seq_optional '}'     { $$ = ExprNode::FromNew(nullptr, $5); }
     | '(' standard_type ')' expr                { $$ = ExprNode::FromCast($2, $4); }
@@ -553,13 +526,12 @@ interpolated_string: INTERPOLATED_STRING_START interpolation_parts INTERPOLATED_
 ;
 
 interpolation_parts: /* empty */ {$$ = ExprSeqNode::MakeEmpty();}
-				   | interpolation_parts interpolation_part {$$->Add($2);} 
+                   | interpolation_parts interpolation_part {$$->Add($2);} 
 ;
 
-interpolation_part:INTERPOLATED_STRING_TEXT	{$$ = ExprNode::FromString($1);}
-				  | '{' expr '}'  {$$ = $2;}
+interpolation_part: INTERPOLATED_STRING_TEXT	{$$ = ExprNode::FromString($1);}
+                  | '{' expr '}'               {$$ = $2;}
 ;				   
-				   
 
 %%
 

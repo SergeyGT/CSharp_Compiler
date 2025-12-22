@@ -118,8 +118,8 @@ typedef union YYSTYPE
     struct ExprSeqNode* _exprSeq;
     
     enum class StandardType _standardType;
-    struct StandardArrayType* _standardArrayType;
     struct TypeNode* _type;
+    struct TypeNode* _type_name;
     
     struct VarDeclNode* _varDecl;
     struct WhileNode* _while;
@@ -147,17 +147,19 @@ typedef union YYSTYPE
     struct UsingDirectiveNode* _usingDirective;
     struct UsingDirectives* _usingDirectives;
     struct NamespaceDeclSeq* _namespaceDeclSeq;
-	
-	struct ConstructorDeclNode* _constructorDecl;
+    
+    struct ConstructorDeclNode* _constructorDecl;
     struct DestructorDeclNode* _destructorDecl;
     struct InterfaceDeclNode* _interfaceDecl;
     struct InterfaceMemberNode* _interfaceMember;
     struct InterfaceMembersNode* _interfaceMembers;
+	
+	struct StructMembersNode* structMembers;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 161 "new_parser.tab.h"
+#line 163 "new_parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
