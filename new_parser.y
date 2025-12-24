@@ -255,12 +255,15 @@ standard_type: CHAR_KW      { $$ = StandardType::Char; }
 ;
 
 array_type: standard_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
-           | qualified_or_expr '[' ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
            | array_type '[' ']'            { $$ -> Arity += 1; }
 ;
 
 qualified_or_expr: IDENTIFIER                       { $$ = new QualifiedOrExprNode($1); }
                  | qualified_or_expr '.' IDENTIFIER { $$ = new QualifiedOrExprNode($1, $3); }
+		 | qualified_or_expr '[' ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
+		 | qualified_or_expr '[' expr ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
+		 | qualified_or_expr '.' IDENTIFIER '(' expr_seq_optional ')'          { $$ = AccessExpr::FromDot($1, $3, $5); }
+		 | IDENTIFIER '(' expr_seq_optional ')'                          { $$ = AccessExpr::FromCall($1, $3); }
 ;
 
 type: standard_type              { $$ = new TypeNode($1); }
@@ -494,12 +497,8 @@ expr: expr '+' expr                             { $$ = ExprNode::FromBinaryExpre
     | FALSE_KW                                  { $$ = AccessExpr::FromBool(false); }
     | interpolated_string                       { $$ = AccessExpr::FromInterpolatedString($1); }
     | '(' expr ')'                              { $$ = $2; }
-    | expr '[' expr ']'                         { $$ = ExprNode::FromIndexAccess($1, $3); }
     | qualified_or_expr                         { $$ = ExprNode::FromQualifiedOrExpr($1); }
-    | IDENTIFIER '(' expr_seq_optional ')'      { $$ = ExprNode::FromMethodCall($1, $3); }
-    | expr '.' IDENTIFIER '(' expr_seq_optional ')' { $$ = ExprNode::FromMemberMethodCall($1, $3, $5); }
-    | NEW type '(' expr_seq_optional ')'        { $$ = ExprNode::FromNew($2); }
-    | NEW type '[' expr ']'                     { $$ = ExprNode::FromNew($2, $4); }
+    | NEW type                                  { $$ = ExprNode::FromNew($2); }
     | NEW type '{' expr_seq_optional '}'        { $$ = ExprNode::FromNew($2, $4); }
     | NEW '[' ']' '{' expr_seq_optional '}'     { $$ = ExprNode::FromNew(nullptr, $5); }
     | '(' standard_type ')' expr                { $$ = ExprNode::FromCast($2, $4); }
