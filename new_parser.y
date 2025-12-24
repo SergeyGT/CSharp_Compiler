@@ -258,12 +258,12 @@ array_type: standard_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }
            | array_type '[' ']'            { $$ -> Arity += 1; }
 ;
 
-qualified_or_expr: IDENTIFIER                       { $$ = new QualifiedOrExprNode($1); }
-                 | qualified_or_expr '.' IDENTIFIER { $$ = new QualifiedOrExprNode($1, $3); }
-		 | qualified_or_expr '[' ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
-		 | qualified_or_expr '[' expr ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
-		 | qualified_or_expr '.' IDENTIFIER '(' expr_seq_optional ')'          { $$ = AccessExpr::FromDot($1, $3, $5); }
-		 | IDENTIFIER '(' expr_seq_optional ')'                          { $$ = AccessExpr::FromCall($1, $3); }
+qualified_or_expr: IDENTIFIER                       						{ $$ = Qualified_or_expr::FromId($1); }
+		 | qualified_or_expr '[' ']'     						{ $$ = Qualified_or_expr::FromBrackets($1); }
+		 | qualified_or_expr '[' expr ']'     						{ $$ = Qualified_or_expr::FromBrackets($1, $3); }
+		 | qualified_or_expr '.' IDENTIFIER 						{ $$ = Qualified_or_expr::FromDot($1, $3); }
+		 | qualified_or_expr '.' IDENTIFIER '(' expr_seq_optional ')'          		{ $$ = Qualified_or_expr::FromDot($1, $3, $5); }
+		 | IDENTIFIER '(' expr_seq_optional ')'                          		{ $$ = Qualified_or_expr::FromCall($1, $3); }
 ;
 
 type: standard_type              { $$ = new TypeNode($1); }
