@@ -83,7 +83,7 @@ extern struct Program* treeRoot;
 %type <_standardType> standard_type
 %type <_array_type> array_type;
 %type <_qualified_type> qualified_type;
-%type <_type> type;
+%type <_type> type type_or_expr;
 
 %type <_varDecl> var_decl var_decl_with_init
 %type <_while> while_stmt
@@ -269,6 +269,9 @@ array_type: standard_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }
 qualified_type:    IDENTIFIER                                                    { $$ = AccessExpr::FromId($1); }
             | qualified_type '.' IDENTIFIER                                    { $$ = AccessExpr::FromDot($1, $3); }			
 ;
+
+type_or_expr: type
+	|
 
 type: standard_type         { $$ = new TypeNode($1); }
     | array_type   { $$ = new TypeNode(* $1); delete $1; }
