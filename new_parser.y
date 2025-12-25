@@ -83,14 +83,8 @@ extern struct Program* treeRoot;
 %type <_qualifiedOrExpr> qualified_or_expr
 
 %type <_standardType> standard_type
-<<<<<<< HEAD
 %type <_array_type> array_type;
-%type <_qualified_type> qualified_type;
-%type <_type> type type_or_expr;
-=======
-%type <_standardArrayType> array_type
-%type <_type> type
->>>>>>> 3645757647ebcfa9ed3094c62b1727cccafc94d8
+%type <_type> type;
 
 %type <_varDecl> var_decl var_decl_with_init
 %type <_while> while_stmt
@@ -150,7 +144,6 @@ extern struct Program* treeRoot;
 
 %token <_identifier> IDENTIFIER
 %token <_integer> INTEGER
-%token <_floatingPoint> FLOATING_POINT
 %token <_string> STRING
 %token <_character> CHARACTER
 %token RETURN
@@ -199,7 +192,7 @@ extern struct Program* treeRoot;
 %left '.' ']' '['
 %nonassoc '(' ')'
 
-%expect 2
+%expect 1
 
 %start program
 
@@ -268,8 +261,18 @@ qualified_or_expr: IDENTIFIER                       { $$ = new QualifiedOrExprNo
                  | qualified_or_expr '.' IDENTIFIER { $$ = new QualifiedOrExprNode($1, $3); }
 		 | qualified_or_expr '[' ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
 		 | qualified_or_expr '[' expr ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
-		 | qualified_or_expr '.' IDENTIFIER '(' expr_seq_optional ')'          { $$ = AccessExpr::FromDot($1, $3, $5); }
-		 | IDENTIFIER '(' expr_seq_optional ')'                          { $$ = AccessExpr::FromCall($1, $3); }
+		 | qualified_or_expr '.' IDENTIFIER '(' expr_seq ')'          { $$ = AccessExpr::FromDot($1, $3, $5); }
+		 | IDENTIFIER '(' expr_seq')'                          { $$ = AccessExpr::FromCall($1, $3); }
+		 | qualified_or_expr '.' IDENTIFIER '(' ')'          { $$ = AccessExpr::FromDot($1, $3, null); }
+         | IDENTIFIER '(' ')'                          { $$ = AccessExpr::FromCall($1, null); }
+         | '(' expr ')'                              { $$ = $2; }
+         | NULL_KW                                   { $$ = ExprNode::FromNull(); }
+         | INTEGER                                   { $$ = AccessExpr::FromInt($1); }
+         | STRING                                    { $$ = AccessExpr::FromString($1); }
+         | CHARACTER                                 { $$ = AccessExpr::FromChar($1); }
+         | TRUE_KW                                   { $$ = AccessExpr::FromBool(true); }
+         | FALSE_KW                                  { $$ = AccessExpr::FromBool(false); }
+         | interpolated_string                       { $$ = AccessExpr::FromInterpolatedString($1); }
 ;
 
 
@@ -496,14 +499,6 @@ expr: expr '+' expr                             { $$ = ExprNode::FromBinaryExpre
     | DECREMENT expr                            { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::Decrement, $2); }
     | '+' expr %prec UNARY_PLUS                 { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryPlus, $2); }
     | '-' expr %prec UNARY_MINUS                { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryMinus, $2); }
-    | NULL_KW                                   { $$ = ExprNode::FromNull(); }
-    | INTEGER                                   { $$ = AccessExpr::FromInt($1); }
-    | STRING                                    { $$ = AccessExpr::FromString($1); }
-    | CHARACTER                                 { $$ = AccessExpr::FromChar($1); }
-    | TRUE_KW                                   { $$ = AccessExpr::FromBool(true); }
-    | FALSE_KW                                  { $$ = AccessExpr::FromBool(false); }
-    | interpolated_string                       { $$ = AccessExpr::FromInterpolatedString($1); }
-    | '(' expr ')'                              { $$ = $2; }
     | qualified_or_expr                         { $$ = ExprNode::FromQualifiedOrExpr($1); }
     | NEW type                                  { $$ = ExprNode::FromNew($2); }
     | NEW type '{' expr_seq_optional '}'        { $$ = ExprNode::FromNew($2, $4); }
