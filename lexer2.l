@@ -1,237 +1,576 @@
-%{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "Parser.tab.h"
-
-char currentStringLiteral[1024];
-int currentStringIndex = 0;
-char currentCharacter[10];
-int currentCharIndex = 0;
-
-void reset_string(char* str, int* index) {
-    str[0] = '\0';
-    *index = 0;
-}
-
-void append_char(char* str, int* index, char c) {
-    if (*index < 1024 - 1) {
-        str[(*index)++] = c;
-        str[*index] = '\0';
-    }
-}
-
-void append_string(char* str, int* index, const char* src) {
-    int len = strlen(src);
-    if (*index + len < 1024 - 1) {
-        strcpy(str + *index, src);
-        *index += len;
-    }
-}
-%}
-
-%option noyywrap
+%option noyywrap 
 %option never-interactive
 %option yylineno
 
-DIGIT    [0-9]
-ID       [a-zA-Z_][a-zA-Z0-9_]*
-FSUFFIX  [fF]
-DSUFFIX  [dD]
-MSUFFIX  [mM]
+%{
+/* Note: There's no octal integer literals in C# */
+
+// Remove warnings from flex
+#ifdef _MSC_VER
+#pragma warning( push, 0 )
+#pragma warning( disable : 6011 )
+#pragma warning( disable : 26819 )
+#pragma warning( disable : 6387 )
+#endif // _MSC_VER
+
+#include <string>
+#include <algorithm>
+#include <cstdlib>  
+#include <cstdio>  
+#include <iostream>
+#include <cstring>
+#include <string.h>
+#include <cstdio>
+
+//#include "enable_unicode_console.hpp"
+
+#include "new_parser.tab.h"
+
+void Print(const std::string& message)
+{
+    #if 0
+    std::cout << message << std::endl;
+    #endif
+}
+
+char* Dublicate(const char* source) 
+{
+    const auto length = strlen(source) + 1; 
+    char* result = new char[length];
+    strcpy(result, source);
+    return result;
+}
+
+void PrintError(const std::string& errorMessage, const int line = -1) 
+{
+    std::cerr << errorMessage << std::endl;
+    if (line >= 0)
+        std::cerr << "Line: " << line << std::endl;
+    std::cerr << std::endl;
+}
+
+void PrintComment(const std::string& comment) 
+{
+    Print("Found multiline comment:");
+    Print("\"" + comment + "\"");
+}
+
+void PrintStringLiteral(const std::string& literal) {
+    Print("Found string literal:");
+    Print("\"" + literal + "\"");
+}
+
+void PrintKeyword(const std::string& keyword) {
+    Print("Found keyword: " + keyword);
+}
+
+void PrintLogicalOperator(const std::string& o) {
+    Print("Found logic operator: " + o);
+}
+
+void PrintComparisonOperator(const std::string& c) {
+    Print("Found comparison operator: " + c);
+}
+
+void PrintAriphmeticOperator(const std::string& o) {
+    Print("Found ariphmetic operator: " + o);
+}
+
+void PrintIntegerLiteral(const std::string& type, const int integer) {
+    Print("Found " + type + " integer literal: " + std::to_string(integer));
+}
+
+void PrintFloatingPointLiteral(const double floatingPoint) {
+    Print("Found floating point literal: " + std::to_string(floatingPoint));
+}
+
+void PrintCharacterLiteral(const char literal) {
+        printf("Found character: '%c'\n", literal);
+}
+
+void PrintIdentifier(const std::string& identifier) {
+    Print("Found identifier: " + identifier);
+}
+
+void RemoveCharacterFromString(std::string& str, char ch) {
+    const auto newLast = std::remove(str.begin(), str.end(), ch);
+    str.erase(newLast, str.end());
+}
+
+%}
+
+DEC_DIGIT [0-9]
+HEX_DIGIT [0-9A-Fa-f]
+BIN_DIGIT [01]
+DEC_NUMBER {DEC_DIGIT}(_*{DEC_DIGIT})*
+EXPONENT [eE][+-]?{DEC_NUMBER}
 
 %x MULTILINE_COMMENT
 %x STRING_LITERAL
 %x VERBATIM_STRING_LITERAL
 %x CHARACTER_LITERAL
+%x INTERPOLATED_STRING
+%x INTERPOLATED_STRING_EXPR
 
 %%
 
-"/*"                                    { BEGIN(MULTILINE_COMMENT); }
-<MULTILINE_COMMENT>[^*\n]+              { /* ignore */ }
-<MULTILINE_COMMENT>\*[^/\n]             { /* ignore */ }
-<MULTILINE_COMMENT>\*+\/                { BEGIN(INITIAL); }
-<MULTILINE_COMMENT><<EOF>>              { BEGIN(INITIAL); }
+%{
+std::string currentStringLiteral;
+std::string currentComment;
+std::string currentInterpolatedText;
+int currentInteger;
+std::string currentCharacter;
+double currentFloatingPoint;
+char buffer[10];
+%}
+
+"/*"                                    {
+                                            currentComment.clear();
+                                            BEGIN(MULTILINE_COMMENT);
+                                        }
+
+<MULTILINE_COMMENT>[^*\n]*              {
+                                            currentComment += yytext;
+                                        }
+
+<MULTILINE_COMMENT>\*+[^*/\n]*          {
+                                            currentComment += yytext;
+                                        }
+
+<MULTILINE_COMMENT>\n                   {
+                                            currentComment += yytext;
+                                        }
+
+<MULTILINE_COMMENT>\*+\/                {
+                                            PrintComment(currentComment);
+                                            BEGIN(INITIAL);
+                                        }
+
+<MULTILINE_COMMENT><<EOF>>              {
+                                            PrintError("Error! Expected end of multiline comment but found end of file!", yylineno);
+                                            BEGIN(INITIAL);
+                                        }
                                         
-\/\/.*                                  { /* ignore single-line comments */ }
+\/\/.*                                  { Print("Found single-line comment: " + std::string{yytext}); }
 
 \"                                      {
-    reset_string(currentStringLiteral, &currentStringIndex);
-    BEGIN(STRING_LITERAL);
-}
-<STRING_LITERAL>[^\\\"\n]+              { append_string(currentStringLiteral, &currentStringIndex, yytext); }
+                                            currentStringLiteral.clear();
+                                            BEGIN(STRING_LITERAL);
+                                        }
+
+<STRING_LITERAL>[^\\\"\\\n]+            {
+                                            currentStringLiteral += yytext;
+                                        }
 <STRING_LITERAL>\\x[0-9a-fA-F]{1,4}     {
-    int hexValue;
-    sscanf(yytext + 2, "%x", &hexValue);
-    append_char(currentStringLiteral, &currentStringIndex, (char)hexValue);
-}
-<STRING_LITERAL>\\n                     { append_char(currentStringLiteral, &currentStringIndex, '\n'); }
-<STRING_LITERAL>\\t                     { append_char(currentStringLiteral, &currentStringIndex, '\t'); }
-<STRING_LITERAL>\\r                     { append_char(currentStringLiteral, &currentStringIndex, '\r'); }
-<STRING_LITERAL>\\\\                    { append_char(currentStringLiteral, &currentStringIndex, '\\'); }
-<STRING_LITERAL>\\\"                    { append_char(currentStringLiteral, &currentStringIndex, '\"'); }
+                                            std::fill(std::begin(buffer), std::end(buffer), 0);
+                                            std::copy(yytext, yytext + yyleng, buffer);
+                                            std::sscanf(buffer + 2, "%x", &currentInteger);
+                                            currentStringLiteral += static_cast<char>(currentInteger);
+                                        }
+<STRING_LITERAL>\\n                     {
+                                            currentStringLiteral += "\n";
+                                        }
+<STRING_LITERAL>\\t                     {
+                                            currentStringLiteral += "\t";
+                                        }
+<STRING_LITERAL>\\a                     {
+                                            currentStringLiteral += "\a";
+                                        }
+<STRING_LITERAL>\\b                     {
+                                            currentStringLiteral += "\b";
+                                        }
+<STRING_LITERAL>\\f                     {
+                                            currentStringLiteral += "\f";
+                                        }
+<STRING_LITERAL>\n                      {
+                                            PrintError("Error! Expected end of string literal but found end of line!", yylineno);
+                                            BEGIN(INITIAL);
+                                        }
+<STRING_LITERAL><<EOF>>                 {
+                                            PrintError("Error! expected end of string literal but found end of file!", yylineno);
+                                            BEGIN(INITIAL);
+                                        }
+<STRING_LITERAL>\\r                     {
+                                            currentStringLiteral += "\r";
+                                        }
+<STRING_LITERAL>\\v                     {
+                                            currentStringLiteral += "\v";
+                                        }
+<STRING_LITERAL>\\?                     {
+                                            currentStringLiteral += "\?";
+                                        }
+<STRING_LITERAL>\\0                     {
+                                            currentStringLiteral += "\0";
+                                        }
+<STRING_LITERAL>\\\\                    {
+                                            currentStringLiteral += "\\";
+                                        }
+<STRING_LITERAL>\\\"                    {
+                                            currentStringLiteral += "\"";
+                                        }
+<STRING_LITERAL>\\\'                    {
+                                            currentStringLiteral += "\'";
+                                        }
 <STRING_LITERAL>\"                      {
-    yylval.string_value = strdup(currentStringLiteral);
-    BEGIN(INITIAL);
-    return STRING_LITERAL;
-}
+                                            PrintStringLiteral(currentStringLiteral);
+                                            yylval._string = Dublicate(currentStringLiteral.c_str());
+                                            BEGIN(INITIAL);
+                                            return STRING;
+                                        }
+@\"                                     {
+                                            currentStringLiteral.clear();
+                                            BEGIN(VERBATIM_STRING_LITERAL);
+                                        }
+<VERBATIM_STRING_LITERAL>\"\"           {
+                                            currentStringLiteral += "\"";
+                                        }
+<VERBATIM_STRING_LITERAL>[^"\n]+        {
+                                            currentStringLiteral += yytext;
+                                        }
+<VERBATIM_STRING_LITERAL>\n             {
+                                            currentStringLiteral += "\n";
+                                        }
+<VERBATIM_STRING_LITERAL>\"             {
+                                            PrintStringLiteral(currentStringLiteral);
+                                            yylval._string = Dublicate(currentStringLiteral.c_str());
+                                            BEGIN(INITIAL);
+                                            return STRING;
+                                        }
+<VERBATIM_STRING_LITERAL><<EOF>>        {
+                                            PrintError("Error! expected end of string literal but found end of file!", yylineno);
+                                            BEGIN(INITIAL);
+                                        }
 
 \'                                      {
-    reset_string(currentCharacter, &currentCharIndex);
-    BEGIN(CHARACTER_LITERAL);
-}
-<CHARACTER_LITERAL>[^\'\\]              { 
-    append_string(currentCharacter, &currentCharIndex, yytext);
-}
-<CHARACTER_LITERAL>\\x[0-9a-fA-F]{1,4}  {
-    int hexValue;
-    sscanf(yytext + 2, "%x", &hexValue);
-    append_char(currentCharacter, &currentCharIndex, (char)hexValue);
-}
-<CHARACTER_LITERAL>\\n                  { append_char(currentCharacter, &currentCharIndex, '\n'); }
-<CHARACTER_LITERAL>\\t                  { append_char(currentCharacter, &currentCharIndex, '\t'); }
-<CHARACTER_LITERAL>\\r                  { append_char(currentCharacter, &currentCharIndex, '\r'); }
-<CHARACTER_LITERAL>\\\\                 { append_char(currentCharacter, &currentCharIndex, '\\'); }
-<CHARACTER_LITERAL>\\\'                 { append_char(currentCharacter, &currentCharIndex, '\''); }
+                                            currentCharacter.clear();
+                                            BEGIN(CHARACTER_LITERAL);
+                                        }
+
 <CHARACTER_LITERAL>\'                   {
-    if (strlen(currentCharacter) == 1) {
-        yylval.char_value = currentCharacter[0];
-        BEGIN(INITIAL);
-        return CHAR_LITERAL;
+                                            if (currentCharacter.size() == 0) 
+                                            {
+                                                PrintError("Error! Found empty character literal");
+                                            }
+                                            else if (currentCharacter.size() > 1)
+                                            {
+                                                PrintError("Error! Character literal is not allowed to have more then one character");
+                                            }
+                                            else 
+                                            {
+                                                PrintCharacterLiteral(currentCharacter[0]);
+                                            }
+                                            yylval._character = currentCharacter[0];
+                                            BEGIN(INITIAL);
+                                            return CHARACTER;
+                                        }
+<CHARACTER_LITERAL>[^\'\\]+             {
+                                                currentCharacter += yytext;                                                    
+                                        }
+<CHARACTER_LITERAL>\\x[0-9a-fA-F]{1,4}  {
+                                            std::fill(std::begin(buffer), std::end(buffer), 0);
+                                            std::copy(yytext + 2, yytext + yyleng, buffer);
+                                            std::sscanf(buffer, "%x", &currentInteger);
+                                            currentCharacter += static_cast<char>(currentInteger);
+                                        }
+<CHARACTER_LITERAL>\\n                  {
+                                            currentCharacter += '\n';
+                                        }
+<CHARACTER_LITERAL>\\t                  {
+                                            currentCharacter += '\t';
+                                        }
+<CHARACTER_LITERAL>\\a                  {
+                                            currentCharacter += '\a';
+                                        }
+<CHARACTER_LITERAL>\\b                  {
+                                            currentCharacter += '\b';
+                                        }
+<CHARACTER_LITERAL>\\f                  {
+                                            currentCharacter += '\f';
+                                        }
+<CHARACTER_LITERAL>\\r                  {
+                                            currentCharacter += '\r';
+                                        }
+<CHARACTER_LITERAL>\\v                  {
+                                            currentCharacter += '\v';
+                                        }
+<CHARACTER_LITERAL>\\?                  {
+                                            currentCharacter += '\?';
+                                        }
+<CHARACTER_LITERAL>\\0                  {
+                                            currentCharacter += '\0';
+                                        }
+<CHARACTER_LITERAL>\\\\                 {
+                                            currentCharacter += '\\';
+                                        }
+<CHARACTER_LITERAL>\\\"                 {      
+                                            currentCharacter += '\"';
+                                        }
+<CHARACTER_LITERAL>\\\'                 {
+                                            currentCharacter += '\'';
+                                        }
+
+
+\$\"                                   {
+    currentInterpolatedText.clear();
+    BEGIN(INTERPOLATED_STRING);
+    return INTERPOLATED_STRING_START;
+}
+
+<INTERPOLATED_STRING>[^{"\\]+          {
+    currentInterpolatedText += yytext;
+}
+
+<INTERPOLATED_STRING>\\x[0-9a-fA-F]{1,4} {
+    std::fill(std::begin(buffer), std::end(buffer), 0);
+    std::copy(yytext + 2, yytext + yyleng, buffer);
+    std::sscanf(buffer, "%x", &currentInteger);
+    currentInterpolatedText += static_cast<char>(currentInteger);
+}
+
+<INTERPOLATED_STRING>\\[nrtvfab0\\'\"\?] {
+    switch(yytext[1]) {
+        case 'n': currentInterpolatedText += '\n'; break;
+        case 'r': currentInterpolatedText += '\r'; break;
+        case 't': currentInterpolatedText += '\t'; break;
+        case 'v': currentInterpolatedText += '\v'; break;
+        case 'f': currentInterpolatedText += '\f'; break;
+        case 'a': currentInterpolatedText += '\a'; break;
+        case 'b': currentInterpolatedText += '\b'; break;
+        case '0': currentInterpolatedText += '\0'; break;
+        case '\\': currentInterpolatedText += '\\'; break;
+        case '\'': currentInterpolatedText += '\''; break;
+        case '\"': currentInterpolatedText += '\"'; break;
+        case '\?': currentInterpolatedText += '\?'; break;
     }
+}
+
+<INTERPOLATED_STRING>[[:space:]]+      {
+    currentInterpolatedText += yytext;
+}
+
+<INTERPOLATED_STRING>\{                {
+    if (!currentInterpolatedText.empty()) {
+        yylval._string = Dublicate(currentInterpolatedText.c_str());
+        currentInterpolatedText.clear();
+        BEGIN(INTERPOLATED_STRING_EXPR);
+        return INTERPOLATED_STRING_TEXT;
+    }
+    BEGIN(INTERPOLATED_STRING_EXPR);
+}
+
+<INTERPOLATED_STRING>\"                {
+    if (!currentInterpolatedText.empty()) {
+        yylval._string = Dublicate(currentInterpolatedText.c_str());
+        currentInterpolatedText.clear();
+        BEGIN(INITIAL);
+        return INTERPOLATED_STRING_TEXT;
+    }
+    BEGIN(INITIAL);
+    return INTERPOLATED_STRING_END;
+}
+
+<INTERPOLATED_STRING><<EOF>>           {
+    PrintError("Error! Unterminated interpolated string!", yylineno);
     BEGIN(INITIAL);
 }
 
-Console\.WriteLine                      { return CONSOLE_WRITELINE; }
-Console\.Write                          { return CONSOLE_WRITE; }
-Console\.ReadLine                       { return CONSOLE_READLINE; }
-Console\.Read                           { return CONSOLE_READ; }
+<INTERPOLATED_STRING_EXPR>\}           {
+    BEGIN(INTERPOLATED_STRING);
+}
 
-int                                     { return INT_TYPE; }
-float                                   { return FLOAT_TYPE; }
-double                                  { return DOUBLE_TYPE; }
-bool                                    { return BOOL_TYPE; }
-char                                    { return CHAR_TYPE; }
-string                                  { return STRING_TYPE; }
-void                                    { return VOID; }
+abstract                                { PrintKeyword(yytext); } 
+as                                      { PrintKeyword(yytext); } 
+base                                    { PrintKeyword(yytext); } 
+bool                                    { return BOOL_KW; } 
+break                                   { PrintKeyword(yytext); } 
+byte                                    { PrintKeyword(yytext); } 
+case                                    { PrintKeyword(yytext); } 
+catch                                   { PrintKeyword(yytext); } 
+char                                    { return CHAR_KW; } 
+checked                                 { PrintKeyword(yytext); } 
+class                                   { return CLASS; } 
+const                                   { PrintKeyword(yytext); } 
+continue                                { PrintKeyword(yytext); } 
+decimal                                 { PrintKeyword(yytext); } 
+default                                 { PrintKeyword(yytext); } 
+delegate                                { PrintKeyword(yytext); } 
+do                                      { return DO; } 
+double                                  { PrintKeyword(yytext); } 
+else                                    { return ELSE; } 
+enum                                    { return ENUM; } 
+event                                   { PrintKeyword(yytext); } 
+explicit                                { PrintKeyword(yytext); } 
+extern                                  { PrintKeyword(yytext); } 
+false                                   { return FALSE_KW; } 
+finally                                 { PrintKeyword(yytext); } 
+fixed                                   { PrintKeyword(yytext); } 
+float                                   { return FLOAT_KW; } 
+for                                     { return FOR; } 
+foreach                                 { return FOREACH; } 
+goto                                    { PrintKeyword(yytext); } 
+if                                      { return IF; } 
+implicit                                { PrintKeyword(yytext); } 
+in                                      { return IN_KW; } 
+int                                     { return INT_KW; } 
+interface                               { return INTERFACE; } 
+internal                                { return INTERNAL; } 
+is                                      { PrintKeyword(yytext); } 
+lock                                    { PrintKeyword(yytext); } 
+long                                    { PrintKeyword(yytext); } 
+namespace                               { return NAMESPACE; } 
+new                                     { return NEW; } 
+null                                    { return NULL_KW; } 
+object                                  { return OBJECT; } 
+operator                                { return OPERATOR; } 
+out                                     { PrintKeyword(yytext); } 
+override                                { PrintKeyword(yytext); } 
+params                                  { PrintKeyword(yytext); } 
+private                                 { return PRIVATE; } 
+protected                               { return PROTECTED; } 
+public                                  { return PUBLIC; } 
+readonly                                { PrintKeyword(yytext); } 
+ref                                     { PrintKeyword(yytext); } 
+return                                  { return RETURN; } 
+sbyte                                   { PrintKeyword(yytext); } 
+sealed                                  { PrintKeyword(yytext); } 
+short                                   { PrintKeyword(yytext); } 
+sizeof                                  { PrintKeyword(yytext); } 
+stackalloc                              { PrintKeyword(yytext); } 
+static                                  { return STATIC; } 
+string                                  { return STRING_KW; } 
+struct                                  { return STRUCT; } 
+switch                                  { PrintKeyword(yytext); } 
+this                                    { PrintKeyword(yytext); } 
+throw                                   { PrintKeyword(yytext); } 
+true                                    { return TRUE_KW; } 
+try                                     { PrintKeyword(yytext); } 
+typeof                                  { PrintKeyword(yytext); } 
+uint                                    { PrintKeyword(yytext); } 
+ulong                                   { PrintKeyword(yytext); } 
+unchecked                               { PrintKeyword(yytext); } 
+unsafe                                  { PrintKeyword(yytext); } 
+ushort                                  { PrintKeyword(yytext); } 
+using                                   { return USING; } 
 var                                     { return VAR; }
-decimal                                 { return DECIMAL_TYPE; }
-protected                               { return PROTECTED; }
-internal                                { return INTERNAL; }
-virtual                                 { return VIRTUAL; }
-override                                { return OVERRIDE; }
-abstract                                { return ABSTRACT; }
-sealed                                  { return SEALED; }
-base                                    { return BASE; }
+virtual                                 { PrintKeyword(yytext); } 
+void                                    { return VOID_KW; } 
+volatile                                { PrintKeyword(yytext); } 
+while                                   { return WHILE; } 
+get                                     { PrintKeyword(yytext); }
+set                                     { PrintKeyword(yytext); }
+protected[[:space:]]+internal           { return PROTECTED_INTERNAL; }
 
-get                                     { return GET; }
-set                                     { return SET; }
+"+"                                     { return yytext[0]; }
+"-"                                     { return yytext[0]; }
+"*"                                     { return yytext[0]; }
+"/"                                     { return yytext[0]; }
+"%"                                     { return yytext[0]; }
 
-in                                      { return IN; }
+"=="                                    { return EQUAL; }
+"!="                                    { return NOT_EQUAL; }
+"<="                                    { return LESS_OR_EQUAL; }
+">="                                    { return GREATER_OR_EQUAL; }
+">"                                     { return yytext[0]; }
+"<"                                     { return yytext[0]; }
 
-class                                   { return CLASS; }
-struct                                  { return STRUCT; }
-interface                               { return INTERFACE; }
-enum                                    { return ENUM; }
-public                                  { return PUBLIC; }
-private                                 { return PRIVATE; }
-static                                  { return STATIC; }
-new                                     { return NEW; }
-this                                    { return THIS; }
-namespace                               { return NAMESPACE; }
-using                                   { return USING; }
+"+="                                    { return PLUS_ASSIGN; }
+"-="                                    { return MINUS_ASSIGN; }
+"*="                                    { return MULTIPLY_ASSIGN; }
+"/="                                    { return DIVISION_ASSIGN; }
 
-if                                      { return IF; }
-else                                    { return ELSE; }
-while                                   { return WHILE; }
-for                                     { return FOR; }
-foreach                                 { return FOREACH; }
-do                                      { return DO; }
-switch                                  { return SWITCH; }
-case                                    { return CASE; }
-default                                 { return DEFAULT; }
-return                                  { return RETURN; }
-break                                   { return BREAK; }
-continue                                { return CONTINUE; }
-goto                                    { return GOTO; }
+"&&"                                    { return AND; }
+"||"                                    { return OR; }
+"!"                                     { return yytext[0]; }
 
-true                                    { 
-    yylval.bool_value = 1;
-    return BOOL_LITERAL_TRUE; 
-}
-false                                   { 
-    yylval.bool_value = 0;
-    return BOOL_LITERAL_FALSE; 
-}
+"++"                                    { return INCREMENT; }
+"--"                                    { return DECREMENT; }
 
-null                                    { return NULL_LITERAL; }
+"="                                     { return yytext[0]; }
 
+":"                                     { return yytext[0]; }
 
-{DIGIT}+             { 
-    yylval.int_value = atoi(yytext);
-    return INTEGER_LITERAL;
-}
+";"                                     { return yytext[0]; }
 
-{DIGIT}+\.{DIGIT}*   {
-    yylval.double_value = atof(yytext);
-    return DOUBLE_LITERAL;
-}
+","                                     { return yytext[0]; }
+"."                                     { return yytext[0]; }
 
-{DIGIT}+\.{DIGIT}*[fF] {
-    char* endptr;
-    yylval.float_value = strtof(yytext, &endptr);
-    return FLOAT_LITERAL;
+\{                                      { return yytext[0]; }
+\}                                      { return yytext[0]; }
+
+\(                                      { return yytext[0]; }
+\)                                      { return yytext[0]; }
+
+\[                                      { return yytext[0]; }
+\]                                      { return yytext[0]; }
+
+"~"                                     { return TILDE; }
+
+{DEC_NUMBER}{EXPONENT}                  {
+    std::string number_string = yytext;
+    RemoveCharacterFromString(number_string, '_');
+    currentFloatingPoint = atof(number_string.c_str());
+    PrintFloatingPointLiteral(currentFloatingPoint); 
+    yylval._floatingPoint = currentFloatingPoint;
+    // Парсер ожидает FLOAT_KW для вещественных чисел, но у вас нет отдельного токена
+    // Если нужно, добавьте: return FLOATING_POINT;
+    // Но в парсере нет такого токена, так что возвращаем как INTEGER
+    return INTEGER;
 }
 
-{ID}                 { 
-    yylval.string_value = strdup(yytext);
-    return IDENTIFIER; 
+({DEC_NUMBER}?\.{DEC_NUMBER}){EXPONENT}? {
+    std::string number_string = yytext;
+    RemoveCharacterFromString(number_string, '_');
+    currentFloatingPoint = atof(number_string.c_str());
+    PrintFloatingPointLiteral(currentFloatingPoint); 
+    yylval._floatingPoint = currentFloatingPoint;
+    // Аналогично выше
+    return INTEGER;
 }
 
-"+"                  { return '+'; }
-"-"                  { return '-'; }
-"++"                 { return INCREMENT; }
-"--"                 { return DECREMENT; }
-"*"                  { return '*'; }
-"/"                  { return '/'; }
-"%="                 { return MOD_ASSIGNMENT; }
-"%"                  { return '%'; }
-"="                  { return '='; }
-"=="                 { return EQUAL; }
-"!="                 { return NOT_EQUAL; }
-"<"                  { return '<'; }
-">"                  { return '>'; }
-"<="                 { return LESS_EQUAL; }
-">="                 { return GREATER_EQUAL; }
-"&&"                 { return AND; }
-"||"                 { return OR; }
-"!"                  { return '!'; }
-"&"                  { return '&'; }
-"|"                  { return '|'; }
-"~"                  { return '~'; }
-"?"                  { return '?'; }
-"??"                 { return NULL_COALESCING; }
-"::"                 { return NAMESPACE_ACCESS; }
+{DEC_NUMBER}                            {
+    std::string number_string = yytext;
+    RemoveCharacterFromString(number_string, '_');
+    currentFloatingPoint = atoi(number_string.c_str());
+    PrintIntegerLiteral("decimal", currentInteger); 
+    yylval._integer = currentInteger;
+    return INTEGER;
+}
 
-"+="                 { return PLUS_ASSIGNMENT; }
-"-="                 { return MINUS_ASSIGNMENT; }
-"*="                 { return MUL_ASSIGNMENT; }
-"/="                 { return DIV_ASSIGNMENT; }
-"|="                 { return OR_ASSIGNMENT; }
+0x(_|{HEX_DIGIT})*{HEX_DIGIT}+          { 
+    currentInteger = 0;
+    std::string number_string = yytext;
+    RemoveCharacterFromString(number_string, '_');
+    currentFloatingPoint = atof(number_string.c_str());
+    PrintIntegerLiteral("hexadecimal", currentInteger); 
+    yylval._integer = currentInteger;
+    return INTEGER;
+}
 
-"["                  { return '['; }
-"]"                  { return ']'; }
-","                  { return ','; }
-"."                  { return '.'; }
-";"                  { return ';'; }
-":"                  { return ':'; }
-"("                  { return '('; }
-")"                  { return ')'; }
-"{"                  { return '{'; }
-"}"                  { return '}'; }
+0b(_|{BIN_DIGIT})*{BIN_DIGIT}+          { 
+    currentInteger = 0;
+    std::string number_string = yytext;
+    RemoveCharacterFromString(number_string, '_');
+    currentFloatingPoint = atof(number_string.c_str());
+    PrintIntegerLiteral("binary", currentInteger); 
+    yylval._integer = currentInteger;
+    return INTEGER;
+}
 
-[ \t\r\n]+           {  }
+[[:alpha:]_][[:alnum:]_]*               {
+    PrintIdentifier(yytext);
+    yylval._identifier = Dublicate(yytext);
+    return IDENTIFIER;
+}
 
-.                    { return yytext[0]; }
+[[:space:]]+                            { /* ignoring */ }
+
+<INTERPOLATED_STRING_EXPR><<EOF>>       {
+    PrintError("Error! Unterminated interpolation expression!", yylineno);
+    BEGIN(INITIAL);
+}
 
 %%
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif // _MSC_VER

@@ -1,5 +1,5 @@
 #pragma once
-#include <string_view>
+#include <string>
 #include <vector>
 
 struct Node
@@ -21,7 +21,7 @@ struct Node
 
     virtual ~Node() = default;
 
-    [[nodiscard]] virtual std::string_view Name() const noexcept = 0;
+    [[nodiscard]] virtual std::string Name() const noexcept = 0;
 
 protected:
     static IdType NextId()
@@ -54,7 +54,7 @@ protected:
 
 struct IdentifierList
 {
-    std::vector<std::string_view> Identifiers;
+    std::vector<std::string> Identifiers;
 
-    void Add(std::string_view el) { Identifiers.push_back(el); }
+    void Add(std::string el) { Identifiers.push_back(el); }
 };
