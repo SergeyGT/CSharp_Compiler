@@ -8,6 +8,7 @@
 #include "../VisibilityModifier.h"
 
 struct ClassDeclNode;
+struct StructDeclNode; 
 
 struct FieldDeclNode final : Node
 {
@@ -161,7 +162,7 @@ public:
     MethodArguments* Arguments{};
     StmtSeqNode* Body{};
     const bool IsStatic{};
-    const bool IsConstructor{};
+    bool IsConstructor{};
     std::vector<VarDeclNode*> Variables{};
     DataType AReturnType{};
     std::vector<MethodArgumentDto> ArgumentDtos{};
@@ -281,19 +282,27 @@ public:
     friend struct ClassAnalyzer;
 };
 
-struct ClassMembersNode final : Node {
+struct TypeMembersNode final : Node {
     std::vector<MethodDeclNode*> Methods;
     std::vector<ConstructorDeclNode*> Constructors;
-    DestructorDeclNode* Destructor{}; 
+    DestructorDeclNode* Destructor{};  
     std::vector<FieldDeclNode*> Fields;
 
     void Add(MethodDeclNode* node) { 
         if (node->IsConstructor) {
-            auto* constructor = static_cast<ConstructorDeclNode*>(node);
-            Constructors.push_back(constructor);
+            auto* constructor = dynamic_cast<ConstructorDeclNode*>(node);
+            if (constructor) {
+                Constructors.push_back(constructor);
+            } else {
+                Methods.push_back(node);
+            }
         } else {
             Methods.push_back(node); 
         }
+    }
+
+    void AddMethod(MethodDeclNode* node) { 
+        Methods.push_back(node); 
     }
     
     void AddConstructor(ConstructorDeclNode* node) { 
@@ -307,9 +316,9 @@ struct ClassMembersNode final : Node {
     void AddField(FieldDeclNode* node) { 
         Fields.push_back(node); 
     }
-
-    [[nodiscard]] std::string_view Name() const noexcept override { 
-        return "ClassMembers"; 
+    
+    void AddOperator(MethodDeclNode* node) { 
+        Methods.push_back(node); 
     }
 };
 
@@ -319,7 +328,7 @@ struct ClassDeclNode final : Node
 {
     std::string_view ClassName;
     IdentifierList* ParentType;
-    ClassMembersNode* Members;
+    TypeMembersNode* Members;
     NamespaceDeclNode* Namespace{};
 
 
@@ -344,7 +353,7 @@ struct ClassDeclNode final : Node
     }
 
 
-    ClassDeclNode(const std::string_view className, IdentifierList* parentType, ClassMembersNode* const members)
+    ClassDeclNode(const std::string_view className, IdentifierList* parentType, TypeMembersNode* const members)
         : ClassName{ className }
       , ParentType{ parentType }
       , Members{ members }
