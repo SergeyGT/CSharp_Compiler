@@ -11,21 +11,18 @@
 #include <iostream>
 
 #include "Tree/Program.h"
-
-void __cdecl yyerror(const char* s) {
-	std::cerr << s << std::endl;
-}
-
+	
 template <char Separator = ' ', typename... Args>
 void Print(Args&&... args) {
     ((std::cout << args << Separator), ...);
     std::cout << std::endl;
 }
 
+extern int yylineno;
 int yylex();
 int yyparse();
 extern FILE* yyin;
-extern struct Program* treeRoot;
+extern struct Program* treeRoot = nullptr;
 %}
 
 %union {
