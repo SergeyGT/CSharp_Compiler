@@ -290,16 +290,17 @@ class_decl: PUBLIC CLASS IDENTIFIER '{' class_members_optional '}'              
           | PUBLIC CLASS IDENTIFIER ':' OBJECT '{' class_members_optional '}'       { $$ = new ClassDeclNode($3, nullptr, $7); }
 ;
 
-class_members: method_decl                          { $$ = new ClassMembersNode(); $$ -> Add($1); }
-                | field_decl                        { $$ = new ClassMembersNode(); $$ -> Add($1); }
-                | operator_overload                 { $$ = new ClassMembersNode(); $$ -> Add($1); }
-                | constructor_decl                  { $$ = new ClassMembersNode(); $$ -> Add($1); }
-                | destructor_decl                   { $$ = new ClassMembersNode(); $$ -> Add($1); }
-                | class_members method_decl         { $$ -> Add($2); }
-                | class_members field_decl          { $$ -> Add($2); }
-                | class_members operator_overload   { $$ -> Add($2); }
-                | class_members constructor_decl    { $$ -> Add($2); }
-                | class_members destructor_decl     { $$ -> Add($2); }
+class_members: method_decl                          { $$ = new ClassMembersNode(); $$ -> AddMethod($1); }
+                | field_decl                        { $$ = new ClassMembersNode(); $$ -> AddField($1); }
+                | operator_overload                 { $$ = new ClassMembersNode(); $$ -> AddMethod($1); }
+                | constructor_decl                  { $$ = new ClassMembersNode(); $$ -> AddConstructor($1); }
+                | destructor_decl                   { $$ = new ClassMembersNode(); $$ -> AddDestructor($1); }
+                | class_members method_decl         { $$ -> AddMethod($2); }
+                | class_members field_decl          { $$ -> AddField($2); }
+                | class_members operator_overload   { $$ -> AddMethod($2); }
+                | class_members constructor_decl    { $$ -> AddConstructor($2); }
+                | class_members destructor_decl     { $$ -> AddDestructor($2); }
+;
 ;
 
 class_members_optional:                     { $$ = new ClassMembersNode(); }
@@ -315,14 +316,15 @@ struct_decl:
     | STRUCT IDENTIFIER '{' struct_members_optional '}' { $$ = new StructDeclNode($2, $4); }
 ;
 
-struct_members: field_decl                                      { $$ = new StructMembersNode(); $$->Add($1); }
-        | method_decl                                   { $$ = new StructMembersNode(); $$->Add($1); }
-            | constructor_decl                              { $$ = new StructMembersNode(); $$->Add($1); }
-            | destructor_decl                               { $$ = new StructMembersNode(); $$->Add($1); }
-            | struct_members field_decl                     { $$->Add($2); }
-            | struct_members method_decl                    { $$->Add($2); }
-            | struct_members constructor_decl               { $$->Add($2); }
-            | struct_members destructor_decl                { $$->Add($2); }
+struct_members: field_decl                              { $$ = new StructMembersNode(); $$->AddField($1); }
+                | method_decl                           { $$ = new StructMembersNode(); $$->AddMethod($1); }
+                | constructor_decl                      { $$ = new StructMembersNode(); $$->AddConstructor($1); }
+                | destructor_decl                       { $$ = new StructMembersNode(); $$->AddDestructor($1); }
+                | struct_members field_decl             { $$->AddField($2); }
+                | struct_members method_decl            { $$->AddMethod($2); }
+                | struct_members constructor_decl       { $$->AddConstructor($2); }
+                | struct_members destructor_decl        { $$->AddDestructor($2); }
+;
 ;
 
 struct_members_optional: 
@@ -425,11 +427,17 @@ operator_overload:    visibility_modifier STATIC type OPERATOR '+'              
 // ============================================================================
 
 constructor_decl: 
-    visibility_modifier IDENTIFIER '(' ')' '{' stmt_seq_optional '}'                   { $$ = new ConstructorDeclNode($1, $2, MethodArguments::MakeEmpty(), $6); }
-    | visibility_modifier IDENTIFIER '(' method_arguments ')' '{' stmt_seq_optional '}'  { $$ = new ConstructorDeclNode($1, $2, $4, $7); }
+    visibility_modifier IDENTIFIER '(' ')' '{' stmt_seq_optional '}' { 
+        $$ = new ConstructorDeclNode($1, $2, MethodArguments::MakeEmpty(), $6); 
+    }
+    | visibility_modifier IDENTIFIER '(' method_arguments ')' '{' stmt_seq_optional '}' { 
+        $$ = new ConstructorDeclNode($1, $2, $4, $7); 
+    }
 ;
 
-destructor_decl: TILDE IDENTIFIER '(' ')' '{' stmt_seq_optional '}'                  { $$ = new DestructorDeclNode($2, $6); }
+destructor_decl: TILDE IDENTIFIER '(' ')' '{' stmt_seq_optional '}' { 
+    $$ = new DestructorDeclNode($2, $6); 
+}
 ;
 
 // ============================================================================
