@@ -1,5 +1,6 @@
 #pragma once
 #include "Node.h"
+#include "../Semantic/JvmClass.h"
 
 struct Qualified_or_expr;
 
@@ -72,24 +73,24 @@ inline std::string ToString(const StandardArrayType type)
 
 struct TypeNode final : Node
 {
-    [[nodiscard]] std::string_view Name() const noexcept override { return "Type"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "Type"; }
 
     enum class TypeT
     {
         StdType,
         StdArrType,
-        AccessExpr
+        Qualified_or_expr,
     } Type{};
 
     StandardType StdType{};
     StandardArrayType StdArrType{};
-    AccessExpr* Access{};
+    Qualified_or_expr* Access{};
 
     explicit TypeNode(StandardType stdType);
 
     explicit TypeNode(StandardArrayType stdArrType);
 
-    explicit TypeNode(AccessExpr* accessExpr);
+    explicit TypeNode(Qualified_or_expr* qualified_or_expr);
 };
 
 [[nodiscard]] DataType ToDataType(const TypeNode* node);

@@ -7,6 +7,9 @@
 #include "Type.h"
 #include "../VisibilityModifier.h"
 
+struct MethodArguments;
+struct ExprNode;
+struct VarDeclNode;
 struct ClassDeclNode;
 struct StructDeclNode; 
 
@@ -27,7 +30,7 @@ struct FieldDeclNode final : Node
     }
 
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "FieldDeclNode"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "FieldDeclNode"; }
 };
 
 

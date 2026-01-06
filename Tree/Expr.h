@@ -93,7 +93,7 @@ struct ExprNode final : Node
 
     static ExprNode* FromNew(StandardType standardType, ExprNode* expr);
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "Expr"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "Expr"; }
 
     [[nodiscard]] ExprNode* ToAssignOnArrayElement() const;
 
