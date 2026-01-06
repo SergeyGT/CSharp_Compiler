@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iterator>
 
+#include "Class.h"
 #include "Stmt.h"
 #include "Type.h"
 #include "../VisibilityModifier.h"
