@@ -3,7 +3,7 @@
 #include "Enum.h"
 #include "Interface.h"
 // ReSharper disable once CppUnusedIncludeDirective
-#include "AccessExpr.h"
+#include "Qualified_or_expr.h"
 
 struct NamespaceMembersNode final : Node
 {
@@ -17,7 +17,7 @@ struct NamespaceMembersNode final : Node
 
     NamespaceMembersNode() noexcept = default;
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "NamespaceMembers"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "NamespaceMembers"; }
 };
 
 struct NamespaceDeclNode final : Node
@@ -32,7 +32,7 @@ struct NamespaceDeclNode final : Node
     {
     }
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "NamespaceDecl"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "NamespaceDecl"; }
 };
 
 struct UsingDirectiveNode final : Node
@@ -44,12 +44,12 @@ struct UsingDirectiveNode final : Node
     {
     }
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "Using"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "Using"; }
 };
 
 struct UsingDirectives final : NodeSeq<UsingDirectives, UsingDirectiveNode>
 {
     using NodeSeq<UsingDirectives, UsingDirectiveNode>::NodeSeq;
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "UsingDirectives"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "UsingDirectives"; }
 };

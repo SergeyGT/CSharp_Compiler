@@ -40,4 +40,5 @@ add_executable(CSharp_Compiler
         ${FLEX_Lexer_OUTPUTS}
         ${BISON_Parser_OUTPUTS}
         Tree/Class.cpp
+        Dot.cpp
 )

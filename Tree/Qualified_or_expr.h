@@ -39,7 +39,7 @@ struct Qualified_or_expr final : Node
 
     DataType AType{};
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "Qualified_or_expr"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "Qualified_or_expr"; }
 
     static Qualified_or_expr* FromBrackets(Qualified_or_expr* previous);
 

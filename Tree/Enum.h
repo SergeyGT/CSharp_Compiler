@@ -12,5 +12,5 @@ struct EnumDeclNode final : Node
     {
     }
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "EnumDecl"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "EnumDecl"; }
 };
