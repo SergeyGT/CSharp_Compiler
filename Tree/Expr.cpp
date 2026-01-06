@@ -26,10 +26,10 @@ ExprNode* ExprNode::FromNull()
     return node;
 }
 
-ExprNode* ExprNode::FromAccessExpr(AccessExpr* child)
+ExprNode* ExprNode::FromQualified_or_expr(Qualified_or_expr* child)
 {
     auto* node = new ExprNode;
-    node->Type = TypeT::AccessExpr;
+    node->Type = TypeT::Qualified_or_expr;
     node->Access = child;
     return node;
 }
@@ -75,8 +75,8 @@ ExprNode* ExprNode::ToAssignOnArrayElement() const
 {
     const auto isAssignmentOnArrayElement =
         Type == TypeT::Assign
-        && Left->Type == TypeT::AccessExpr
-        && Left->Access->Type == AccessExpr::TypeT::ArrayElementExpr;
+        && Left->Type == TypeT::Qualified_or_expr
+        && Left->Access->Type == Qualified_or_expr::TypeT::ArrayElementExpr;
     if (!isAssignmentOnArrayElement)
         return nullptr;
     auto* assign = new ExprNode;
@@ -94,7 +94,7 @@ ExprNode* ExprNode::ToAssignOnField() const
 {
     const auto isAssignmentOnField =
         Type == TypeT::Assign
-        && Left->Type == TypeT::AccessExpr
+        && Left->Type == TypeT::Qualified_or_expr
         && Left->Access->ActualField != nullptr;
     if (!isAssignmentOnField)
         return nullptr;
@@ -114,7 +114,7 @@ ExprNode* ExprNode::ToComplexArrayNew(std::vector<std::string>& errors) const
 {
     const bool isArrayNew = Type == TypeT::SimpleNew
                             && TypeNode->Access
-                            && TypeNode->Access->Type == AccessExpr::TypeT::ArrayElementExpr;
+                            && TypeNode->Access->Type == Qualified_or_expr::TypeT::ArrayElementExpr;
 
     if (!isArrayNew)
         return nullptr;
@@ -181,7 +181,7 @@ void ExprNode::CallForAllChildren(const std::function<void(ExprNode*)>& function
     if (Child)
         function(Child);
 
-    auto accessFunctor = [&function](AccessExpr* node)
+    auto accessFunctor = [&function](Qualified_or_expr* node)
     {
         if (node && node->Child)
             function(node->Child);

@@ -5,7 +5,7 @@
 
 struct FieldDeclNode;
 struct MethodDeclNode;
-struct AccessExpr;
+struct Qualified_or_expr;
 struct ExprSeqNode;
 struct ClassDeclNode;
 
@@ -30,7 +30,7 @@ struct ExprNode final : Node
         UnaryMinus,
         UnaryPlus,
         Null,
-        AccessExpr,
+        Qualified_or_expr,
         SimpleNew,
         Cast,
         Plus_assign,
@@ -58,18 +58,18 @@ struct ExprNode final : Node
     // ������������ ��� ������� �������� � new �������
     ExprNode* Child{};
 
-    AccessExpr* Access{};
+    Qualified_or_expr* Access{};
 
     ExprSeqNode* ExprSeq{};
 
     TypeNode* TypeNode{};
 
     // For AssignOnArrayElement
-    AccessExpr* ArrayExpr{};
+    Qualified_or_expr* ArrayExpr{};
     ExprNode* IndexExpr{};
 
     // For AssignOnField
-    AccessExpr* ObjectExpr{};
+    Qualified_or_expr* ObjectExpr{};
     FieldDeclNode* Field{};
 
     // For AssignOnArrayElement && AssignOnField
@@ -83,7 +83,7 @@ struct ExprNode final : Node
 
     static ExprNode* FromNull();
 
-    static ExprNode* FromAccessExpr(AccessExpr* child);
+    static ExprNode* FromQualified_or_expr(Qualified_or_expr* child);
 
     static ExprNode* FromNew(struct TypeNode* typeNode);
 
@@ -250,8 +250,8 @@ inline std::string ToString(const ExprNode::TypeT type)
             return "new";
         case ExprNode::TypeT::ArrayNew:
             return "new[]";
-        case ExprNode::TypeT::AccessExpr:
-            return "AccessExpr";
+        case ExprNode::TypeT::Qualified_or_expr:
+            return "Qualified_or_expr";
         case ExprNode::TypeT::Cast:
             return "CastExpr";
         case ExprNode::TypeT::Plus_assign:

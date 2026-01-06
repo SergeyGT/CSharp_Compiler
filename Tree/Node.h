@@ -23,11 +23,16 @@ struct Node
 
     [[nodiscard]] virtual std::string Name() const noexcept = 0;
 
-protected:
-    static IdType NextId()
+    static IdType GenerateId()
     {
         static IdType id = 0;
         return id++;
+    }
+
+protected:
+    static IdType NextId()
+    {
+        return GenerateId();
     }
 };
 

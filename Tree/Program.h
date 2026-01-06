@@ -35,6 +35,16 @@ struct NamespaceDeclNode final : Node
     [[nodiscard]] std::string Name() const noexcept override { return "NamespaceDecl"; }
 };
 
+struct NamespaceDeclSeq final : NodeSeq<NamespaceDeclSeq, NamespaceDeclNode>
+{
+    using NodeSeq<NamespaceDeclSeq, NamespaceDeclNode>::NodeSeq;
+
+    [[nodiscard]] std::string Name() const noexcept override
+    {
+        return "NamespaceDeclSeq";
+    }
+};
+
 struct UsingDirectiveNode final : Node
 {
     IdentifierList* Arg;
@@ -52,4 +62,21 @@ struct UsingDirectives final : NodeSeq<UsingDirectives, UsingDirectiveNode>
     using NodeSeq<UsingDirectives, UsingDirectiveNode>::NodeSeq;
 
     [[nodiscard]] std::string Name() const noexcept override { return "UsingDirectives"; }
+};
+
+struct Program final : Node
+{
+    UsingDirectives* Usings{};
+    NamespaceDeclSeq* Namespaces{};
+
+    Program(UsingDirectives* usings, NamespaceDeclSeq* namespaces)
+        : Usings{ usings }
+    , Namespaces{ namespaces }
+    {
+    }
+
+    [[nodiscard]] std::string Name() const noexcept override
+    {
+        return "Program";
+    }
 };

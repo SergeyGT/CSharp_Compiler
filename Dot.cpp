@@ -1,39 +1,16 @@
 #include "Dot.h"
-
+#include "Program.h"
 #include <process.h>
 #include <string>
+#include "Tree/Expr.h"
+#include "Tree/Stmt.h"
+#include "Tree/Type.h"
+#include "Tree/Class.h"
+#include "Tree/Enum.h"
+#include "Tree/Interface.h"
+#include "Tree/Qualified_or_expr.h"
 
 using namespace std::string_literals;
-
-void ToDot(AccessExpr* node, std::ostream& out, bool isType = false);
-
-void ToDot(const TypeNode* node, std::ostream& out);
-
-inline void ToDot(ExprNode* node, std::ostream& out);
-
-void ToDot(const VarDeclNode* node, std::ostream& out);
-
-void ToDot(WhileNode* node, std::ostream& out);
-
-void ToDot(StmtNode* node, std::ostream& out);
-
-void ToDot(const StmtSeqNode* node, std::ostream& out, Node* parent, bool markNext = true, bool createNode = false);
-
-void ToDot(MethodDeclNode* node, std::ostream& out);
-
-void ToDot(FieldDeclNode* node, std::ostream& out);
-
-void ToDot(ClassDeclNode* node, std::ostream& out);
-
-void ToDot(EnumDeclNode* node, std::ostream& out);
-
-void ToDot(NamespaceDeclNode* node, std::ostream& out);
-
-void ToDot(NamespaceDeclSeq* node, std::ostream& out);
-
-void ToDot(UsingDirectiveNode* node, std::ostream& out);
-
-void ToDot(UsingDirectives* node, std::ostream& out);
 
 [[nodiscard]] std::string MakeNode(const std::size_t id, const std::string_view name, const std::string_view style = "")
 {
@@ -100,7 +77,7 @@ void ToDot(ExprSeqNode* node, std::ostream& out, Node* parent, const bool markNe
     }
 }
 
-void ToDot(AccessExpr* const node, std::ostream& out, const bool isType)
+void ToDot(Qualified_or_expr* const node, std::ostream& out, const bool isType)
 {
     if (!node)
         return;
@@ -109,58 +86,58 @@ void ToDot(AccessExpr* const node, std::ostream& out, const bool isType)
                                 : "\\nCalculated data type: " + ToString(node->AType);
     switch (node->Type)
     {
-        case AccessExpr::TypeT::Expr:
+        case Qualified_or_expr::TypeT::Expr:
             out << MakeNode(node->Id, "()" + nameSuffix);
             ToDot(node->Child, out);
             out << MakeConnection(node->Id, node->Child->Id);
             return;
-        case AccessExpr::TypeT::ArrayElementExpr:
+        case Qualified_or_expr::TypeT::ArrayElementExpr:
             out << MakeNode(node->Id, "Array Indexing" + nameSuffix);
             ToDot(node->Previous, out);
             out << MakeConnection(node->Id, node->Previous->Id, "array expr");
             ToDot(node->Child, out);
             out << MakeConnection(node->Id, node->Child->Id, "element expr");
             return;
-        case AccessExpr::TypeT::ComplexArrayType:
+        case Qualified_or_expr::TypeT::ComplexArrayType:
             out << MakeNode(node->Id, "Complex Array Type" + nameSuffix);
             ToDot(node->Previous, out);
             out << MakeConnection(node->Id, node->Previous->Id);
             return;
-        case AccessExpr::TypeT::Integer:
+        case Qualified_or_expr::TypeT::Integer:
             out << MakeNode(node->Id, std::to_string(node->Integer) + nameSuffix);
             return;
-        case AccessExpr::TypeT::Float:
+        case Qualified_or_expr::TypeT::Float:
             out << MakeNode(node->Id, std::to_string(node->Float) + nameSuffix);
             return;
-        case AccessExpr::TypeT::String:
+        case Qualified_or_expr::TypeT::String:
             out << MakeNode(node->Id, ReplaceAll(std::string{ node->String }, "\"", "\\\"") + nameSuffix);
             return;
-        case AccessExpr::TypeT::Char:
+        case Qualified_or_expr::TypeT::Char:
             out << MakeNode(node->Id, "\'" + std::string{ node->Char } + "\'" + nameSuffix);
             return;
-        case AccessExpr::TypeT::Bool:
+        case Qualified_or_expr::TypeT::Bool:
             out << MakeNode(node->Id, node->Bool ? "true" : "false" + nameSuffix);
             return;
-        case AccessExpr::TypeT::Identifier:
+        case Qualified_or_expr::TypeT::Identifier:
             out << MakeNode(node->Id, std::string{ node->Identifier } + nameSuffix);
             return;
-        case AccessExpr::TypeT::SimpleMethodCall:
+        case Qualified_or_expr::TypeT::SimpleMethodCall:
             out << MakeNode(node->Id, "Method call\\nMethodName: " + std::string{ node->Identifier } + nameSuffix);
             ToDot(node->Arguments, out, node, true, "argument");
             if (node->ActualMethodCall) { out << MakeConnection(node->Id, node->ActualMethodCall->Id, "calls"); }
             return;
-        case AccessExpr::TypeT::Dot:
+        case Qualified_or_expr::TypeT::Dot:
             out << MakeNode(node->Id, "." + std::string{ node->Identifier } + nameSuffix);
             ToDot(node->Previous, out);
             out << MakeConnection(node->Id, node->Previous->Id);
             return;
-        case AccessExpr::TypeT::DotMethodCall:
+        case Qualified_or_expr::TypeT::DotMethodCall:
             out << MakeNode(node->Id, "Method call\\nMethodName: " + std::string{ node->Identifier } + nameSuffix);
             ToDot(node->Previous, out);
             out << MakeConnection(node->Id, node->Previous->Id, "call expr");
             ToDot(node->Arguments, out, node, true, "argument");
             return;
-        case AccessExpr::TypeT::ArrayLength:
+        case Qualified_or_expr::TypeT::ArrayLength:
             out << MakeNode(node->Id, "Get Array Length");
             ToDot(node->Previous, out);
             out << MakeConnection(node->Id, node->Previous->Id);
@@ -182,7 +159,7 @@ void ToDot(const TypeNode* node, std::ostream& out)
             name += "\\n" + ToString(node->StdArrType);
             out << MakeNode(node->Id, name);
             return;
-        case TypeNode::TypeT::AccessExpr:
+        case TypeNode::TypeT::Qualified_or_expr:
             out << MakeNode(node->Id, name);
             ToDot(node->Access, out, true);
             out << MakeConnection(node->Id, node->Access->Id, "Complex type");
@@ -192,9 +169,9 @@ void ToDot(const TypeNode* node, std::ostream& out)
 
 void ToDot(ExprNode* const node, std::ostream& out)
 {
-    if (node->Type == ExprNode::TypeT::AccessExpr)
+    if (node->Type == ExprNode::TypeT::Qualified_or_expr)
     {
-        out << MakeNode(node->Id, "AccessExpr");
+        out << MakeNode(node->Id, "Qualified_or_expr");
         ToDot(node->Access, out);
         out << MakeConnection(node->Id, node->Access->Id);
         return;
@@ -516,6 +493,12 @@ void ToDot(NamespaceDeclNode* node, std::ostream& out)
         ToDot(enum_, out);
         out << MakeConnection(node->Id, enum_->Id);
     }
+
+    for (const auto& interface_ : node->Members->Interfaces)
+    {
+        ToDot(interface_, out);
+        out << MakeConnection(node->Id, interface_->Id);
+    }
 }
 
 void ToDot(NamespaceDeclSeq* node, std::ostream& out)
@@ -554,6 +537,30 @@ void ToDot(Program* node, std::ostream& out)
     out << MakeConnection(node->Id, node->Usings->Id);
     out << MakeConnection(node->Id, node->Namespaces->Id);
     out << "}" << std::endl;
+}
+
+void ToDot(InterfaceDeclNode* node, std::ostream& out)
+{
+    const auto name = std::string{ node->Name() } + "\\n" + std::string{ node->InterfaceName };
+    out << MakeNode(node->Id, name);
+
+    for (const auto& member : node->Members->GetSeq())
+    {
+        auto memberName = std::string{ "Method: " } + std::string{ member->MethodName };
+        if (member->Type)
+        {
+            memberName += "\\nReturn type: " + member->Type->Name();
+        }
+        else
+        {
+            memberName += "\\nReturn type: void";
+        }
+
+        // Создаем узел для члена интерфейса
+        auto memberId = Node::GenerateId();
+        out << MakeNode(memberId, memberName);
+        out << MakeConnection(node->Id, memberId);
+    }
 }
 
 void RunDot(const std::string_view dotPath, const std::string_view dotFilePath)

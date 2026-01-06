@@ -25,6 +25,12 @@ struct Qualified_or_expr final : Node
         ArrayLength
     } Type{};
 
+    int Integer{};
+    double Float{};
+    char* String{};
+    char Char{};
+    bool Bool{};
+
     ExprNode* Child{};
 
     Qualified_or_expr* Previous{};
