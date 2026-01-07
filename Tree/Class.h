@@ -2,16 +2,19 @@
 #include <algorithm>
 #include <iterator>
 
-
 #include "Stmt.h"
 #include "Type.h"
 #include "../VisibilityModifier.h"
 
+// Forward declarations
 struct MethodArguments;
 struct ExprNode;
 struct VarDeclNode;
 struct ClassDeclNode;
-struct StructDeclNode; 
+struct StructDeclNode;
+struct NamespaceDeclNode;
+
+class MethodDeclNode;
 
 struct FieldDeclNode final : Node
 {
@@ -29,50 +32,13 @@ struct FieldDeclNode final : Node
     {
     }
 
-
     [[nodiscard]] std::string Name() const noexcept override { return "FieldDeclNode"; }
 };
-
-
-struct ConstructorDeclNode final : MethodDeclNode {
-    bool IsDefault{};  
-    
-    ConstructorDeclNode(const VisibilityModifier visibility, 
-                       const std::string_view className,
-                       MethodArguments* const arguments, 
-                       StmtSeqNode* const body)
-        : MethodDeclNode(visibility, nullptr, className, arguments, body, false)
-    {
-        IsConstructor = true;
-        IsDefault = arguments == nullptr || arguments->GetSeq().empty();
-    }
-    
-    [[nodiscard]] std::string_view Name() const noexcept override { 
-        return "ConstructorDecl"; 
-    }
-};
-
-
-struct DestructorDeclNode final : Node {
-    std::string_view ClassName;
-    StmtSeqNode* Body{};
-    ClassDeclNode* Class{};
-    
-    DestructorDeclNode(const std::string_view className, StmtSeqNode* const body)
-        : ClassName{ className }, Body{ body } 
-    {
-    }
-    
-    [[nodiscard]] std::string_view Name() const noexcept override { 
-        return "DestructorDecl"; 
-    }
-};
-
 
 struct MethodArguments final : NodeSeq<MethodArguments, VarDeclNode>
 {
     using NodeSeq<MethodArguments, VarDeclNode>::NodeSeq;
-    [[nodiscard]] std::string_view Name() const noexcept override { return "MethodArguments"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "MethodArguments"; }
 };
 
 struct MethodArgumentDto
@@ -115,52 +81,17 @@ enum class OperatorType
     Decrement
 };
 
-inline OperatorType ToOperatorOverload(const ExprNode::TypeT type)
-{
-    // ReSharper disable once CppDefaultCaseNotHandledInSwitchStatement
-    // ReSharper disable once CppIncompleteSwitchStatement
-    switch (type) // NOLINT(clang-diagnostic-switch)
-    {
-        case ExprNode::TypeT::BinPlus:
-            return OperatorType::Plus;
-        case ExprNode::TypeT::BinMinus:
-            return OperatorType::Minus;
-        case ExprNode::TypeT::Multiply:
-            return OperatorType::Multiply;
-        case ExprNode::TypeT::Divide:
-            return OperatorType::Divide;
-        case ExprNode::TypeT::Less:
-            return OperatorType::Less;
-        case ExprNode::TypeT::Greater:
-            return OperatorType::Greater;
-        case ExprNode::TypeT::Equal:
-            return OperatorType::Equal;
-        case ExprNode::TypeT::NotEqual:
-            return OperatorType::NotEqual;
-        case ExprNode::TypeT::GreaterOrEqual:
-            return OperatorType::GreaterOrEqual;
-        case ExprNode::TypeT::LessOrEqual:
-            return OperatorType::LessOrEqual;
-        case ExprNode::TypeT::Not:
-            return OperatorType::Not;
-        case ExprNode::TypeT::UnaryMinus:
-            return OperatorType::UnaryMinus;
-        case ExprNode::TypeT::UnaryPlus:
-            return OperatorType::UnaryPlus;
-        case ExprNode::TypeT::Increment:
-            return OperatorType::Increment;
-        case ExprNode::TypeT::Decrement:
-            return OperatorType::Decrement;
-    }
-    return {};
-}
+OperatorType ToOperatorOverload(const ExprNode::TypeT type);
 
-struct MethodDeclNode final : Node
+class MethodDeclNode : public Node
 {
+public:
     const VisibilityModifier Visibility{};
     const TypeNode* Type{};
+
 private:
     std::string_view _identifier{};
+
 public:
     MethodArguments* Arguments{};
     StmtSeqNode* Body{};
@@ -219,9 +150,12 @@ public:
       , Body{ body }
       , IsStatic{ true }
       , IsOperatorOverload{ true }
-      , Operator{ operator_ } { Arguments->Add(arg); }
+      , Operator{ operator_ }
+    {
+        Arguments->Add(arg);
+    }
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "MethodDecl"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "MethodDecl"; }
 
     [[nodiscard]] std::string ToDescriptor() const
     {
@@ -234,6 +168,7 @@ public:
 
     void AnalyzeArguments()
     {
+        if (!Arguments) return;
         auto&& varDeclNodes = Arguments->GetSeq();
         std::transform(varDeclNodes.begin(), varDeclNodes.end(),
                        std::back_inserter(ArgumentDtos),
@@ -285,13 +220,86 @@ public:
     friend struct ClassAnalyzer;
 };
 
+struct ConstructorDeclNode final : public MethodDeclNode {
+    bool IsDefault{};
+
+    ConstructorDeclNode(const VisibilityModifier visibility,
+                       const std::string_view className,
+                       MethodArguments* const arguments,
+                       StmtSeqNode* const body)
+        : MethodDeclNode(visibility, nullptr, className, arguments, body, false)
+    {
+        IsConstructor = true;
+        IsDefault = (arguments == nullptr || arguments->GetSeq().empty());
+    }
+
+    [[nodiscard]] std::string Name() const noexcept override {
+        return "ConstructorDecl";
+    }
+};
+
+struct DestructorDeclNode final : Node {
+    std::string_view ClassName;
+    StmtSeqNode* Body{};
+    ClassDeclNode* Class{};
+
+    DestructorDeclNode(const std::string_view className, StmtSeqNode* const body)
+        : ClassName{ className }, Body{ body }
+    {
+    }
+
+    [[nodiscard]] std::string Name() const noexcept override {
+        return "DestructorDecl";
+    }
+};
+
+// Перенесем реализацию ToOperatorOverload сюда, после определения MethodDeclNode
+inline OperatorType ToOperatorOverload(const ExprNode::TypeT type)
+{
+    switch (type)
+    {
+        case ExprNode::TypeT::BinPlus:
+            return OperatorType::Plus;
+        case ExprNode::TypeT::BinMinus:
+            return OperatorType::Minus;
+        case ExprNode::TypeT::Multiply:
+            return OperatorType::Multiply;
+        case ExprNode::TypeT::Divide:
+            return OperatorType::Divide;
+        case ExprNode::TypeT::Less:
+            return OperatorType::Less;
+        case ExprNode::TypeT::Greater:
+            return OperatorType::Greater;
+        case ExprNode::TypeT::Equal:
+            return OperatorType::Equal;
+        case ExprNode::TypeT::NotEqual:
+            return OperatorType::NotEqual;
+        case ExprNode::TypeT::GreaterOrEqual:
+            return OperatorType::GreaterOrEqual;
+        case ExprNode::TypeT::LessOrEqual:
+            return OperatorType::LessOrEqual;
+        case ExprNode::TypeT::Not:
+            return OperatorType::Not;
+        case ExprNode::TypeT::UnaryMinus:
+            return OperatorType::UnaryMinus;
+        case ExprNode::TypeT::UnaryPlus:
+            return OperatorType::UnaryPlus;
+        case ExprNode::TypeT::Increment:
+            return OperatorType::Increment;
+        case ExprNode::TypeT::Decrement:
+            return OperatorType::Decrement;
+        default:
+            return OperatorType::Plus; // Значение по умолчанию
+    }
+}
+
 struct TypeMembersNode final : Node {
     std::vector<MethodDeclNode*> Methods;
     std::vector<ConstructorDeclNode*> Constructors;
-    DestructorDeclNode* Destructor{};  
+    DestructorDeclNode* Destructor{};
     std::vector<FieldDeclNode*> Fields;
 
-    void Add(MethodDeclNode* node) { 
+    void Add(MethodDeclNode* node) {
         if (node->IsConstructor) {
             auto* constructor = dynamic_cast<ConstructorDeclNode*>(node);
             if (constructor) {
@@ -300,32 +308,30 @@ struct TypeMembersNode final : Node {
                 Methods.push_back(node);
             }
         } else {
-            Methods.push_back(node); 
+            Methods.push_back(node);
         }
     }
 
-    void AddMethod(MethodDeclNode* node) { 
-        Methods.push_back(node); 
+    void AddMethod(MethodDeclNode* node) {
+        Methods.push_back(node);
     }
-    
-    void AddConstructor(ConstructorDeclNode* node) { 
-        Constructors.push_back(node); 
+
+    void AddConstructor(ConstructorDeclNode* node) {
+        Constructors.push_back(node);
     }
-    
-    void AddDestructor(DestructorDeclNode* node) { 
-        Destructor = node;  
+
+    void AddDestructor(DestructorDeclNode* node) {
+        Destructor = node;
     }
-    
-    void AddField(FieldDeclNode* node) { 
-        Fields.push_back(node); 
+
+    void AddField(FieldDeclNode* node) {
+        Fields.push_back(node);
     }
-    
-    void AddOperator(MethodDeclNode* node) { 
-        Methods.push_back(node); 
+
+    void AddOperator(MethodDeclNode* node) {
+        Methods.push_back(node);
     }
 };
-
-struct NamespaceDeclNode;
 
 struct ClassDeclNode final : Node
 {
@@ -334,14 +340,12 @@ struct ClassDeclNode final : Node
     TypeMembersNode* Members;
     NamespaceDeclNode* Namespace{};
 
-
     [[nodiscard]] ConstructorDeclNode* GetDefaultConstructor() const {
         for (auto* ctor : Members->Constructors) {
             if (ctor->IsDefault) return ctor;
         }
         return nullptr;
     }
-
 
     [[nodiscard]] DataType ToDataType() const;
 
@@ -355,7 +359,6 @@ struct ClassDeclNode final : Node
         return nullptr;
     }
 
-
     ClassDeclNode(const std::string_view className, IdentifierList* parentType, TypeMembersNode* const members)
         : ClassName{ className }
       , ParentType{ parentType }
@@ -363,5 +366,5 @@ struct ClassDeclNode final : Node
     {
     }
 
-    [[nodiscard]] std::string_view Name() const noexcept override { return "ClassDecl"; }
+    [[nodiscard]] std::string Name() const noexcept override { return "ClassDecl"; }
 };
