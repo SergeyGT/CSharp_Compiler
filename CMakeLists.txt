@@ -3,8 +3,8 @@ project(CSharp_Compiler CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_program(FLEX_EXECUTABLE NAMES win_flex)
-find_program(BISON_EXECUTABLE NAMES win_bison)
+find_program(FLEX_EXECUTABLE NAMES win_flex flex)
+find_program(BISON_EXECUTABLE NAMES win_bison bison)
 
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
@@ -20,7 +20,7 @@ FLEX_TARGET(Lexer
 )
 
 BISON_TARGET(Parser
-        ${CMAKE_SOURCE_DIR}/parser.y
+        ${CMAKE_SOURCE_DIR}/new_parser.y
         ${PARSER_CPP}
         DEFINES_FILE ${PARSER_H}
         COMPILE_FLAGS "--report=all --verbose"
@@ -41,4 +41,11 @@ add_executable(CSharp_Compiler
         ${BISON_Parser_OUTPUTS}
         Tree/Class.cpp
         Dot.cpp
+        Tree/Type.cpp
+        Tree/Struct.cpp
+        Tree/Stmt.cpp
+        Tree/Qualified_or_expr.cpp
+        Tree/Program.cpp
+        Tree/Interface.cpp
+        Tree/Expr.cpp
 )

@@ -10,15 +10,15 @@
 #include <cstdio>
 #include <iostream>
 
-#include "Tree/Program.h"
-#include "Tree/Expr.h"
-#include "Tree/Stmt.h"
-#include "Tree/Type.h"
-#include "Tree/Class.h"
-#include "Tree/Enum.h"
-#include "Tree/Interface.h"
-#include "Tree/Qualified_or_expr.h"
-#include "Tree/Struct.h"
+#include "../Tree/Program.h"
+#include "../Tree/Expr.h"
+#include "../Tree/Stmt.h"
+#include "../Tree/Type.h"
+#include "../Tree/Class.h"
+#include "../Tree/Enum.h"
+#include "../Tree/Interface.h"
+#include "../Tree/Qualified_or_expr.h"
+#include "../Tree/Struct.h"
 	
 template <char Separator = ' ', typename... Args>
 void Print(Args&&... args) {
@@ -79,7 +79,7 @@ extern struct Program* treeRoot = nullptr;
     struct InterfaceDeclNode* _interfaceDecl;
     struct InterfaceMemberNode* _interfaceMember;
     struct InterfaceMembersNode* _interfaceMembers;
-    struct QualifiedOrExprNode* _qualifiedOrExpr;
+    struct Qualified_or_expr* _qualifiedOrExpr;
 }
 
 %type <_expr> expr expr_optional

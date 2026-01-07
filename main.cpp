@@ -1,42 +1,45 @@
-// main.cpp
 #include <iostream>
 #include <fstream>
-#include <sstream>
+#include "Tree/Program.h"
+#include "Dot.h"
 
-// Включите заголовочные файлы парсера
-#include "parser.hpp"
-#include "lexer.cpp"
+extern "C" {
+    int yyparse();
+    extern FILE* yyin;
+    extern Program* treeRoot;
+}
 
-extern int yyparse();
-extern FILE* yyin;
-
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <input_file.cs>" << std::endl;
         return 1;
     }
 
-    // Открываем файл для парсинга
-    FILE* input_file = fopen(argv[1], "r");
-    if (!input_file) {
+    yyin = fopen(argv[1], "r");
+    if (!yyin) {
         std::cerr << "Error: Cannot open file " << argv[1] << std::endl;
         return 1;
     }
 
-    yyin = input_file;
-
-    std::cout << "Starting parser..." << std::endl;
-
-    // Запускаем парсер
     int result = yyparse();
 
-    fclose(input_file);
-
-    if (result == 0) {
+    if (result == 0 && treeRoot) {
         std::cout << "Parsing successful!" << std::endl;
+
+        // Генерация DOT файла
+        std::ofstream dotFile("ast.dot");
+        if (dotFile.is_open()) {
+            ToDot(treeRoot, dotFile);
+            dotFile.close();
+            std::cout << "AST saved to ast.dot" << std::endl;
+
+            // Генерация SVG (если установлен Graphviz)
+            RunDot("dot", "ast.dot");
+        }
     } else {
-        std::cout << "Parsing failed!" << std::endl;
+        std::cerr << "Parsing failed!" << std::endl;
     }
 
+    fclose(yyin);
     return result;
 }

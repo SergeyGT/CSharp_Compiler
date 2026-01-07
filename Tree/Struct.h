@@ -3,6 +3,7 @@
 #include <iterator>
 
 #include "Class.h"
+#include "Program.h"
 #include "Stmt.h"
 #include "Type.h"
 #include "../VisibilityModifier.h"
@@ -46,7 +47,7 @@ struct StructDeclNode final : Node
     {
     }
 
-    [[nodiscard]] std::string_view Name() const noexcept override { 
+    [[nodiscard]] std::string Name() const noexcept override {
         return "StructDecl"; 
     }
 };

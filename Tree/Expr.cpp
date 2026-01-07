@@ -71,10 +71,10 @@ ExprNode* ExprNode::FromNew(StandardType standardType, ExprNode* expr)
     return node;
 }
 
-ExprNode* ExprNode::FromString(const char* const str)
+ExprNode* ExprNode::FromString(char *str)
 {
     auto* node = new ExprNode;
-    node->Type = TypeT::AccessExpr;
+    node->Type = TypeT::Qualified_or_expr;
     node->Access = Qualified_or_expr::FromString(str);
     return node;
 }
