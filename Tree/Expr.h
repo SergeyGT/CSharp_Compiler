@@ -105,6 +105,8 @@ struct ExprNode final : Node
 
     void CallForAllChildren(const std::function<void(ExprNode*)>& function) const;
 
+    static ExprNode* FromString(const char* str);
+
     friend class ClassAnalyzer;
 
 private:

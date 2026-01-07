@@ -53,3 +53,42 @@ Qualified_or_expr* Qualified_or_expr::FromDot(Qualified_or_expr* previous, const
     return node;
 }
 
+Qualified_or_expr* Qualified_or_expr::FromInt(const int value)
+{
+    auto* node = new Qualified_or_expr;
+    node->Type = TypeT::Integer;
+    node->Integer = value;
+    return node;
+}
+
+Qualified_or_expr* Qualified_or_expr::FromFloat(const double value)
+{
+    auto* node = new Qualified_or_expr;
+    node->Type = TypeT::Float;
+    node->Float = value;
+    return node;
+}
+
+Qualified_or_expr* Qualified_or_expr::FromString(char* const value)
+{
+    auto* node = new Qualified_or_expr;
+    node->Type = TypeT::String;
+    node->String = value;
+    return node;
+}
+
+Qualified_or_expr* Qualified_or_expr::FromChar(const char value)
+{
+    auto* node = new Qualified_or_expr;
+    node->Type = TypeT::Char;
+    node->Char = value;
+    return node;
+}
+
+Qualified_or_expr* Qualified_or_expr::FromBool(const bool value)
+{
+    auto* node = new Qualified_or_expr;
+    node->Type = TypeT::Bool;
+    node->Bool = value;
+    return node;
+}

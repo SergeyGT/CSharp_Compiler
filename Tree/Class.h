@@ -293,6 +293,7 @@ inline OperatorType ToOperatorOverload(const ExprNode::TypeT type)
     }
 }
 
+
 struct TypeMembersNode final : Node {
     std::vector<MethodDeclNode*> Methods;
     std::vector<ConstructorDeclNode*> Constructors;

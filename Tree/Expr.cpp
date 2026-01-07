@@ -71,6 +71,14 @@ ExprNode* ExprNode::FromNew(StandardType standardType, ExprNode* expr)
     return node;
 }
 
+ExprNode* ExprNode::FromString(const char* const str)
+{
+    auto* node = new ExprNode;
+    node->Type = TypeT::AccessExpr;
+    node->Access = Qualified_or_expr::FromString(str);
+    return node;
+}
+
 ExprNode* ExprNode::ToAssignOnArrayElement() const
 {
     const auto isAssignmentOnArrayElement =

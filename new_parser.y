@@ -11,6 +11,14 @@
 #include <iostream>
 
 #include "Tree/Program.h"
+#include "Tree/Expr.h"
+#include "Tree/Stmt.h"
+#include "Tree/Type.h"
+#include "Tree/Class.h"
+#include "Tree/Enum.h"
+#include "Tree/Interface.h"
+#include "Tree/Qualified_or_expr.h"
+#include "Tree/Struct.h"
 	
 template <char Separator = ' ', typename... Args>
 void Print(Args&&... args) {
@@ -32,12 +40,11 @@ extern struct Program* treeRoot = nullptr;
     double _floatingPoint;
     char _character;
 
-    struct AccessExpr* _accessExpr;
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
     enum class StandardType _standardType;
-    struct StandardArrayType* _standardArrayType;
+    struct StandardArrayType _standardArrayType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
@@ -104,7 +111,7 @@ extern struct Program* treeRoot = nullptr;
 %token INTERPOLATED_STRING_START INTERPOLATED_STRING_END
 
 %token <_string> INTERPOLATED_STRING_TEXT
-%type <_accessExpr> interpolated_string
+%type <_qualifiedOrExpr> interpolated_string
 %type <_expr> interpolation_part
 %type <_exprSeq> interpolation_parts
 
@@ -249,26 +256,27 @@ standard_type: CHAR_KW      { $$ = StandardType::Char; }
              | STRING_KW    { $$ = StandardType::String; }
 ;
 
-array_type: standard_type '[' ']'          { $$ = new StandardArrayType{ $1, 1 }; }
-           | array_type '[' ']'            { $$ -> Arity += 1; }
+array_type: standard_type '[' ']'          {     $$ = new StandardArrayType{ $1, 1 };     $$->Arity = 1; }
+           | array_type '[' ']'            {     $1->Arity += 1;     $$ = $1; }
 ;
 
-qualified_or_expr: IDENTIFIER                       { $$ = new QualifiedOrExprNode($1); }
-                 | qualified_or_expr '.' IDENTIFIER { $$ = new QualifiedOrExprNode($1, $3); }
-		 | qualified_or_expr '[' ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
-		 | qualified_or_expr '[' expr ']'     { $$ = new StandardArrayType{ StandardType::UserDefined, 1, $1 }; }
-		 | qualified_or_expr '.' IDENTIFIER '(' expr_seq ')'          { $$ = AccessExpr::FromDot($1, $3, $5); }
-		 | IDENTIFIER '(' expr_seq')'                          { $$ = AccessExpr::FromCall($1, $3); }
-		 | qualified_or_expr '.' IDENTIFIER '(' ')'          { $$ = AccessExpr::FromDot($1, $3, null); }
-         | IDENTIFIER '(' ')'                          { $$ = AccessExpr::FromCall($1, null); }
+qualified_or_expr:IDENTIFIER                       { $$ = Qualified_or_expr::FromId($1); }
+                 | qualified_or_expr '.' IDENTIFIER { $$ = Qualified_or_expr::FromDot($1, $3); }
+		 | qualified_or_expr '[' ']'     { $$ = Qualified_or_expr::FromBrackets($1); }
+		 | qualified_or_expr '[' expr ']'     { $$ = Qualified_or_expr::FromBrackets($1, $3); }
+		 | qualified_or_expr '.' IDENTIFIER '(' expr_seq ')'          { $$ = Qualified_or_expr::FromDot($1, $3, $5); }
+		 | IDENTIFIER '(' expr_seq ')'                          { $$ = Qualified_or_expr::FromCall($1, $3); }
+		 | qualified_or_expr '.' IDENTIFIER '(' ')'          { $$ = Qualified_or_expr::FromDot($1, $3, nullptr); }
+         | IDENTIFIER '(' ')'                          { $$ = Qualified_or_expr::FromCall($1, nullptr); }
          | '(' expr ')'                              { $$ = $2; }
          | NULL_KW                                   { $$ = ExprNode::FromNull(); }
-         | INTEGER                                   { $$ = AccessExpr::FromInt($1); }
-         | STRING                                    { $$ = AccessExpr::FromString($1); }
-         | CHARACTER                                 { $$ = AccessExpr::FromChar($1); }
-         | TRUE_KW                                   { $$ = AccessExpr::FromBool(true); }
-         | FALSE_KW                                  { $$ = AccessExpr::FromBool(false); }
-         | interpolated_string                       { $$ = AccessExpr::FromInterpolatedString($1); }
+         | INTEGER                                   { $$ = Qualified_or_expr::FromInt($1); }
+         | STRING                                    { $$ = Qualified_or_expr::FromString($1); } 
+         | CHARACTER                                 { $$ = Qualified_or_expr::FromChar($1); } 
+         | TRUE_KW                                   { $$ = Qualified_or_expr::FromBool(true); }
+         | FALSE_KW                                  { $$ = Qualified_or_expr::FromBool(false); }  
+         | interpolated_string                       { $$ = $1; } 
+;
 ;
 
 
@@ -499,7 +507,7 @@ expr: expr '+' expr                             { $$ = ExprNode::FromBinaryExpre
     | DECREMENT expr                            { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::Decrement, $2); }
     | '+' expr %prec UNARY_PLUS                 { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryPlus, $2); }
     | '-' expr %prec UNARY_MINUS                { $$ = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryMinus, $2); }
-    | qualified_or_expr                         { $$ = ExprNode::FromQualifiedOrExpr($1); }
+    | qualified_or_expr                         { $$ = ExprNode::FromQualified_or_expr($1); }
     | NEW type                                  { $$ = ExprNode::FromNew($2); }
     | NEW type '{' expr_seq_optional '}'        { $$ = ExprNode::FromNew($2, $4); }
     | NEW '[' ']' '{' expr_seq_optional '}'     { $$ = ExprNode::FromNew(nullptr, $5); }
@@ -523,7 +531,7 @@ expr_seq_optional:              { $$ = ExprSeqNode::MakeEmpty(); }
 // ИНТЕРПОЛИРОВАННЫЕ СТРОКИ
 // ============================================================================
 
-interpolated_string: INTERPOLATED_STRING_START interpolation_parts INTERPOLATED_STRING_END { $$ = AccessExpr::FromInterpolatedString($2);}
+interpolated_string: INTERPOLATED_STRING_START interpolation_parts INTERPOLATED_STRING_END { $$ = Qualified_or_expr::FromString("interpolated"); }
 ;
 
 interpolation_parts: /* empty */ {$$ = ExprSeqNode::MakeEmpty();}

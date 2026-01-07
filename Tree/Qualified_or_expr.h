@@ -59,6 +59,16 @@ struct Qualified_or_expr final : Node
 
     static Qualified_or_expr* FromDot(Qualified_or_expr* previous, const char* id, ExprSeqNode* arguments);
 
+    static Qualified_or_expr* FromInt(int value);
+
+    static Qualified_or_expr* FromFloat(double value);
+
+    static Qualified_or_expr* FromString(char* value);
+
+    static Qualified_or_expr* FromChar(char value);
+
+    static Qualified_or_expr* FromBool(bool value);
+
     [[nodiscard]] DataType ToDataType() const;
 
     void CallForAllChildren(const std::function<void(Qualified_or_expr*)>& function) const;
