@@ -42,6 +42,9 @@ ExprNode* ExprNode::FromNew(::TypeNode* typeNode)
     auto* node = new ExprNode;
     node->Type = TypeT::SimpleNew;
     node->TypeNode = typeNode;
+    if (typeNode) {
+        node->AType = ::ToDataType(typeNode);  // Преобразовать TypeNode → DataType
+    }
     return node;
 }
 
