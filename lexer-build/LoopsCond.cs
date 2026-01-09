@@ -1,13 +1,22 @@
-class ControlStructuresTest {
-    void TestSimple() {
-        int number = 15;
-        
-        if (number > 10) {
-            int x = 1;
-        }
-		
-        for (int i = 0; i < 3; i++) {
-            int y = 2;
+namespace Test {
+    public class Program {
+        public static void Main() {
+            // Простые выражения
+            int x = 5;
+            int y = 10;
+            
+            // Условие
+            if (x < y) {
+                x = x + 1;
+            }
+            
+            // Цикл
+            while (x < 20) {
+                x = x + 1;
+            }
+            
+            // Возврат
+            return;
         }
     }
 }
