@@ -1,37 +1,128 @@
 digraph Program {
-21 [label="Program"]
+69 [label="Program"]
 0 [label="UsingDirectives"]
-20 [label="NamespaceDeclSeq"]
-19 [label="NamespaceDecl\nTest"]
-17 [label="ClassDecl\nProgram\n Inherited from: "]
-8 [label="MethodDecl\nVisibility: public\nName: Main"]
-7 [label="Stmt Seq"]
-6 [label="STMT"]
-5 [label="VarDeclWithInit\nName = x\nCalculated data type: int"]
-2 [label="Type\nint"]
-5 -> 2 [label="Variable type"]
+68 [label="NamespaceDeclSeq"]
+67 [label="NamespaceDecl\nTest"]
+65 [label="ClassDecl\nProgram\n Inherited from: "]
+63 [label="MethodDecl\nVisibility: public\nName: Main"]
+9 [label="Stmt Seq"]
+8 [label="Expr statement"]
+7 [label="Qualified_or_expr"]
+6 [label="Method call\nMethodName: Write\nCalculated data type: char"]
+2 [label="Console\nCalculated data type: char"]
+6 -> 2 [label="call expr"]
 4 [label="Qualified_or_expr"]
-3 [label="5\nCalculated data type: int"]
+3 [label="[\nCalculated data type: char"]
 4 -> 3
-5 -> 4 [label="Init"]
-6 -> 5
+6 -> 4 [label="argument"]
 7 -> 6
-8 -> 7 [label="Method body"]
-17 -> 8
-16 [label="MethodDecl\nVisibility: public\nName: GetX"]
+8 -> 7
+9 -> 8
+62 [label="STMT"]
+61 [label="For"]
+13 [label="VarDeclWithInit\nName = i\nCalculated data type: int"]
 10 [label="Type\nint"]
-16 -> 10 [label="Return value type"]
-15 [label="Stmt Seq"]
-14 [label="Return"]
-13 [label="Qualified_or_expr"]
-12 [label="x\nCalculated data type: char"]
-13 -> 12
-14 -> 13
+13 -> 10 [label="Variable type"]
+12 [label="Qualified_or_expr"]
+11 [label="0\nCalculated data type: int"]
+12 -> 11
+13 -> 12 [label="Init"]
+61 -> 13 [label="Loop variable"]
+19 [label="<\nCalculated data type: char"]
+15 [label="Qualified_or_expr"]
+14 [label="i\nCalculated data type: char"]
 15 -> 14
-16 -> 15 [label="Method body"]
+18 [label="Qualified_or_expr"]
+17 [label=".Length\nCalculated data type: char"]
+16 [label="array\nCalculated data type: char"]
 17 -> 16
-19 -> 17
-20 -> 19
-21 -> 0
+18 -> 17
+19 -> 15 [label="left operand"]
+19 -> 18 [label="right operand"]
+61 -> 19 [label="Condition"]
+22 [label="++\nCalculated data type: char"]
+21 [label="Qualified_or_expr"]
+20 [label="i\nCalculated data type: char"]
 21 -> 20
+22 -> 21
+61 -> 22 [label="IterExpr"]
+60 [label="Block Statement"]
+32 [label="Expr statement"]
+31 [label="Qualified_or_expr"]
+30 [label="Method call\nMethodName: Write\nCalculated data type: char"]
+23 [label="Console\nCalculated data type: char"]
+30 -> 23 [label="call expr"]
+28 [label="Qualified_or_expr"]
+27 [label="Array Indexing\nCalculated data type: char"]
+24 [label="array\nCalculated data type: char"]
+27 -> 24 [label="array expr"]
+26 [label="Qualified_or_expr"]
+25 [label="i\nCalculated data type: char"]
+26 -> 25
+27 -> 26 [label="element expr"]
+28 -> 27
+30 -> 28 [label="argument"]
+31 -> 30
+32 -> 31
+60 -> 32
+45 [label="STMT"]
+44 [label="VarDeclWithInit\nName = isLast\nCalculated data type: bool"]
+34 [label="Type\nbool"]
+44 -> 34 [label="Variable type"]
+43 [label="==\nCalculated data type: char"]
+36 [label="Qualified_or_expr"]
+35 [label="i\nCalculated data type: char"]
+36 -> 35
+42 [label="-\nCalculated data type: char"]
+39 [label="Qualified_or_expr"]
+38 [label=".Length\nCalculated data type: char"]
+37 [label="array\nCalculated data type: char"]
+38 -> 37
+39 -> 38
+41 [label="Qualified_or_expr"]
+40 [label="1\nCalculated data type: int"]
+41 -> 40
+42 -> 39 [label="left operand"]
+42 -> 41 [label="right operand"]
+43 -> 36 [label="left operand"]
+43 -> 42 [label="right operand"]
+44 -> 43 [label="Init"]
+45 -> 44
+60 -> 45
+32 -> 45 [label="next stmt"][style="dashed"]
+59 [label="STMT"]
+58 [label="If"]
+48 [label="!\nCalculated data type: char"]
+47 [label="Qualified_or_expr"]
+46 [label="isLast\nCalculated data type: char"]
+47 -> 46
+48 -> 47
+58 -> 48 [label="Condition"]
+57 [label="Block Statement"]
+55 [label="Expr statement"]
+54 [label="Qualified_or_expr"]
+53 [label="Method call\nMethodName: Write\nCalculated data type: char"]
+49 [label="Console\nCalculated data type: char"]
+53 -> 49 [label="call expr"]
+51 [label="Qualified_or_expr"]
+50 [label=", \nCalculated data type: char"]
+51 -> 50
+53 -> 51 [label="argument"]
+54 -> 53
+55 -> 54
+57 -> 55
+58 -> 57 [label="Then Branch"]
+59 -> 58
+60 -> 59
+45 -> 59 [label="next stmt"][style="dashed"]
+61 -> 60 [label="Body"]
+62 -> 61
+9 -> 62
+8 -> 62 [label="next stmt"][style="dashed"]
+63 -> 9 [label="Method body"]
+65 -> 63
+67 -> 65
+68 -> 67
+69 -> 0
+69 -> 68
 }
