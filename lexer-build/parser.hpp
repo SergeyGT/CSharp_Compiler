@@ -104,7 +104,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 36 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 37 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
 
     int _integer;
     char* _string;
@@ -115,8 +115,8 @@ typedef union YYSTYPE
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
-    enum class StandardType _standardType;
-    struct StandardArrayType _standardArrayType;
+    int _standardType;
+    struct StandardArrayType* _standardArrayType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
@@ -128,7 +128,7 @@ typedef union YYSTYPE
     struct IfNode* _if;
     struct StmtNode* _stmt;
     
-    enum class VisibilityModifier _visibiltyModifier;
+    int _visibiltyModifier;
     struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
     struct MethodDeclNode* _methodDecl;

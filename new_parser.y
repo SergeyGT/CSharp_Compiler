@@ -19,7 +19,8 @@
 #include "../Tree/Interface.h"
 #include "../Tree/Qualified_or_expr.h"
 #include "../Tree/Struct.h"
-	
+#include "../VisibilityModifier.h"
+
 template <char Separator = ' ', typename... Args>
 void Print(Args&&... args) {
     ((std::cout << args << Separator), ...);
@@ -30,7 +31,7 @@ extern int yylineno;
 int yylex();
 int yyparse();
 extern FILE* yyin;
-extern struct Program* treeRoot = nullptr;
+extern struct Program* treeRoot;
 %}
 
 %union {
@@ -43,8 +44,8 @@ extern struct Program* treeRoot = nullptr;
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
-    enum class StandardType _standardType;
-    struct StandardArrayType _standardArrayType;
+    int _standardType;
+    struct StandardArrayType* _standardArrayType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
@@ -56,7 +57,7 @@ extern struct Program* treeRoot = nullptr;
     struct IfNode* _if;
     struct StmtNode* _stmt;
     
-    enum class VisibilityModifier _visibiltyModifier;
+    int _visibiltyModifier;
     struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
     struct MethodDeclNode* _methodDecl;
@@ -87,7 +88,7 @@ extern struct Program* treeRoot = nullptr;
 %type <_qualifiedOrExpr> qualified_or_expr
 
 %type <_standardType> standard_type
-%type <_array_type> array_type;
+%type <_standardArrayType> array_type;
 %type <_type> type;
 
 %type <_varDecl> var_decl var_decl_with_init
@@ -249,14 +250,14 @@ using_directives_optional:                  { $$ = UsingDirectives::MakeEmpty();
 // ТИПЫ ДАННЫХ
 // ============================================================================
 
-standard_type: CHAR_KW      { $$ = StandardType::Char; }
-             | INT_KW       { $$ = StandardType::Int; }
-             | BOOL_KW      { $$ = StandardType::Bool; }
-             | FLOAT_KW     { $$ = StandardType::Float; }
-             | STRING_KW    { $$ = StandardType::String; }
+standard_type: CHAR_KW      { $$ = static_cast<int>(StandardType::Char); }
+             | INT_KW       { $$ = static_cast<int>(StandardType::Int); }
+             | BOOL_KW      { $$ = static_cast<int>(StandardType::Bool); }
+             | FLOAT_KW     { $$ = static_cast<int>(StandardType::Float); }
+             | STRING_KW    { $$ = static_cast<int>(StandardType::String); }
 ;
 
-array_type: standard_type '[' ']'          {     $$ = new StandardArrayType{ $1, 1 };     $$->Arity = 1; }
+array_type: standard_type '[' ']'          {     $$ = new StandardArrayType{ static_cast<StandardType>($1), 1  };     $$->Arity = 1; }
            | array_type '[' ']'            {     $1->Arity += 1;     $$ = $1; }
 ;
 
@@ -277,10 +278,9 @@ qualified_or_expr:IDENTIFIER                       { $$ = Qualified_or_expr::Fro
          | FALSE_KW                                  { $$ = Qualified_or_expr::FromBool(false); }  
          | interpolated_string                       { $$ = $1; } 
 ;
-;
 
 
-type: standard_type              { $$ = new TypeNode($1); }
+type: standard_type              { $$ = new TypeNode(static_cast<StandardType>($1)); }
     | array_type                 { $$ = new TypeNode(*$1); delete $1; }
     | qualified_or_expr          { $$ = new TypeNode($1); }
 ;
@@ -365,19 +365,22 @@ enum_decl: PUBLIC ENUM IDENTIFIER '{' enumerators '}' { Print("Found enum declar
 // МОДИФИКАТОРЫ ДОСТУПА
 // ============================================================================
 
-visibility_modifier: PUBLIC         { $$ = VisibilityModifier::Public; }
-                   | PROTECTED      { $$ = VisibilityModifier::Protected; }
-                   | PRIVATE        { $$ = VisibilityModifier::Private; }				   
-                   | INTERNAL                { $$ = VisibilityModifier::Internal; }
-                   | PROTECTED_INTERNAL      { $$ = VisibilityModifier::ProtectedInternal; }
+visibility_modifier: PUBLIC         { $$ = static_cast<int>(VisibilityModifier::Public); }
+                   | PROTECTED      { $$ = static_cast<int>(VisibilityModifier::Protected); }
+                   | PRIVATE        { $$ = static_cast<int>(VisibilityModifier::Private); }
+                   | INTERNAL                { $$ = static_cast<int>(VisibilityModifier::Internal); }
+                   | PROTECTED_INTERNAL      { $$ = static_cast<int>(VisibilityModifier::ProtectedInternal); }
 ;
-
 // ============================================================================
 // ПОЛЯ И ПЕРЕМЕННЫЕ
 // ============================================================================
 
-field_decl: visibility_modifier var_decl ';'              { $$ = new FieldDeclNode($1, $2); }
-          | visibility_modifier var_decl_with_init ';'    { $$ = new FieldDeclNode($1, $2); }
+field_decl: visibility_modifier var_decl ';'              {
+    $$ = new FieldDeclNode(static_cast<VisibilityModifier>($1), $2);
+}
+| visibility_modifier var_decl_with_init ';'    {
+    $$ = new FieldDeclNode(static_cast<VisibilityModifier>($1), $2);
+}
 ;
 var_decl: type IDENTIFIER                           { $$ = new VarDeclNode($1, $2, nullptr); }
         | VAR IDENTIFIER                            { $$ = new VarDeclNode(nullptr, $2, nullptr, true); }
@@ -390,12 +393,12 @@ var_decl_with_init: type IDENTIFIER '=' expr        { $$ = new VarDeclNode($1, $
 // МЕТОДЫ
 // ============================================================================
 
-method_decl: visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'                { $$ = new MethodDeclNode($1, $2, $3, $5, $8); }
-           | visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'             { $$ = new MethodDeclNode($1, nullptr, $3, $5, $8); }
-           | visibility_modifier STATIC VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode($1, nullptr, $4, $6, $9, /* isStatic = */ true); }
-           | STATIC visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode($2, nullptr, $4, $6, $9, /* isStatic = */ true); }
-           | visibility_modifier STATIC type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode($1, $3, $4, $6, $9, /* isStatic = */ true); }
-           | STATIC visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode($2, $3, $4, $6, $9, /* isStatic = */ true); }
+method_decl: visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'                { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $2, $3, $5, $8); }
+           | visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'             { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), nullptr, $3, $5, $8); }
+           | visibility_modifier STATIC VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), nullptr, $4, $6, $9, /* isStatic = */ true); }
+           | STATIC visibility_modifier VOID_KW IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'      { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($2), nullptr, $4, $6, $9, /* isStatic = */ true); }
+           | visibility_modifier STATIC type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, $4, $6, $9, /* isStatic = */ true); }
+           | STATIC visibility_modifier type IDENTIFIER '(' method_arguments_optional ')' '{' stmt_seq_optional '}'         { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($2), $3, $4, $6, $9, /* isStatic = */ true); }
 ;
 
 method_arguments: var_decl                          { $$ = new MethodArguments($1); }
@@ -405,21 +408,21 @@ method_arguments_optional:                          { $$ = MethodArguments::Make
                          | method_arguments         { $$ = $1; }
 ;
 
-operator_overload:    visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Plus,              $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Minus,             $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR '*'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Multiply,          $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR '/'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Divide,            $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR '<'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Less,              $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR '>'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Greater,           $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR EQUAL            '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Equal,             $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR NOT_EQUAL        '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::NotEqual,          $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR LESS_OR_EQUAL    '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::LessOrEqual,       $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR GREATER_OR_EQUAL '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::GreaterOrEqual,    $7, $9, $12); }
-                    | visibility_modifier STATIC type OPERATOR '!'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Not,               $7, $10);     }
-                    | visibility_modifier STATIC type OPERATOR DECREMENT        '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Decrement,         $7, $10);     }
-                    | visibility_modifier STATIC type OPERATOR INCREMENT        '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::Increment,         $7, $10);     }
-                    | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::UnaryMinus,        $7, $10);     }
-                    | visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode($1, $3, OperatorType::UnaryPlus,         $7, $10);     }
+operator_overload:    visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Plus,              $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Minus,             $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '*'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Multiply,          $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '/'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Divide,            $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '<'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Less,              $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '>'              '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Greater,           $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR EQUAL            '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Equal,             $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR NOT_EQUAL        '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::NotEqual,          $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR LESS_OR_EQUAL    '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::LessOrEqual,       $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR GREATER_OR_EQUAL '(' var_decl ',' var_decl ')' '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::GreaterOrEqual,    $7, $9, $12); }
+                    | visibility_modifier STATIC type OPERATOR '!'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Not,               $7, $10);     }
+                    | visibility_modifier STATIC type OPERATOR DECREMENT        '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Decrement,         $7, $10);     }
+                    | visibility_modifier STATIC type OPERATOR INCREMENT        '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::Increment,         $7, $10);     }
+                    | visibility_modifier STATIC type OPERATOR '-'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::UnaryMinus,        $7, $10);     }
+                    | visibility_modifier STATIC type OPERATOR '+'              '(' var_decl ')'              '{' stmt_seq_optional '}'  { $$ = new MethodDeclNode(static_cast<VisibilityModifier>($1), $3, OperatorType::UnaryPlus,         $7, $10);     }
 ;
 
 // ============================================================================
@@ -428,10 +431,10 @@ operator_overload:    visibility_modifier STATIC type OPERATOR '+'              
 
 constructor_decl: 
     visibility_modifier IDENTIFIER '(' ')' '{' stmt_seq_optional '}' { 
-        $$ = new ConstructorDeclNode($1, $2, MethodArguments::MakeEmpty(), $6); 
+        $$ = new ConstructorDeclNode(static_cast<VisibilityModifier>($1), $2, MethodArguments::MakeEmpty(), $6);
     }
-    | visibility_modifier IDENTIFIER '(' method_arguments ')' '{' stmt_seq_optional '}' { 
-        $$ = new ConstructorDeclNode($1, $2, $4, $7); 
+    | visibility_modifier IDENTIFIER '(' method_arguments ')' '{' stmt_seq_optional '}' {
+        $$ = new ConstructorDeclNode(static_cast<VisibilityModifier>($1), $2, $4, $7);
     }
 ;
 

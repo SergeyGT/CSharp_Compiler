@@ -90,7 +90,8 @@
 #include "../Tree/Interface.h"
 #include "../Tree/Qualified_or_expr.h"
 #include "../Tree/Struct.h"
-	
+#include "../VisibilityModifier.h"
+
 template <char Separator = ' ', typename... Args>
 void Print(Args&&... args) {
     ((std::cout << args << Separator), ...);
@@ -101,11 +102,11 @@ extern int yylineno;
 int yylex();
 int yyparse();
 extern FILE* yyin;
-extern struct Program* treeRoot = nullptr;
+extern struct Program* treeRoot;
 
 
 /* Line 189 of yacc.c  */
-#line 109 "C:/Compile_CSharp/CSharp_Compiler/lexer-build/parser.cpp"
+#line 110 "C:/Compile_CSharp/CSharp_Compiler/lexer-build/parser.cpp"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -197,7 +198,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 36 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 37 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
 
     int _integer;
     char* _string;
@@ -208,8 +209,8 @@ typedef union YYSTYPE
     struct ExprNode* _expr;
     struct ExprSeqNode* _exprSeq;
     
-    enum class StandardType _standardType;
-    struct StandardArrayType _standardArrayType;
+    int _standardType;
+    struct StandardArrayType* _standardArrayType;
     struct TypeNode* _type;
     
     struct VarDeclNode* _varDecl;
@@ -221,7 +222,7 @@ typedef union YYSTYPE
     struct IfNode* _if;
     struct StmtNode* _stmt;
     
-    enum class VisibilityModifier _visibiltyModifier;
+    int _visibiltyModifier;
     struct FieldDeclNode* _fieldDecl;
     struct MethodArguments* _methodArguments;
     struct MethodDeclNode* _methodDecl;
@@ -249,7 +250,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 253 "C:/Compile_CSharp/CSharp_Compiler/lexer-build/parser.cpp"
+#line 254 "C:/Compile_CSharp/CSharp_Compiler/lexer-build/parser.cpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -261,7 +262,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 265 "C:/Compile_CSharp/CSharp_Compiler/lexer-build/parser.cpp"
+#line 266 "C:/Compile_CSharp/CSharp_Compiler/lexer-build/parser.cpp"
 
 #ifdef short
 # undef short
@@ -649,25 +650,25 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   204,   204,   206,   212,   213,   214,   215,   216,   217,
-     218,   219,   222,   223,   226,   229,   230,   233,   234,   237,
-     240,   241,   244,   245,   252,   253,   254,   255,   256,   259,
-     260,   263,   264,   265,   266,   267,   268,   269,   270,   271,
-     272,   273,   274,   275,   276,   277,   278,   283,   284,   285,
+       0,   205,   205,   207,   213,   214,   215,   216,   217,   218,
+     219,   220,   223,   224,   227,   230,   231,   234,   235,   238,
+     241,   242,   245,   246,   253,   254,   255,   256,   257,   260,
+     261,   264,   265,   266,   267,   268,   269,   270,   271,   272,
+     273,   274,   275,   276,   277,   278,   279,   283,   284,   285,
      292,   293,   294,   297,   298,   299,   300,   301,   302,   303,
      304,   305,   306,   309,   310,   318,   319,   322,   323,   324,
      325,   326,   327,   331,   332,   338,   341,   342,   345,   346,
      349,   350,   357,   358,   361,   368,   369,   370,   371,   372,
-     379,   380,   382,   383,   385,   386,   393,   394,   395,   396,
-     397,   398,   401,   402,   404,   405,   408,   409,   410,   411,
-     412,   413,   414,   415,   416,   417,   418,   419,   420,   421,
-     422,   430,   433,   438,   447,   448,   449,   450,   451,   452,
-     453,   454,   455,   456,   457,   460,   461,   463,   464,   467,
-     469,   472,   473,   474,   477,   478,   481,   488,   489,   490,
-     491,   492,   493,   494,   495,   496,   497,   498,   499,   500,
-     501,   502,   503,   504,   505,   506,   507,   508,   509,   510,
-     511,   512,   513,   514,   515,   518,   519,   522,   523,   526,
-     527,   534,   537,   538,   541,   542
+     378,   381,   385,   386,   388,   389,   396,   397,   398,   399,
+     400,   401,   404,   405,   407,   408,   411,   412,   413,   414,
+     415,   416,   417,   418,   419,   420,   421,   422,   423,   424,
+     425,   433,   436,   441,   450,   451,   452,   453,   454,   455,
+     456,   457,   458,   459,   460,   463,   464,   466,   467,   470,
+     472,   475,   476,   477,   480,   481,   484,   491,   492,   493,
+     494,   495,   496,   497,   498,   499,   500,   501,   502,   503,
+     504,   505,   506,   507,   508,   509,   510,   511,   512,   513,
+     514,   515,   516,   517,   518,   521,   522,   525,   526,   529,
+     530,   537,   540,   541,   544,   545
 };
 #endif
 
@@ -2051,308 +2052,308 @@ yyreduce:
         case 3:
 
 /* Line 1455 of yacc.c  */
-#line 206 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 207 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { treeRoot = new Program((yyvsp[(1) - (2)]._usingDirectives), (yyvsp[(2) - (2)]._namespaceDeclSeq)); ;}
     break;
 
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 212 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 213 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) = new NamespaceMembersNode(); (yyval._namespaceMembers) -> Add((yyvsp[(1) - (1)]._enumDecl)); ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 213 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 214 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) = new NamespaceMembersNode(); (yyval._namespaceMembers) -> Add((yyvsp[(1) - (1)]._classDecl)); ;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 214 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 215 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) = new NamespaceMembersNode(); (yyval._namespaceMembers) -> Add((yyvsp[(1) - (1)]._interfaceDecl)); ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 215 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 216 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) = new NamespaceMembersNode(); (yyval._namespaceMembers) -> Add((yyvsp[(1) - (1)]._structDecl)); ;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 216 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 217 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) -> Add((yyvsp[(2) - (2)]._enumDecl)); ;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 217 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 218 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) -> Add((yyvsp[(2) - (2)]._classDecl)); ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 218 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 219 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) -> Add((yyvsp[(2) - (2)]._interfaceDecl)); ;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 219 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 220 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) -> Add((yyvsp[(2) - (2)]._structDecl)); ;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 222 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 223 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) = new NamespaceMembersNode(); ;}
     break;
 
   case 13:
 
 /* Line 1455 of yacc.c  */
-#line 223 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 224 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceMembers) = (yyvsp[(1) - (1)]._namespaceMembers); ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 226 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 227 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceDecl) = new NamespaceDeclNode((yyvsp[(2) - (5)]._identifier), (yyvsp[(4) - (5)]._namespaceMembers));  ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 229 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 230 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceDeclSeq) = new NamespaceDeclSeq((yyvsp[(1) - (1)]._namespaceDecl)); ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 230 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 231 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._namespaceDeclSeq) -> Add((yyvsp[(2) - (2)]._namespaceDecl)); ;}
     break;
 
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 233 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 234 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._usingArg) = new IdentifierList(); (yyval._usingArg) -> Add((yyvsp[(1) - (1)]._identifier)); ;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 234 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 235 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._usingArg) -> Add((yyvsp[(3) - (3)]._identifier)); ;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 237 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 238 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._usingDirective) = new UsingDirectiveNode((yyvsp[(2) - (3)]._usingArg)); ;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 240 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 241 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._usingDirectives) = new UsingDirectives((yyvsp[(1) - (1)]._usingDirective)); ;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 241 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 242 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._usingDirectives) -> Add((yyvsp[(2) - (2)]._usingDirective)); ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 244 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 245 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._usingDirectives) = UsingDirectives::MakeEmpty();  ;}
     break;
 
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 245 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 246 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._usingDirectives) = (yyvsp[(1) - (1)]._usingDirectives); ;}
     break;
 
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 252 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._standardType) = StandardType::Char; ;}
+#line 253 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._standardType) = static_cast<int>(StandardType::Char); ;}
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 253 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._standardType) = StandardType::Int; ;}
+#line 254 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._standardType) = static_cast<int>(StandardType::Int); ;}
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 254 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._standardType) = StandardType::Bool; ;}
+#line 255 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._standardType) = static_cast<int>(StandardType::Bool); ;}
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 255 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._standardType) = StandardType::Float; ;}
+#line 256 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._standardType) = static_cast<int>(StandardType::Float); ;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 256 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._standardType) = StandardType::String; ;}
+#line 257 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._standardType) = static_cast<int>(StandardType::String); ;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 259 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    {     (yyval._array_type) = new StandardArrayType{ (yyvsp[(1) - (3)]._standardType), 1 };     (yyval._array_type)->Arity = 1; ;}
+#line 260 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    {     (yyval._standardArrayType) = new StandardArrayType{ static_cast<StandardType>((yyvsp[(1) - (3)]._standardType)), 1  };     (yyval._standardArrayType)->Arity = 1; ;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 260 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    {     (yyvsp[(1) - (3)]._array_type)->Arity += 1;     (yyval._array_type) = (yyvsp[(1) - (3)]._array_type); ;}
+#line 261 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    {     (yyvsp[(1) - (3)]._standardArrayType)->Arity += 1;     (yyval._standardArrayType) = (yyvsp[(1) - (3)]._standardArrayType); ;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 263 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 264 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromId((yyvsp[(1) - (1)]._identifier)); ;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 264 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 265 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromDot((yyvsp[(1) - (3)]._qualifiedOrExpr), (yyvsp[(3) - (3)]._identifier)); ;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 265 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 266 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromBrackets((yyvsp[(1) - (3)]._qualifiedOrExpr)); ;}
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 266 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 267 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromBrackets((yyvsp[(1) - (4)]._qualifiedOrExpr), (yyvsp[(3) - (4)]._expr)); ;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 267 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 268 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromDot((yyvsp[(1) - (6)]._qualifiedOrExpr), (yyvsp[(3) - (6)]._identifier), (yyvsp[(5) - (6)]._exprSeq)); ;}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 268 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 269 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromCall((yyvsp[(1) - (4)]._identifier), (yyvsp[(3) - (4)]._exprSeq)); ;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 269 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 270 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromDot((yyvsp[(1) - (5)]._qualifiedOrExpr), (yyvsp[(3) - (5)]._identifier), nullptr); ;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 270 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 271 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromCall((yyvsp[(1) - (3)]._identifier), nullptr); ;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 271 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 272 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = (yyvsp[(2) - (3)]._expr); ;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 272 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 273 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = ExprNode::FromNull(); ;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 273 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 274 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromInt((yyvsp[(1) - (1)]._integer)); ;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 274 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 275 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromString((yyvsp[(1) - (1)]._string)); ;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 275 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 276 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromChar((yyvsp[(1) - (1)]._character)); ;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 276 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 277 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromBool(true); ;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 277 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 278 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromBool(false); ;}
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 278 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 279 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = (yyvsp[(1) - (1)]._qualifiedOrExpr); ;}
     break;
 
@@ -2360,14 +2361,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 283 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._type) = new TypeNode((yyvsp[(1) - (1)]._standardType)); ;}
+    { (yyval._type) = new TypeNode(static_cast<StandardType>((yyvsp[(1) - (1)]._standardType))); ;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
 #line 284 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._type) = new TypeNode(*(yyvsp[(1) - (1)]._array_type)); delete (yyvsp[(1) - (1)]._array_type); ;}
+    { (yyval._type) = new TypeNode(*(yyvsp[(1) - (1)]._standardArrayType)); delete (yyvsp[(1) - (1)]._standardArrayType); ;}
     break;
 
   case 49:
@@ -2626,276 +2627,280 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 368 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._visibiltyModifier) = VisibilityModifier::Public; ;}
+    { (yyval._visibiltyModifier) = static_cast<int>(VisibilityModifier::Public); ;}
     break;
 
   case 86:
 
 /* Line 1455 of yacc.c  */
 #line 369 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._visibiltyModifier) = VisibilityModifier::Protected; ;}
+    { (yyval._visibiltyModifier) = static_cast<int>(VisibilityModifier::Protected); ;}
     break;
 
   case 87:
 
 /* Line 1455 of yacc.c  */
 #line 370 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._visibiltyModifier) = VisibilityModifier::Private; ;}
+    { (yyval._visibiltyModifier) = static_cast<int>(VisibilityModifier::Private); ;}
     break;
 
   case 88:
 
 /* Line 1455 of yacc.c  */
 #line 371 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._visibiltyModifier) = VisibilityModifier::Internal; ;}
+    { (yyval._visibiltyModifier) = static_cast<int>(VisibilityModifier::Internal); ;}
     break;
 
   case 89:
 
 /* Line 1455 of yacc.c  */
 #line 372 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._visibiltyModifier) = VisibilityModifier::ProtectedInternal; ;}
+    { (yyval._visibiltyModifier) = static_cast<int>(VisibilityModifier::ProtectedInternal); ;}
     break;
 
   case 90:
 
 /* Line 1455 of yacc.c  */
-#line 379 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._fieldDecl) = new FieldDeclNode((yyvsp[(1) - (3)]._visibiltyModifier), (yyvsp[(2) - (3)]._varDecl)); ;}
+#line 378 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    {
+    (yyval._fieldDecl) = new FieldDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (3)]._visibiltyModifier)), (yyvsp[(2) - (3)]._varDecl));
+;}
     break;
 
   case 91:
 
 /* Line 1455 of yacc.c  */
-#line 380 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._fieldDecl) = new FieldDeclNode((yyvsp[(1) - (3)]._visibiltyModifier), (yyvsp[(2) - (3)]._varDecl)); ;}
+#line 381 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    {
+    (yyval._fieldDecl) = new FieldDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (3)]._visibiltyModifier)), (yyvsp[(2) - (3)]._varDecl));
+;}
     break;
 
   case 92:
 
 /* Line 1455 of yacc.c  */
-#line 382 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 385 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._varDecl) = new VarDeclNode((yyvsp[(1) - (2)]._type), (yyvsp[(2) - (2)]._identifier), nullptr); ;}
     break;
 
   case 93:
 
 /* Line 1455 of yacc.c  */
-#line 383 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 386 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._varDecl) = new VarDeclNode(nullptr, (yyvsp[(2) - (2)]._identifier), nullptr, true); ;}
     break;
 
   case 94:
 
 /* Line 1455 of yacc.c  */
-#line 385 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 388 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._varDecl) = new VarDeclNode((yyvsp[(1) - (4)]._type), (yyvsp[(2) - (4)]._identifier), (yyvsp[(4) - (4)]._expr)); ;}
     break;
 
   case 95:
 
 /* Line 1455 of yacc.c  */
-#line 386 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 389 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._varDecl) = new VarDeclNode(nullptr, (yyvsp[(2) - (4)]._identifier), (yyvsp[(4) - (4)]._expr), true); ;}
     break;
 
   case 96:
 
 /* Line 1455 of yacc.c  */
-#line 393 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (9)]._visibiltyModifier), (yyvsp[(2) - (9)]._type), (yyvsp[(3) - (9)]._identifier), (yyvsp[(5) - (9)]._methodArguments), (yyvsp[(8) - (9)]._stmtSeq)); ;}
+#line 396 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (9)]._visibiltyModifier)), (yyvsp[(2) - (9)]._type), (yyvsp[(3) - (9)]._identifier), (yyvsp[(5) - (9)]._methodArguments), (yyvsp[(8) - (9)]._stmtSeq)); ;}
     break;
 
   case 97:
 
 /* Line 1455 of yacc.c  */
-#line 394 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (9)]._visibiltyModifier), nullptr, (yyvsp[(3) - (9)]._identifier), (yyvsp[(5) - (9)]._methodArguments), (yyvsp[(8) - (9)]._stmtSeq)); ;}
+#line 397 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (9)]._visibiltyModifier)), nullptr, (yyvsp[(3) - (9)]._identifier), (yyvsp[(5) - (9)]._methodArguments), (yyvsp[(8) - (9)]._stmtSeq)); ;}
     break;
 
   case 98:
 
 /* Line 1455 of yacc.c  */
-#line 395 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (10)]._visibiltyModifier), nullptr, (yyvsp[(4) - (10)]._identifier), (yyvsp[(6) - (10)]._methodArguments), (yyvsp[(9) - (10)]._stmtSeq), /* isStatic = */ true); ;}
+#line 398 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (10)]._visibiltyModifier)), nullptr, (yyvsp[(4) - (10)]._identifier), (yyvsp[(6) - (10)]._methodArguments), (yyvsp[(9) - (10)]._stmtSeq), /* isStatic = */ true); ;}
     break;
 
   case 99:
 
 /* Line 1455 of yacc.c  */
-#line 396 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(2) - (10)]._visibiltyModifier), nullptr, (yyvsp[(4) - (10)]._identifier), (yyvsp[(6) - (10)]._methodArguments), (yyvsp[(9) - (10)]._stmtSeq), /* isStatic = */ true); ;}
+#line 399 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(2) - (10)]._visibiltyModifier)), nullptr, (yyvsp[(4) - (10)]._identifier), (yyvsp[(6) - (10)]._methodArguments), (yyvsp[(9) - (10)]._stmtSeq), /* isStatic = */ true); ;}
     break;
 
   case 100:
 
 /* Line 1455 of yacc.c  */
-#line 397 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (10)]._visibiltyModifier), (yyvsp[(3) - (10)]._type), (yyvsp[(4) - (10)]._identifier), (yyvsp[(6) - (10)]._methodArguments), (yyvsp[(9) - (10)]._stmtSeq), /* isStatic = */ true); ;}
+#line 400 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (10)]._visibiltyModifier)), (yyvsp[(3) - (10)]._type), (yyvsp[(4) - (10)]._identifier), (yyvsp[(6) - (10)]._methodArguments), (yyvsp[(9) - (10)]._stmtSeq), /* isStatic = */ true); ;}
     break;
 
   case 101:
 
 /* Line 1455 of yacc.c  */
-#line 398 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(2) - (10)]._visibiltyModifier), (yyvsp[(3) - (10)]._type), (yyvsp[(4) - (10)]._identifier), (yyvsp[(6) - (10)]._methodArguments), (yyvsp[(9) - (10)]._stmtSeq), /* isStatic = */ true); ;}
+#line 401 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(2) - (10)]._visibiltyModifier)), (yyvsp[(3) - (10)]._type), (yyvsp[(4) - (10)]._identifier), (yyvsp[(6) - (10)]._methodArguments), (yyvsp[(9) - (10)]._stmtSeq), /* isStatic = */ true); ;}
     break;
 
   case 102:
 
 /* Line 1455 of yacc.c  */
-#line 401 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 404 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._methodArguments) = new MethodArguments((yyvsp[(1) - (1)]._varDecl)); ;}
     break;
 
   case 103:
 
 /* Line 1455 of yacc.c  */
-#line 402 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 405 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._methodArguments) -> Add((yyvsp[(3) - (3)]._varDecl)); ;}
     break;
 
   case 104:
 
 /* Line 1455 of yacc.c  */
-#line 404 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 407 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._methodArguments) = MethodArguments::MakeEmpty(); ;}
     break;
 
   case 105:
 
 /* Line 1455 of yacc.c  */
-#line 405 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 408 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._methodArguments) = (yyvsp[(1) - (1)]._methodArguments); ;}
     break;
 
   case 106:
 
 /* Line 1455 of yacc.c  */
-#line 408 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::Plus,              (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 411 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::Plus,              (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 107:
 
 /* Line 1455 of yacc.c  */
-#line 409 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::Minus,             (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 412 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::Minus,             (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 108:
 
 /* Line 1455 of yacc.c  */
-#line 410 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::Multiply,          (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 413 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::Multiply,          (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 109:
 
 /* Line 1455 of yacc.c  */
-#line 411 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::Divide,            (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 414 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::Divide,            (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 110:
 
 /* Line 1455 of yacc.c  */
-#line 412 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::Less,              (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 415 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::Less,              (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 111:
 
 /* Line 1455 of yacc.c  */
-#line 413 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::Greater,           (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 416 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::Greater,           (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 112:
 
 /* Line 1455 of yacc.c  */
-#line 414 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::Equal,             (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 417 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::Equal,             (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 113:
 
 /* Line 1455 of yacc.c  */
-#line 415 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::NotEqual,          (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 418 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::NotEqual,          (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 114:
 
 /* Line 1455 of yacc.c  */
-#line 416 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::LessOrEqual,       (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 419 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::LessOrEqual,       (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 115:
 
 /* Line 1455 of yacc.c  */
-#line 417 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (13)]._visibiltyModifier), (yyvsp[(3) - (13)]._type), OperatorType::GreaterOrEqual,    (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
+#line 420 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (13)]._visibiltyModifier)), (yyvsp[(3) - (13)]._type), OperatorType::GreaterOrEqual,    (yyvsp[(7) - (13)]._varDecl), (yyvsp[(9) - (13)]._varDecl), (yyvsp[(12) - (13)]._stmtSeq)); ;}
     break;
 
   case 116:
 
 /* Line 1455 of yacc.c  */
-#line 418 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (11)]._visibiltyModifier), (yyvsp[(3) - (11)]._type), OperatorType::Not,               (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
+#line 421 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (11)]._visibiltyModifier)), (yyvsp[(3) - (11)]._type), OperatorType::Not,               (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
     break;
 
   case 117:
 
 /* Line 1455 of yacc.c  */
-#line 419 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (11)]._visibiltyModifier), (yyvsp[(3) - (11)]._type), OperatorType::Decrement,         (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
+#line 422 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (11)]._visibiltyModifier)), (yyvsp[(3) - (11)]._type), OperatorType::Decrement,         (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
     break;
 
   case 118:
 
 /* Line 1455 of yacc.c  */
-#line 420 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (11)]._visibiltyModifier), (yyvsp[(3) - (11)]._type), OperatorType::Increment,         (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
+#line 423 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (11)]._visibiltyModifier)), (yyvsp[(3) - (11)]._type), OperatorType::Increment,         (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
     break;
 
   case 119:
 
 /* Line 1455 of yacc.c  */
-#line 421 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (11)]._visibiltyModifier), (yyvsp[(3) - (11)]._type), OperatorType::UnaryMinus,        (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
+#line 424 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (11)]._visibiltyModifier)), (yyvsp[(3) - (11)]._type), OperatorType::UnaryMinus,        (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
     break;
 
   case 120:
 
 /* Line 1455 of yacc.c  */
-#line 422 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._methodDecl) = new MethodDeclNode((yyvsp[(1) - (11)]._visibiltyModifier), (yyvsp[(3) - (11)]._type), OperatorType::UnaryPlus,         (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
+#line 425 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    { (yyval._methodDecl) = new MethodDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (11)]._visibiltyModifier)), (yyvsp[(3) - (11)]._type), OperatorType::UnaryPlus,         (yyvsp[(7) - (11)]._varDecl), (yyvsp[(10) - (11)]._stmtSeq));     ;}
     break;
 
   case 121:
 
 /* Line 1455 of yacc.c  */
-#line 430 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 433 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { 
-        (yyval._constructorDecl) = new ConstructorDeclNode((yyvsp[(1) - (7)]._visibiltyModifier), (yyvsp[(2) - (7)]._identifier), MethodArguments::MakeEmpty(), (yyvsp[(6) - (7)]._stmtSeq)); 
+        (yyval._constructorDecl) = new ConstructorDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (7)]._visibiltyModifier)), (yyvsp[(2) - (7)]._identifier), MethodArguments::MakeEmpty(), (yyvsp[(6) - (7)]._stmtSeq));
     ;}
     break;
 
   case 122:
 
 /* Line 1455 of yacc.c  */
-#line 433 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { 
-        (yyval._constructorDecl) = new ConstructorDeclNode((yyvsp[(1) - (8)]._visibiltyModifier), (yyvsp[(2) - (8)]._identifier), (yyvsp[(4) - (8)]._methodArguments), (yyvsp[(7) - (8)]._stmtSeq)); 
+#line 436 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+    {
+        (yyval._constructorDecl) = new ConstructorDeclNode(static_cast<VisibilityModifier>((yyvsp[(1) - (8)]._visibiltyModifier)), (yyvsp[(2) - (8)]._identifier), (yyvsp[(4) - (8)]._methodArguments), (yyvsp[(7) - (8)]._stmtSeq));
     ;}
     break;
 
   case 123:
 
 /* Line 1455 of yacc.c  */
-#line 438 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 441 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { 
     (yyval._destructorDecl) = new DestructorDeclNode((yyvsp[(2) - (7)]._identifier), (yyvsp[(6) - (7)]._stmtSeq)); 
 ;}
@@ -2904,441 +2909,441 @@ yyreduce:
   case 124:
 
 /* Line 1455 of yacc.c  */
-#line 447 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 450 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode(); ;}
     break;
 
   case 125:
 
 /* Line 1455 of yacc.c  */
-#line 448 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 451 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(1) - (2)]._expr), /* isReturn= */ false); ;}
     break;
 
   case 126:
 
 /* Line 1455 of yacc.c  */
-#line 449 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 452 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(1) - (2)]._varDecl)); ;}
     break;
 
   case 127:
 
 /* Line 1455 of yacc.c  */
-#line 450 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 453 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(1) - (2)]._varDecl)); ;}
     break;
 
   case 128:
 
 /* Line 1455 of yacc.c  */
-#line 451 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 454 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(1) - (1)]._while)); ;}
     break;
 
   case 129:
 
 /* Line 1455 of yacc.c  */
-#line 452 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 455 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(1) - (1)]._doWhile)); ;}
     break;
 
   case 130:
 
 /* Line 1455 of yacc.c  */
-#line 453 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 456 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(1) - (1)]._for)); ;}
     break;
 
   case 131:
 
 /* Line 1455 of yacc.c  */
-#line 454 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 457 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(1) - (1)]._if)); ;}
     break;
 
   case 132:
 
 /* Line 1455 of yacc.c  */
-#line 455 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 458 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(1) - (1)]._foreach)); ;}
     break;
 
   case 133:
 
 /* Line 1455 of yacc.c  */
-#line 456 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 459 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(2) - (3)]._stmtSeq)); ;}
     break;
 
   case 134:
 
 /* Line 1455 of yacc.c  */
-#line 457 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 460 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmt) = new StmtNode((yyvsp[(2) - (3)]._expr), /* isReturn= */ true); ;}
     break;
 
   case 135:
 
 /* Line 1455 of yacc.c  */
-#line 460 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 463 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmtSeq) = new StmtSeqNode((yyvsp[(1) - (1)]._stmt)); ;}
     break;
 
   case 136:
 
 /* Line 1455 of yacc.c  */
-#line 461 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 464 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmtSeq) -> Add((yyvsp[(2) - (2)]._stmt)); ;}
     break;
 
   case 137:
 
 /* Line 1455 of yacc.c  */
-#line 463 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 466 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmtSeq) = StmtSeqNode::MakeEmpty(); ;}
     break;
 
   case 138:
 
 /* Line 1455 of yacc.c  */
-#line 464 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 467 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._stmtSeq) = (yyvsp[(1) - (1)]._stmtSeq); ;}
     break;
 
   case 139:
 
 /* Line 1455 of yacc.c  */
-#line 467 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 470 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._while) = new WhileNode((yyvsp[(3) - (5)]._expr), (yyvsp[(5) - (5)]._stmt)); ;}
     break;
 
   case 140:
 
 /* Line 1455 of yacc.c  */
-#line 469 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 472 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._doWhile) = new DoWhileNode((yyvsp[(5) - (7)]._expr), (yyvsp[(2) - (7)]._stmt)); ;}
     break;
 
   case 141:
 
 /* Line 1455 of yacc.c  */
-#line 472 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 475 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._for) = new ForNode((yyvsp[(3) - (9)]._varDecl), (yyvsp[(5) - (9)]._expr), (yyvsp[(7) - (9)]._expr), (yyvsp[(9) - (9)]._stmt)); ;}
     break;
 
   case 142:
 
 /* Line 1455 of yacc.c  */
-#line 473 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 476 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._for) = new ForNode((yyvsp[(3) - (9)]._varDecl), (yyvsp[(5) - (9)]._expr), (yyvsp[(7) - (9)]._expr), (yyvsp[(9) - (9)]._stmt)); ;}
     break;
 
   case 143:
 
 /* Line 1455 of yacc.c  */
-#line 474 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 477 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._for) = new ForNode((yyvsp[(3) - (9)]._expr), (yyvsp[(5) - (9)]._expr), (yyvsp[(7) - (9)]._expr), (yyvsp[(9) - (9)]._stmt)); ;}
     break;
 
   case 144:
 
 /* Line 1455 of yacc.c  */
-#line 477 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 480 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._if) = new IfNode((yyvsp[(3) - (5)]._expr), (yyvsp[(5) - (5)]._stmt)); ;}
     break;
 
   case 145:
 
 /* Line 1455 of yacc.c  */
-#line 478 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 481 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._if) = new IfNode((yyvsp[(3) - (7)]._expr), (yyvsp[(5) - (7)]._stmt), (yyvsp[(7) - (7)]._stmt)); ;}
     break;
 
   case 146:
 
 /* Line 1455 of yacc.c  */
-#line 481 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 484 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._foreach) = new ForEachNode((yyvsp[(3) - (7)]._varDecl), (yyvsp[(5) - (7)]._expr), (yyvsp[(7) - (7)]._stmt)); ;}
     break;
 
   case 147:
 
 /* Line 1455 of yacc.c  */
-#line 488 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 491 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::BinPlus, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 148:
 
 /* Line 1455 of yacc.c  */
-#line 489 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 492 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::BinMinus, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 149:
 
 /* Line 1455 of yacc.c  */
-#line 490 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 493 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Multiply, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 150:
 
 /* Line 1455 of yacc.c  */
-#line 491 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 494 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Divide, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 151:
 
 /* Line 1455 of yacc.c  */
-#line 492 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 495 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Assign, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 152:
 
 /* Line 1455 of yacc.c  */
-#line 493 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 496 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Plus_assign, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 153:
 
 /* Line 1455 of yacc.c  */
-#line 494 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 497 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Minus_assign, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 154:
 
 /* Line 1455 of yacc.c  */
-#line 495 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 498 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Multiply_assign, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 155:
 
 /* Line 1455 of yacc.c  */
-#line 496 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 499 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Division_assign, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 156:
 
 /* Line 1455 of yacc.c  */
-#line 497 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 500 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Less, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 157:
 
 /* Line 1455 of yacc.c  */
-#line 498 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 501 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Greater, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 158:
 
 /* Line 1455 of yacc.c  */
-#line 499 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 502 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Equal, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 159:
 
 /* Line 1455 of yacc.c  */
-#line 500 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 503 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::NotEqual, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 160:
 
 /* Line 1455 of yacc.c  */
-#line 501 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 504 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::LessOrEqual, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 161:
 
 /* Line 1455 of yacc.c  */
-#line 502 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 505 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::GreaterOrEqual, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 162:
 
 /* Line 1455 of yacc.c  */
-#line 503 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 506 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::And, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 163:
 
 /* Line 1455 of yacc.c  */
-#line 504 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 507 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromBinaryExpression(ExprNode::TypeT::Or, (yyvsp[(1) - (3)]._expr), (yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 164:
 
 /* Line 1455 of yacc.c  */
-#line 505 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 508 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromUnaryExpression(ExprNode::TypeT::Not, (yyvsp[(2) - (2)]._expr)); ;}
     break;
 
   case 165:
 
 /* Line 1455 of yacc.c  */
-#line 506 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 509 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromUnaryExpression(ExprNode::TypeT::Increment, (yyvsp[(2) - (2)]._expr)); ;}
     break;
 
   case 166:
 
 /* Line 1455 of yacc.c  */
-#line 507 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 510 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromUnaryExpression(ExprNode::TypeT::Decrement, (yyvsp[(2) - (2)]._expr)); ;}
     break;
 
   case 167:
 
 /* Line 1455 of yacc.c  */
-#line 508 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 511 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryPlus, (yyvsp[(2) - (2)]._expr)); ;}
     break;
 
   case 168:
 
 /* Line 1455 of yacc.c  */
-#line 509 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 512 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromUnaryExpression(ExprNode::TypeT::UnaryMinus, (yyvsp[(2) - (2)]._expr)); ;}
     break;
 
   case 169:
 
 /* Line 1455 of yacc.c  */
-#line 510 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 513 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromQualified_or_expr((yyvsp[(1) - (1)]._qualifiedOrExpr)); ;}
     break;
 
   case 170:
 
 /* Line 1455 of yacc.c  */
-#line 511 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 514 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromNew((yyvsp[(2) - (2)]._type)); ;}
     break;
 
   case 171:
 
 /* Line 1455 of yacc.c  */
-#line 512 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 515 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromNew((yyvsp[(2) - (5)]._type), (yyvsp[(4) - (5)]._exprSeq)); ;}
     break;
 
   case 172:
 
 /* Line 1455 of yacc.c  */
-#line 513 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 516 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromNew(nullptr, (yyvsp[(5) - (6)]._exprSeq)); ;}
     break;
 
   case 173:
 
 /* Line 1455 of yacc.c  */
-#line 514 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 517 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromCast((yyvsp[(2) - (4)]._standardType), (yyvsp[(4) - (4)]._expr)); ;}
     break;
 
   case 174:
 
 /* Line 1455 of yacc.c  */
-#line 515 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 518 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = ExprNode::FromNew((yyvsp[(2) - (5)]._standardType), (yyvsp[(4) - (5)]._expr)); ;}
     break;
 
   case 175:
 
 /* Line 1455 of yacc.c  */
-#line 518 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 521 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = nullptr; ;}
     break;
 
   case 176:
 
 /* Line 1455 of yacc.c  */
-#line 519 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 522 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._expr) = (yyvsp[(1) - (1)]._expr); ;}
     break;
 
   case 177:
 
 /* Line 1455 of yacc.c  */
-#line 522 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 525 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._exprSeq) = new ExprSeqNode((yyvsp[(1) - (1)]._expr)); ;}
     break;
 
   case 178:
 
 /* Line 1455 of yacc.c  */
-#line 523 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 526 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._exprSeq) -> Add((yyvsp[(3) - (3)]._expr)); ;}
     break;
 
   case 179:
 
 /* Line 1455 of yacc.c  */
-#line 526 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 529 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._exprSeq) = ExprSeqNode::MakeEmpty(); ;}
     break;
 
   case 180:
 
 /* Line 1455 of yacc.c  */
-#line 527 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 530 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._exprSeq) = (yyvsp[(1) - (1)]._exprSeq); ;}
     break;
 
   case 181:
 
 /* Line 1455 of yacc.c  */
-#line 534 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 537 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromString("interpolated"); ;}
     break;
 
   case 182:
 
 /* Line 1455 of yacc.c  */
-#line 537 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 540 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     {(yyval._exprSeq) = ExprSeqNode::MakeEmpty();;}
     break;
 
   case 183:
 
 /* Line 1455 of yacc.c  */
-#line 538 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 541 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     {(yyval._exprSeq)->Add((yyvsp[(2) - (2)]._expr));;}
     break;
 
   case 184:
 
 /* Line 1455 of yacc.c  */
-#line 541 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 544 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     {(yyval._expr) = ExprNode::FromString((yyvsp[(1) - (1)]._string));;}
     break;
 
   case 185:
 
 /* Line 1455 of yacc.c  */
-#line 542 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 545 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
     {(yyval._expr) = (yyvsp[(2) - (3)]._expr);;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 3342 "C:/Compile_CSharp/CSharp_Compiler/lexer-build/parser.cpp"
+#line 3347 "C:/Compile_CSharp/CSharp_Compiler/lexer-build/parser.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3550,7 +3555,7 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 545 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 548 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
 
 
 void yyerror(const char *s) {
