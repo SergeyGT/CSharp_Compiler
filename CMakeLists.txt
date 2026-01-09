@@ -3,6 +3,10 @@ project(CSharp_Compiler CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++")
+
 find_program(FLEX_EXECUTABLE NAMES win_flex flex)
 find_program(BISON_EXECUTABLE NAMES win_bison bison)
 
