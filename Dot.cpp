@@ -9,6 +9,7 @@
 #include "Tree/Enum.h"
 #include "Tree/Interface.h"
 #include "Tree/Qualified_or_expr.h"
+#include "Semantic/JvmClass.h"
 
 using namespace std::string_literals;
 

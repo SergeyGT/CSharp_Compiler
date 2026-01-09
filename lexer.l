@@ -530,28 +530,28 @@ protected[[:space:]]+internal           { return PROTECTED_INTERNAL; }
 {DEC_NUMBER}                            {
     std::string number_string = yytext;
     RemoveCharacterFromString(number_string, '_');
-    currentFloatingPoint = atoi(number_string.c_str());
+    currentInteger = atoi(number_string.c_str());
     PrintIntegerLiteral("decimal", currentInteger); 
     yylval._integer = currentInteger;
     return INTEGER;
 }
 
 0x(_|{HEX_DIGIT})*{HEX_DIGIT}+          { 
-    currentInteger = 0;
-    std::string number_string = yytext;
-    RemoveCharacterFromString(number_string, '_');
-    currentFloatingPoint = atof(number_string.c_str());
-    PrintIntegerLiteral("hexadecimal", currentInteger); 
-    yylval._integer = currentInteger;
-    return INTEGER;
+     currentInteger = 0;
+        std::string number_string = yytext;
+        RemoveCharacterFromString(number_string, '_');
+        currentInteger = strtol(number_string.c_str() + 2, nullptr, 16);
+        PrintIntegerLiteral("hexadecimal", currentInteger);
+        yylval._integer = currentInteger;
+        return INTEGER;
 }
 
 0b(_|{BIN_DIGIT})*{BIN_DIGIT}+          { 
     currentInteger = 0;
     std::string number_string = yytext;
     RemoveCharacterFromString(number_string, '_');
-    currentFloatingPoint = atof(number_string.c_str());
-    PrintIntegerLiteral("binary", currentInteger); 
+    currentInteger = strtol(number_string.c_str() + 2, nullptr, 2);
+    PrintIntegerLiteral("binary", currentInteger);
     yylval._integer = currentInteger;
     return INTEGER;
 }

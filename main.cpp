@@ -29,12 +29,6 @@ int main(int argc, char** argv) {
     if (result == 0 && treeRoot) {
         std::cout << "Parsing successful!" << std::endl;
 
-
-        std::cout << "treeRoot address: " << treeRoot << std::endl;
-
-        // Проверьте тип узла
-        std::cout << "Root node type: " << treeRoot->Name() << std::endl;
-
         // Генерация DOT файла
         std::ofstream dotFile("ast.dot");
         if (dotFile.is_open()) {

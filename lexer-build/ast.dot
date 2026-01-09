@@ -1,0 +1,41 @@
+digraph Program {
+24 [label="Program"]
+0 [label="UsingDirectives"]
+23 [label="NamespaceDeclSeq"]
+22 [label="NamespaceDecl\nTest"]
+10 [label="ClassDecl\nProgram\n Inherited from: "]
+8 [label="MethodDecl\nVisibility: public\nName: Main"]
+7 [label="Stmt Seq"]
+6 [label="STMT"]
+5 [label="VarDeclWithInit\nName = x\nCalculated data type: char"]
+2 [label="Type\nint"]
+5 -> 2 [label="Variable type"]
+4 [label="Qualified_or_expr"]
+3 [label="5\nCalculated data type: char"]
+4 -> 3
+5 -> 4 [label="Init"]
+6 -> 5
+7 -> 6
+8 -> 7 [label="Method body"]
+10 -> 8
+22 -> 10
+21 [label="ClassDecl\nProgram2\n Inherited from: "]
+19 [label="MethodDecl\nVisibility: public\nName: Main"]
+18 [label="Stmt Seq"]
+17 [label="STMT"]
+16 [label="VarDeclWithInit\nName = y\nCalculated data type: char"]
+13 [label="Type\nchar"]
+16 -> 13 [label="Variable type"]
+15 [label="Qualified_or_expr"]
+14 [label="5\nCalculated data type: char"]
+15 -> 14
+16 -> 15 [label="Init"]
+17 -> 16
+18 -> 17
+19 -> 18 [label="Method body"]
+21 -> 19
+22 -> 21
+23 -> 22
+24 -> 0
+24 -> 23
+}

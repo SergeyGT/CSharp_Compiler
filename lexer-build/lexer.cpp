@@ -2214,7 +2214,7 @@ YY_RULE_SETUP
 {
     std::string number_string = yytext;
     RemoveCharacterFromString(number_string, '_');
-    currentFloatingPoint = atoi(number_string.c_str());
+    currentInteger = atoi(number_string.c_str());
     PrintIntegerLiteral("decimal", currentInteger); 
     yylval._integer = currentInteger;
     return INTEGER;
@@ -2224,13 +2224,13 @@ case 169:
 YY_RULE_SETUP
 #line 539 "C:/Compile_CSharp/CSharp_Compiler/lexer.l"
 { 
-    currentInteger = 0;
-    std::string number_string = yytext;
-    RemoveCharacterFromString(number_string, '_');
-    currentFloatingPoint = atof(number_string.c_str());
-    PrintIntegerLiteral("hexadecimal", currentInteger); 
-    yylval._integer = currentInteger;
-    return INTEGER;
+     currentInteger = 0;
+        std::string number_string = yytext;
+        RemoveCharacterFromString(number_string, '_');
+        currentInteger = strtol(number_string.c_str() + 2, nullptr, 16);
+        PrintIntegerLiteral("hexadecimal", currentInteger);
+        yylval._integer = currentInteger;
+        return INTEGER;
 }
 	YY_BREAK
 case 170:
@@ -2240,8 +2240,8 @@ YY_RULE_SETUP
     currentInteger = 0;
     std::string number_string = yytext;
     RemoveCharacterFromString(number_string, '_');
-    currentFloatingPoint = atof(number_string.c_str());
-    PrintIntegerLiteral("binary", currentInteger); 
+    currentInteger = strtol(number_string.c_str() + 2, nullptr, 2);
+    PrintIntegerLiteral("binary", currentInteger);
     yylval._integer = currentInteger;
     return INTEGER;
 }
