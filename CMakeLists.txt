@@ -10,6 +10,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++
 find_program(FLEX_EXECUTABLE NAMES win_flex flex)
 find_program(BISON_EXECUTABLE NAMES win_bison bison)
 
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-register -Wno-return-type -Wno-write-strings")
+add_compile_options(-Wno-register -Wno-return-type)
+
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
