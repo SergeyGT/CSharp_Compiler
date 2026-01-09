@@ -552,28 +552,3 @@ interpolation_part: INTERPOLATED_STRING_TEXT	{$$ = ExprNode::FromString($1);}
 void yyerror(const char *s) {
     fprintf(stderr, "Error at line %d: %s\n", yylineno, s);
 }
-
-int main(int argc, char** argv) {
-    if (argc > 1) {
-        yyin = fopen(argv[1], "r");
-        if (!yyin) {
-            perror("fopen");
-            return 1;
-        }
-    } else {
-        yyin = stdin;
-        printf("Enter C# code (Ctrl+D to end):\n");
-        fflush(stdout);
-    }
-    
-    int result = yyparse();
-    
-    if (result == 0) {
-        printf("=== Parsing completed successfully! ===\n");
-    } else {
-        printf("=== Parsing failed with errors ===\n");
-    }
-
-    if (yyin && yyin != stdin) fclose(yyin);
-    return result;
-}
