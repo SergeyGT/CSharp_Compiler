@@ -1,7 +1,7 @@
 	namespace Test {
 		public class Program {
 			public static void Main() {
-				int x = 5;
+				float x = 5;
 			}
 		}
 		

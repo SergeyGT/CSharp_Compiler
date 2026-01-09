@@ -7,11 +7,11 @@ digraph Program {
 8 [label="MethodDecl\nVisibility: public\nName: Main"]
 7 [label="Stmt Seq"]
 6 [label="STMT"]
-5 [label="VarDeclWithInit\nName = x\nCalculated data type: char"]
-2 [label="Type\nint"]
+5 [label="VarDeclWithInit\nName = x\nCalculated data type: float"]
+2 [label="Type\nfloat"]
 5 -> 2 [label="Variable type"]
 4 [label="Qualified_or_expr"]
-3 [label="5\nCalculated data type: char"]
+3 [label="5\nCalculated data type: int"]
 4 -> 3
 5 -> 4 [label="Init"]
 6 -> 5

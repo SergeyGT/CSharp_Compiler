@@ -25,6 +25,11 @@ struct VarDeclNode final : Node
       , InitExpr{ initExpr }
       , ShouldDeduceType{ deduceType }
     {
+        if (varType) {
+            AType = ::ToDataType(varType);
+        } else if (initExpr && deduceType) {
+            AType = initExpr->AType;
+        }
     }
 
 

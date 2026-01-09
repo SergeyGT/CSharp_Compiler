@@ -58,6 +58,7 @@ Qualified_or_expr* Qualified_or_expr::FromInt(const int value)
     auto* node = new Qualified_or_expr;
     node->Type = TypeT::Integer;
     node->Integer = value;
+    node->AType.AType = DataType::TypeT::Int;
     return node;
 }
 
@@ -66,6 +67,7 @@ Qualified_or_expr* Qualified_or_expr::FromFloat(const double value)
     auto* node = new Qualified_or_expr;
     node->Type = TypeT::Float;
     node->Float = value;
+    node->AType.AType = DataType::TypeT::Float;
     return node;
 }
 
@@ -82,6 +84,7 @@ Qualified_or_expr* Qualified_or_expr::FromChar(const char value)
     auto* node = new Qualified_or_expr;
     node->Type = TypeT::Char;
     node->Char = value;
+    node->AType.AType = DataType::TypeT::Char;
     return node;
 }
 
@@ -90,6 +93,7 @@ Qualified_or_expr* Qualified_or_expr::FromBool(const bool value)
     auto* node = new Qualified_or_expr;
     node->Type = TypeT::Bool;
     node->Bool = value;
+    node->AType.AType = DataType::TypeT::Bool;
     return node;
 }
 

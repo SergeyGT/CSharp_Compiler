@@ -31,6 +31,9 @@ ExprNode* ExprNode::FromQualified_or_expr(Qualified_or_expr* child)
     auto* node = new ExprNode;
     node->Type = TypeT::Qualified_or_expr;
     node->Access = child;
+    if (child) {
+        node->AType = child->AType;
+    }
     return node;
 }
 
