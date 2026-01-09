@@ -3,6 +3,7 @@
 #include "Type.h"
 #include "../VisibilityModifier.h"
 
+struct NamespaceDeclNode;
 struct MethodArguments;
 
 struct InterfaceMemberNode final : Node
