@@ -6,7 +6,9 @@ enum class VisibilityModifier
 {
     Public,
     Protected,
-    Private
+    Private,
+    ProtectedInternal,
+    Internal
 };
 
 inline std::string ToString(VisibilityModifier e)
