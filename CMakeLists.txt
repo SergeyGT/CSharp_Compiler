@@ -48,4 +48,5 @@ add_executable(CSharp_Compiler
         Tree/Program.cpp
         Tree/Interface.cpp
         Tree/Expr.cpp
+        Semantic/JvmClass.h
 )

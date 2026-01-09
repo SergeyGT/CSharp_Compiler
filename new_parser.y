@@ -33,7 +33,7 @@ extern int yylineno;
 int yylex();
 int yyparse();
 extern FILE* yyin;
-extern struct Program* treeRoot;
+struct Program* treeRoot = nullptr;
 %}
 
 %union {

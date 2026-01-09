@@ -3,11 +3,14 @@
 #include "Tree/Program.h"
 #include "Dot.h"
 
-extern "C" {
-    int yyparse();
-    extern FILE* yyin;
-    extern Program* treeRoot;
-}
+// extern "C" {
+//     int yyparse();
+//     extern FILE* yyin;
+//     extern Program* treeRoot;
+// }
+ extern int yyparse();
+ extern FILE* yyin;
+ extern struct Program* treeRoot;
 
 int main(int argc, char** argv) {
     if (argc < 2) {
