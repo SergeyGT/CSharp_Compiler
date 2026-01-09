@@ -822,7 +822,7 @@ char *yytext;
 
 //#include "enable_unicode_console.hpp"
 
-#include "new_parser.tab.h"
+#include "../new_parser.tab.h"
 
 void Print(const std::string& message)
 {
