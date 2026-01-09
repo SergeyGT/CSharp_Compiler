@@ -73,6 +73,7 @@ ExprNode* ExprNode::FromNew(StandardType standardType, ExprNode* expr)
     auto dataType = ToDataType(standardType);
     dataType.ArrayArity += 1;
     node->NewArrayType = dataType;
+    node->AType = dataType;
     node->Child = expr;
     return node;
 }

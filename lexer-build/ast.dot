@@ -1,29 +1,40 @@
 digraph Program {
-16 [label="Program"]
+21 [label="Program"]
 0 [label="UsingDirectives"]
-15 [label="NamespaceDeclSeq"]
-14 [label="NamespaceDecl\nTest"]
-12 [label="ClassDecl\nProgram\n Inherited from: "]
-10 [label="MethodDecl\nVisibility: public\nName: Main"]
-9 [label="Stmt Seq"]
-8 [label="STMT"]
-7 [label="VarDeclWithInit\nName = newClass\nCalculated data type: Class"]
-3 [label="Type"]
-2 [label="Class"]
-3 -> 2 [label="Complex type"]
-7 -> 3 [label="Variable type"]
-6 [label="new\nCalculated data type: unknown"]
-5 [label="Type"]
-4 [label="Method call\nMethodName: Class"]
-5 -> 4 [label="Complex type"]
-6 -> 5 [label="type"]
-7 -> 6 [label="Init"]
+20 [label="NamespaceDeclSeq"]
+19 [label="NamespaceDecl\nTest"]
+17 [label="ClassDecl\nProgram\n Inherited from: "]
+15 [label="MethodDecl\nVisibility: public\nName: Main"]
+8 [label="Stmt Seq"]
+7 [label="STMT"]
+6 [label="VarDeclWithInit\nName = newClass\nCalculated data type: int"]
+2 [label="Type\nint"]
+6 -> 2 [label="Variable type"]
+5 [label="new\nCalculated data type: unknown"]
+4 [label="Type"]
+3 [label="Method call\nMethodName: Class"]
+4 -> 3 [label="Complex type"]
+5 -> 4 [label="type"]
+6 -> 5 [label="Init"]
+7 -> 6
 8 -> 7
-9 -> 8
-10 -> 9 [label="Method body"]
-12 -> 10
-14 -> 12
-15 -> 14
-16 -> 0
-16 -> 15
+14 [label="STMT"]
+13 [label="VarDeclWithInit\nName = y\nCalculated data type: int[]"]
+9 [label="Type\nint[]"]
+13 -> 9 [label="Variable type"]
+12 [label="new[]\nCalculated data type: int[]"]
+11 [label="Qualified_or_expr"]
+10 [label="1\nCalculated data type: int"]
+11 -> 10
+12 -> 11 [label="Array size"]
+13 -> 12 [label="Init"]
+14 -> 13
+8 -> 14
+7 -> 14 [label="next stmt"][style="dashed"]
+15 -> 8 [label="Method body"]
+17 -> 15
+19 -> 17
+20 -> 19
+21 -> 0
+21 -> 20
 }
