@@ -21,6 +21,8 @@
 #include "../Tree/Struct.h"
 #include "../VisibilityModifier.h"
 
+void yyerror(const char *s);
+
 template <char Separator = ' ', typename... Args>
 void Print(Args&&... args) {
     ((std::cout << args << Separator), ...);
