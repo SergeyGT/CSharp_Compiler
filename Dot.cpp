@@ -376,8 +376,10 @@ void ToDot(StmtNode* node, std::ostream& out)
             return;
         case StmtNode::TypeT::Return:
             out << MakeNode(node->Id, "Return");
-            ToDot(node->Expr, out);
-            out << MakeConnection(node->Id, node->Expr->Id);
+            if (node->Expr) {
+                ToDot(node->Expr, out);
+                out << MakeConnection(node->Id, node->Expr->Id, "value");
+            }
             return;
         case StmtNode::TypeT::ExprStmt:
             out << MakeNode(node->Id, "Expr statement");
