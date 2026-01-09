@@ -2293,7 +2293,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 272 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromDot((yyvsp[(1) - (5)]._qualifiedOrExpr), (yyvsp[(3) - (5)]._identifier), nullptr); ;}
+    { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromDot((yyvsp[(1) - (5)]._qualifiedOrExpr), (yyvsp[(3) - (5)]._identifier)); ;}
     break;
 
   case 38:
