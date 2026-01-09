@@ -20,6 +20,7 @@ struct Qualified_or_expr final : Node
         Bool,
         Identifier,
         SimpleMethodCall,
+        MethodCall,
         Dot,
         DotMethodCall,
         ArrayLength
@@ -54,6 +55,8 @@ struct Qualified_or_expr final : Node
     static Qualified_or_expr* FromId(const char* id);
 
     static Qualified_or_expr* FromCall(const char* id, ExprSeqNode* arguments);
+
+    static Qualified_or_expr* FromCall(const char* const id);
 
     static Qualified_or_expr* FromDot(Qualified_or_expr* previous, const char* id);
 

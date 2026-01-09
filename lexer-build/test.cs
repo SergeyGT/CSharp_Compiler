@@ -4,7 +4,7 @@ namespace Sort
     {
         public void PrintArray(int[] array)
         {
-            int Console = new System.Console("a");
+            int x = new A.b();
             Console.Write("[");
             for (int i = 0; i < array.Length; ++i)
             {

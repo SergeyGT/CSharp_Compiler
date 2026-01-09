@@ -127,6 +127,11 @@ void ToDot(Qualified_or_expr* const node, std::ostream& out, const bool isType)
             ToDot(node->Arguments, out, node, true, "argument");
             if (node->ActualMethodCall) { out << MakeConnection(node->Id, node->ActualMethodCall->Id, "calls"); }
             return;
+        case Qualified_or_expr::TypeT::MethodCall:
+            out << MakeNode(node->Id, "Method call\\nMethodName: " + std::string{ node->Identifier } + nameSuffix);
+            ToDot(node->Previous, out);
+            if (node->ActualMethodCall) { out << MakeConnection(node->Id, node->ActualMethodCall->Id, "calls"); }
+            return;
         case Qualified_or_expr::TypeT::Dot:
             out << MakeNode(node->Id, "." + std::string{ node->Identifier } + nameSuffix);
             ToDot(node->Previous, out);

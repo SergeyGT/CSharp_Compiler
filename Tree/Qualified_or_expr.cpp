@@ -25,6 +25,14 @@ Qualified_or_expr* Qualified_or_expr::FromId(const char* const id)
     return node;
 }
 
+Qualified_or_expr* Qualified_or_expr::FromCall(const char* const id)
+{
+    auto* node = new Qualified_or_expr;
+    node->Type = TypeT::MethodCall;
+    node->Identifier = id;
+    return node;
+}
+
 Qualified_or_expr* Qualified_or_expr::FromCall(const char* const id, ExprSeqNode* arguments)
 {
     auto* node = new Qualified_or_expr;
