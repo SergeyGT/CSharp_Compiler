@@ -82,9 +82,20 @@ void ToDot(Qualified_or_expr* const node, std::ostream& out, const bool isType)
 {
     if (!node)
         return;
-    const auto nameSuffix = isType
-                                ? ""
-                                : "\\nCalculated data type: " + ToString(node->AType);
+
+    bool showDataType = !isType;
+
+    if (node->Type == Qualified_or_expr::TypeT::Expr ||
+        node->Type == Qualified_or_expr::TypeT::ArrayLength ||
+        node->Type == Qualified_or_expr::TypeT::Dot)
+    {
+        showDataType = false;
+    }
+
+    const auto nameSuffix = showDataType
+        ? "\\nCalculated data type: " + ToString(node->AType)
+        : "";
+
     switch (node->Type)
     {
         case Qualified_or_expr::TypeT::Expr:
@@ -117,7 +128,7 @@ void ToDot(Qualified_or_expr* const node, std::ostream& out, const bool isType)
             out << MakeNode(node->Id, "\'" + std::string{ node->Char } + "\'" + nameSuffix);
             return;
         case Qualified_or_expr::TypeT::Bool:
-            out << MakeNode(node->Id, node->Bool ? "true" : "false" + nameSuffix);
+            out << MakeNode(node->Id, (node->Bool ? "true" : "false") + nameSuffix);
             return;
         case Qualified_or_expr::TypeT::Identifier:
             out << MakeNode(node->Id, std::string{ node->Identifier } + nameSuffix);
@@ -144,9 +155,10 @@ void ToDot(Qualified_or_expr* const node, std::ostream& out, const bool isType)
             ToDot(node->Arguments, out, node, true, "argument");
             return;
         case Qualified_or_expr::TypeT::ArrayLength:
-            out << MakeNode(node->Id, "Get Array Length");
+            out << MakeNode(node->Id, "Get Array Length" + nameSuffix);
             ToDot(node->Previous, out);
             out << MakeConnection(node->Id, node->Previous->Id);
+            return;
         default: ;
     }
 }
@@ -187,7 +199,26 @@ void ToDot(ExprNode* const node, std::ostream& out)
                     ? "Cast to " + ToString(node->StandardTypeChild)
                     : ToString(node->Type);
 
-    name += "\\nCalculated data type: "s + ToString(node->AType);
+    bool showDataType = false;
+    if (node->Type == ExprNode::TypeT::SimpleNew ||
+        node->Type == ExprNode::TypeT::ArrayNew ||
+        node->Type == ExprNode::TypeT::ArrayNewWithArguments ||
+        node->Type == ExprNode::TypeT::Cast)
+    {
+        showDataType = true;
+    }
+    else if (!IsBinary(node->Type) && !IsUnary(node->Type) &&
+             node->Type != ExprNode::TypeT::AssignOnArrayElement &&
+             node->Type != ExprNode::TypeT::AssignOnField &&
+             node->Type != ExprNode::TypeT::Null)
+    {
+        showDataType = true;
+    }
+
+    if (showDataType)
+    {
+        name += "\\nCalculated data type: "s + ToString(node->AType);
+    }
 
     out << MakeNode(node->Id, name);
 
