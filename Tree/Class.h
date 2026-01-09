@@ -81,9 +81,9 @@ enum class OperatorType
     Decrement
 };
 
-OperatorType ToOperatorOverload(const ExprNode::TypeT type);
+OperatorType ToOperatorOverload(ExprNode::TypeT type);
 
-class MethodDeclNode : public Node
+struct MethodDeclNode : public Node
 {
 public:
     const VisibilityModifier Visibility{};
@@ -217,7 +217,7 @@ public:
         return {};
     }
 
-    friend struct ClassAnalyzer;
+    friend class ClassAnalyzer;
 };
 
 struct ConstructorDeclNode final : public MethodDeclNode {
@@ -331,6 +331,10 @@ struct TypeMembersNode final : Node {
 
     void AddOperator(MethodDeclNode* node) {
         Methods.push_back(node);
+    }
+
+    [[nodiscard]] std::string Name() const noexcept override {
+        return "TypeMembers";
     }
 };
 
