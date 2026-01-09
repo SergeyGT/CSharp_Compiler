@@ -10,7 +10,7 @@ struct NamespaceMembersNode final : Node
     std::vector<ClassDeclNode*> Classes;
     std::vector<EnumDeclNode*> Enums;
 	std::vector<InterfaceDeclNode*> Interfaces;
-    std::vector<StructDeclNode*> Structs; 
+    std::vector<StructDeclNode*> Structs;
 
     void Add(ClassDeclNode* node) { Classes.push_back(node); }
     void Add(EnumDeclNode* node) { Enums.push_back(node); }

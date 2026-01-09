@@ -2305,14 +2305,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 272 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._qualifiedOrExpr) = (yyvsp[(2) - (3)]._expr); ;}
+    { (yyval._qualifiedOrExpr) = Qualified_or_expr::FromExpr((yyvsp[(2) - (3)]._expr));;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
 #line 273 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { (yyval._qualifiedOrExpr) = ExprNode::FromNull(); ;}
+    {  (yyval._qualifiedOrExpr) = Qualified_or_expr::FromNull();;}
     break;
 
   case 41:

@@ -92,3 +92,19 @@ Qualified_or_expr* Qualified_or_expr::FromBool(const bool value)
     node->Bool = value;
     return node;
 }
+
+Qualified_or_expr* Qualified_or_expr::FromExpr(ExprNode* expr)
+{
+    auto* node = new Qualified_or_expr;
+    node->Type = TypeT::Expr;
+    node->Child = expr;
+    return node;
+}
+
+Qualified_or_expr* Qualified_or_expr::FromNull()
+{
+    auto* qoe = new Qualified_or_expr();
+    qoe->Type = TypeT::Identifier;
+    qoe->Identifier = "null";
+    return qoe;
+}
