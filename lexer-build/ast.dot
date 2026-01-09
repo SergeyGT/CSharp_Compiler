@@ -1,40 +1,273 @@
 digraph Program {
-21 [label="Program"]
+150 [label="Program"]
 0 [label="UsingDirectives"]
-20 [label="NamespaceDeclSeq"]
-19 [label="NamespaceDecl\nTest"]
-17 [label="ClassDecl\nProgram\n Inherited from: "]
-15 [label="MethodDecl\nVisibility: public\nName: Main"]
-8 [label="Stmt Seq"]
-7 [label="STMT"]
-6 [label="VarDeclWithInit\nName = newClass\nCalculated data type: int"]
-2 [label="Type\nint"]
-6 -> 2 [label="Variable type"]
-5 [label="new\nCalculated data type: unknown"]
-4 [label="Type"]
-3 [label="Method call\nMethodName: Class"]
-4 -> 3 [label="Complex type"]
-5 -> 4 [label="type"]
-6 -> 5 [label="Init"]
-7 -> 6
-8 -> 7
-14 [label="STMT"]
-13 [label="VarDeclWithInit\nName = y\nCalculated data type: int[]"]
-9 [label="Type\nint[]"]
-13 -> 9 [label="Variable type"]
-12 [label="new[]\nCalculated data type: int[]"]
-11 [label="Qualified_or_expr"]
-10 [label="1\nCalculated data type: int"]
-11 -> 10
-12 -> 11 [label="Array size"]
-13 -> 12 [label="Init"]
+149 [label="NamespaceDeclSeq"]
+148 [label="NamespaceDecl\nReturnTest"]
+146 [label="ClassDecl\nTestClass\n Inherited from: "]
+7 [label="MethodDecl\nVisibility: public\nName: ReturnFunction"]
+1 [label="Type\nint"]
+7 -> 1 [label="Return value type"]
+6 [label="Stmt Seq"]
+5 [label="Return"]
+4 [label="Qualified_or_expr"]
+3 [label="Method call\nMethodName: GetNumber\nCalculated data type: char"]
+4 -> 3
+5 -> 4 [label="value"]
+6 -> 5
+7 -> 6 [label="Method body"]
+146 -> 7
+15 [label="MethodDecl\nVisibility: private\nName: GetNumber"]
+9 [label="Type\nint"]
+15 -> 9 [label="Return value type"]
+14 [label="Stmt Seq"]
+13 [label="Return"]
+12 [label="Qualified_or_expr"]
+11 [label="42\nCalculated data type: int"]
+12 -> 11
+13 -> 12 [label="value"]
 14 -> 13
-8 -> 14
-7 -> 14 [label="next stmt"][style="dashed"]
-15 -> 8 [label="Method body"]
-17 -> 15
-19 -> 17
+15 -> 14 [label="Method body"]
+146 -> 15
+27 [label="MethodDecl\nVisibility: public\nName: ReturnVariable"]
+16 [label="Type\nint"]
+27 -> 16 [label="Return value type"]
+23 [label="Stmt Seq"]
+22 [label="STMT"]
+21 [label="VarDeclWithInit\nName = x\nCalculated data type: int"]
+18 [label="Type\nint"]
+21 -> 18 [label="Variable type"]
+20 [label="Qualified_or_expr"]
+19 [label="100\nCalculated data type: int"]
 20 -> 19
-21 -> 0
-21 -> 20
+21 -> 20 [label="Init"]
+22 -> 21
+23 -> 22
+26 [label="Return"]
+25 [label="Qualified_or_expr"]
+24 [label="x\nCalculated data type: char"]
+25 -> 24
+26 -> 25 [label="value"]
+23 -> 26
+22 -> 26 [label="next stmt"][style="dashed"]
+27 -> 23 [label="Method body"]
+146 -> 27
+31 [label="MethodDecl\nVisibility: public\nName: ReturnVoid"]
+30 [label="Stmt Seq"]
+29 [label="Return"]
+30 -> 29
+31 -> 30 [label="Method body"]
+146 -> 31
+41 [label="MethodDecl\nVisibility: public\nName: ReturnExpression"]
+32 [label="Type\nint"]
+41 -> 32 [label="Return value type"]
+40 [label="Stmt Seq"]
+39 [label="Return"]
+38 [label="+\nCalculated data type: char"]
+35 [label="Qualified_or_expr"]
+34 [label="2\nCalculated data type: int"]
+35 -> 34
+37 [label="Qualified_or_expr"]
+36 [label="2\nCalculated data type: int"]
+37 -> 36
+38 -> 35 [label="left operand"]
+38 -> 37 [label="right operand"]
+39 -> 38 [label="value"]
+40 -> 39
+41 -> 40 [label="Method body"]
+146 -> 41
+71 [label="MethodDecl\nVisibility: public\nName: ReturnComplexExpression"]
+42 [label="Type\nint"]
+71 -> 42 [label="Return value type"]
+49 [label="Stmt Seq"]
+48 [label="STMT"]
+47 [label="VarDeclWithInit\nName = a\nCalculated data type: int"]
+44 [label="Type\nint"]
+47 -> 44 [label="Variable type"]
+46 [label="Qualified_or_expr"]
+45 [label="5\nCalculated data type: int"]
+46 -> 45
+47 -> 46 [label="Init"]
+48 -> 47
+49 -> 48
+54 [label="STMT"]
+53 [label="VarDeclWithInit\nName = b\nCalculated data type: int"]
+50 [label="Type\nint"]
+53 -> 50 [label="Variable type"]
+52 [label="Qualified_or_expr"]
+51 [label="3\nCalculated data type: int"]
+52 -> 51
+53 -> 52 [label="Init"]
+54 -> 53
+49 -> 54
+48 -> 54 [label="next stmt"][style="dashed"]
+70 [label="Return"]
+69 [label="+\nCalculated data type: char"]
+61 [label="Qualified_or_expr"]
+60 [label="()\nCalculated data type: char"]
+59 [label="*\nCalculated data type: char"]
+56 [label="Qualified_or_expr"]
+55 [label="a\nCalculated data type: char"]
+56 -> 55
+58 [label="Qualified_or_expr"]
+57 [label="b\nCalculated data type: char"]
+58 -> 57
+59 -> 56 [label="left operand"]
+59 -> 58 [label="right operand"]
+60 -> 59
+61 -> 60
+68 [label="Qualified_or_expr"]
+67 [label="()\nCalculated data type: char"]
+66 [label="-\nCalculated data type: char"]
+63 [label="Qualified_or_expr"]
+62 [label="a\nCalculated data type: char"]
+63 -> 62
+65 [label="Qualified_or_expr"]
+64 [label="b\nCalculated data type: char"]
+65 -> 64
+66 -> 63 [label="left operand"]
+66 -> 65 [label="right operand"]
+67 -> 66
+68 -> 67
+69 -> 61 [label="left operand"]
+69 -> 68 [label="right operand"]
+70 -> 69 [label="value"]
+49 -> 70
+54 -> 70 [label="next stmt"][style="dashed"]
+71 -> 49 [label="Method body"]
+146 -> 71
+94 [label="MethodDecl\nVisibility: public\nName: ReturnConditional"]
+72 [label="Type\nstring"]
+94 -> 72 [label="Return value type"]
+74 [label="VarDecl\nName = value\nCalculated data type: int"]
+73 [label="Type\nint"]
+74 -> 73 [label="Variable type"]
+94 -> 74 [label="Method argument"]
+93 [label="Stmt Seq"]
+92 [label="STMT"]
+91 [label="If"]
+80 [label=">\nCalculated data type: char"]
+77 [label="Qualified_or_expr"]
+76 [label="value\nCalculated data type: char"]
+77 -> 76
+79 [label="Qualified_or_expr"]
+78 [label="0\nCalculated data type: int"]
+79 -> 78
+80 -> 77 [label="left operand"]
+80 -> 79 [label="right operand"]
+91 -> 80 [label="Condition"]
+85 [label="Block Statement"]
+83 [label="Return"]
+82 [label="Qualified_or_expr"]
+81 [label="Positive\nCalculated data type: char"]
+82 -> 81
+83 -> 82 [label="value"]
+85 -> 83
+91 -> 85 [label="Then Branch"]
+90 [label="Block Statement"]
+88 [label="Return"]
+87 [label="Qualified_or_expr"]
+86 [label="Non-positive\nCalculated data type: char"]
+87 -> 86
+88 -> 87 [label="value"]
+90 -> 88
+91 -> 90 [label="Else Branch"]
+92 -> 91
+93 -> 92
+94 -> 93 [label="Method body"]
+146 -> 94
+106 [label="MethodDecl\nVisibility: public\nName: ReturnMethodWithArgs"]
+95 [label="Type\nint"]
+106 -> 95 [label="Return value type"]
+105 [label="Stmt Seq"]
+104 [label="Return"]
+103 [label="Qualified_or_expr"]
+102 [label="Method call\nMethodName: Multiply\nCalculated data type: char"]
+98 [label="Qualified_or_expr"]
+97 [label="4\nCalculated data type: int"]
+98 -> 97
+102 -> 98 [label="argument"]
+101 [label="Qualified_or_expr"]
+100 [label="5\nCalculated data type: int"]
+101 -> 100
+102 -> 101 [label="argument"]
+98 -> 101 [label="next"][style="dashed"]
+103 -> 102
+104 -> 103 [label="value"]
+105 -> 104
+106 -> 105 [label="Method body"]
+146 -> 106
+120 [label="MethodDecl\nVisibility: private\nName: Multiply"]
+107 [label="Type\nint"]
+120 -> 107 [label="Return value type"]
+109 [label="VarDecl\nName = x\nCalculated data type: int"]
+108 [label="Type\nint"]
+109 -> 108 [label="Variable type"]
+120 -> 109 [label="Method argument"]
+112 [label="VarDecl\nName = y\nCalculated data type: int"]
+111 [label="Type\nint"]
+112 -> 111 [label="Variable type"]
+120 -> 112 [label="Method argument"]
+119 [label="Stmt Seq"]
+118 [label="Return"]
+117 [label="*\nCalculated data type: char"]
+114 [label="Qualified_or_expr"]
+113 [label="x\nCalculated data type: char"]
+114 -> 113
+116 [label="Qualified_or_expr"]
+115 [label="y\nCalculated data type: char"]
+116 -> 115
+117 -> 114 [label="left operand"]
+117 -> 116 [label="right operand"]
+118 -> 117 [label="value"]
+119 -> 118
+120 -> 119 [label="Method body"]
+146 -> 120
+127 [label="MethodDecl\nVisibility: public\nName: ReturnNull"]
+121 [label="Type\nint"]
+127 -> 121 [label="Return value type"]
+126 [label="Stmt Seq"]
+125 [label="Return"]
+124 [label="Qualified_or_expr"]
+123 [label="null\nCalculated data type: char"]
+124 -> 123
+125 -> 124 [label="value"]
+126 -> 125
+127 -> 126 [label="Method body"]
+146 -> 127
+135 [label="MethodDecl\nVisibility: public\nName: ReturnNewObject"]
+128 [label="Type\nint"]
+135 -> 128 [label="Return value type"]
+134 [label="Stmt Seq"]
+133 [label="Return"]
+132 [label="new\nCalculated data type: unknown"]
+131 [label="Type"]
+130 [label="Method call\nMethodName: A"]
+131 -> 130 [label="Complex type"]
+132 -> 131 [label="type"]
+133 -> 132 [label="value"]
+134 -> 133
+135 -> 134 [label="Method body"]
+146 -> 135
+145 [label="MethodDecl\nVisibility: public\nName: ReturnChain"]
+136 [label="Type\nstring"]
+145 -> 136 [label="Return value type"]
+144 [label="Stmt Seq"]
+143 [label="Return"]
+142 [label="+\nCalculated data type: char"]
+139 [label="Qualified_or_expr"]
+138 [label="Method call\nMethodName: GetPrefix\nCalculated data type: char"]
+139 -> 138
+141 [label="Qualified_or_expr"]
+140 [label="Method call\nMethodName: GetSuffix\nCalculated data type: char"]
+141 -> 140
+142 -> 139 [label="left operand"]
+142 -> 141 [label="right operand"]
+143 -> 142 [label="value"]
+144 -> 143
+145 -> 144 [label="Method body"]
+146 -> 145
+148 -> 146
+149 -> 148
+150 -> 0
+150 -> 149
 }
