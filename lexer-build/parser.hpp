@@ -104,7 +104,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 37 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
+#line 39 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
 
     int _integer;
     char* _string;

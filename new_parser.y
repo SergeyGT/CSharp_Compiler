@@ -516,8 +516,8 @@ expr: expr '+' expr                             { $$ = ExprNode::FromBinaryExpre
     | NEW type                                  { $$ = ExprNode::FromNew($2); }
     | NEW type '{' expr_seq_optional '}'        { $$ = ExprNode::FromNew($2, $4); }
     | NEW '[' ']' '{' expr_seq_optional '}'     { $$ = ExprNode::FromNew(nullptr, $5); }
-    | '(' standard_type ')' expr                { $$ = ExprNode::FromCast($2, $4); }
-    | NEW standard_type '[' expr ']'            { $$ = ExprNode::FromNew($2, $4); }
+    | '(' standard_type ')' expr                { $$ = ExprNode::FromCast(static_cast<StandardType>($2), $4);}
+    | NEW standard_type '[' expr ']'            { $$ = ExprNode::FromNew(static_cast<StandardType>($2), $4); }
 ;
 
 expr_optional:                  { $$ = nullptr; }
