@@ -3,6 +3,7 @@
 #include <set>
 #include "JvmClass.h"
 #include "ClassAnalyzer.h"
+#include "../Tree/Class.h"
 
 struct Semantic
 {
@@ -55,11 +56,21 @@ struct Semantic
 
     void AnalyzeNamespace(NamespaceDeclNode* namespace_)
     {
+        // Анализ сигнатур классов
         for (auto* class_ : namespace_->Members->Classes)
         {
             ClassAnalyzer analyzer(class_, namespace_, program->Namespaces);
             analyzer.AnalyzeMemberSignatures();
         }
+
+        // Анализ сигнатур структур
+        for (auto* struct_ : namespace_->Members->Structs)
+        {
+            ClassAnalyzer analyzer(struct_, namespace_, program->Namespaces);
+            analyzer.AnalyzeMemberSignatures();
+        }
+
+        // Полный анализ классов
         for (auto* class_ : namespace_->Members->Classes)
         {
             ClassAnalyzer analyzer(class_, namespace_, program->Namespaces);
@@ -67,6 +78,16 @@ struct Semantic
             Errors.insert(analyzer.Errors.begin(), analyzer.Errors.end());
             AllMains.insert(AllMains.end(), analyzer.AllMains.begin(), analyzer.AllMains.end());
         }
+
+        // Полный анализ структур
+        for (auto* struct_ : namespace_->Members->Structs)
+        {
+            ClassAnalyzer analyzer(struct_, namespace_, program->Namespaces);
+            analyzer.Analyze();
+            Errors.insert(analyzer.Errors.begin(), analyzer.Errors.end());
+            // Структуры не могут содержать Main метод
+        }
+
     } // TODO enums
 
     void Generate() const
@@ -77,9 +98,18 @@ struct Semantic
             {
                 if (namespace_->NamespaceName != "System")
                 {
+                    // Генерация классов
                     for (auto* class_ : namespace_->Members->Classes)
                     {
                         ClassAnalyzer analyzer(class_, namespace_, program->Namespaces);
+                        analyzer.FillTables();
+                        analyzer.Generate();
+                    }
+
+                    // Генерация структур
+                    for (auto* struct_ : namespace_->Members->Structs)
+                    {
+                        ClassAnalyzer analyzer(struct_, namespace_, program->Namespaces);
                         analyzer.FillTables();
                         analyzer.Generate();
                     }

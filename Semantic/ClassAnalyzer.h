@@ -175,6 +175,7 @@ struct ClassAnalyzer
 {
     MethodDeclNode* CurrentMethod = nullptr;
     ClassDeclNode* CurrentClass = nullptr;
+    StructDeclNode* CurrentStruct = nullptr;
     ClassFile File{};
     std::vector<std::string> Errors{};
     NamespaceDeclNode* Namespace{};
@@ -198,6 +199,8 @@ struct ClassAnalyzer
     }
 
     explicit ClassAnalyzer(ClassDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces);
+
+    explicit ClassAnalyzer(StructDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces);
 
     void Analyze();
 
@@ -224,6 +227,8 @@ struct ClassAnalyzer
     void AnalyzeField(FieldDeclNode* field);
 
     void AnalyzeClass(ClassDeclNode* value);
+
+    void AnalyzeStruct(StructDeclNode* value);
 
     [[nodiscard]] ExprNode* AnalyzeExpr(ExprNode* expr);
 
@@ -252,6 +257,8 @@ struct ClassAnalyzer
     void ValidateTypename(DataType& dataType);
 
     [[nodiscard]] ClassDeclNode* FindClass(DataType const& dataType) const;
+
+    [[nodiscard]] StructDeclNode* FindStruct(DataType const& dataType) const;
 
     void FillTables(FieldDeclNode* field);
 

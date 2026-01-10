@@ -214,8 +214,31 @@ ClassAnalyzer::ClassAnalyzer(ClassDeclNode* node, NamespaceDeclNode* namespace_,
             MethodArguments::MakeEmpty(),
             StmtSeqNode::MakeEmpty()
         };
-        CurrentClass->Constructor = constructor;
-        CurrentClass->Members->Methods.push_back(constructor);
+        constructor->Class = CurrentClass;
+        CurrentClass->Members->Constructors.push_back(dynamic_cast<std::vector<ConstructorDeclNode *>::value_type>(constructor));
+    }
+}
+
+ClassAnalyzer::ClassAnalyzer(StructDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces)
+    : CurrentStruct{ node }
+, Namespace{ namespace_ }
+, AllNamespaces{ allNamespaces }
+{
+    const auto hasConstructor = std::any_of(CurrentStruct->Members->Methods.begin(),
+                                            CurrentStruct->Members->Methods.end(), [](auto* method)
+                                            {
+                                                return method->IsConstructor;
+                                            });
+    if (!hasConstructor)
+    {
+        auto* constructor = new ConstructorDeclNode{
+            VisibilityModifier::Public,
+            std::string{CurrentStruct->StructName},
+            MethodArguments::MakeEmpty(),
+            StmtSeqNode::MakeEmpty()
+        };
+        constructor->Class = nullptr; // Р”Р»СЏ СЃС‚СЂСѓРєС‚СѓСЂ
+        CurrentStruct->Members->Constructors.push_back(constructor);
     }
 }
 
@@ -225,7 +248,8 @@ void ClassAnalyzer::AnalyzeMemberSignatures()
 {
     for (auto* method : CurrentClass->Members->Methods)
     {
-        method->Class = CurrentClass;
+        if (CurrentClass) method->Class = CurrentClass;
+        else if (CurrentStruct) method->Class = nullptr; // Р”Р»СЏ СЃС‚СЂСѓРєС‚СѓСЂ Class = nullptr
         if (Namespace->NamespaceName != "System")
         {
             method->AReturnType = ToDataType(method->Type);
@@ -396,7 +420,11 @@ void ClassAnalyzer::AnalyzeStmt(StmtNode* stmt)
 
 void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
 {
-    method->Class = CurrentClass;
+    if (CurrentClass) {
+        method->Class = CurrentClass;
+    } else if (CurrentStruct) {
+        method->Class = nullptr; // Р”Р»СЏ СЃС‚СЂСѓРєС‚СѓСЂ
+    }
     CurrentMethod = method;
     CurrentScopingLevel = 1;
     if (const auto isMain = CurrentMethod->Identifier() == "Main"; isMain && CurrentMethod->IsStatic)
@@ -409,7 +437,7 @@ void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
         }
         AllMains.push_back(method);
         CurrentMethod->_identifier = "main";
-        // Локальная переменная args для мейна
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ args пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         CurrentMethod->Variables.push_back(new VarDeclNode(nullptr, "", nullptr));
     }
 
@@ -423,7 +451,7 @@ void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
 
     if (!CurrentMethod->IsStatic)
     {
-        // Локальная переменная this
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ this
         auto thisVar = new VarDeclNode(nullptr, "this", nullptr);
         thisVar->AType = CurrentClass->ToDataType();
         CurrentMethod->Variables.push_back(thisVar);
@@ -499,7 +527,7 @@ void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
 
 void ClassAnalyzer::AnalyzeField(FieldDeclNode* field)
 {
-    AnalyzeVarDecl(field->VarDecl);
+    AnalyzeVarDecl(field->VarDecl, false);
 
     if (field->VarDecl->InitExpr && !field->InitInConstructor)
     {
@@ -508,17 +536,33 @@ void ClassAnalyzer::AnalyzeField(FieldDeclNode* field)
         init->Field = field;
         init->AssignExpr = field->VarDecl->InitExpr;
         field->InitInConstructor = init;
-        CurrentClass->Constructor->Body->GetSeq().push_back(new StmtNode(init, false));
+
+        ConstructorDeclNode* defaultConstructor = nullptr;
+        if (CurrentClass) {
+            defaultConstructor = CurrentClass->GetDefaultConstructor();
+        } else if (CurrentStruct) {
+            // Р”Р»СЏ СЃС‚СЂСѓРєС‚СѓСЂ Р±РµСЂРµРј РїРµСЂРІС‹Р№ (Рё РµРґРёРЅСЃС‚РІРµРЅРЅС‹Р№) РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
+            if (!CurrentStruct->Members->Constructors.empty()) {
+                defaultConstructor = CurrentStruct->Members->Constructors[0];
+            }
+        }
+
+        if (defaultConstructor && defaultConstructor->Body) {
+            defaultConstructor->Body->GetSeq().push_back(new StmtNode(init, false));
+        }
     }
 
-    const auto& allFields = CurrentClass->Members->Fields;
+    const auto& allFields = CurrentClass ? CurrentClass->Members->Fields : CurrentStruct->Members->Fields;
     const auto fieldNameCount = std::count_if(allFields.begin(), allFields.end(), [&](auto* other)
     {
         return field->VarDecl->Identifier == other->VarDecl->Identifier;
     });
+
     if (fieldNameCount > 1)
     {
-        Errors.push_back("Field with name \"" + std::string{ field->VarDecl->Identifier } + "\" already defined!");
+        std::string typeName = CurrentClass ? std::string{CurrentClass->ClassName} : std::string{CurrentStruct->StructName};
+        Errors.push_back("Field with name \"" + std::string{ field->VarDecl->Identifier } +
+                         "\" already defined in " + typeName + "!");
     }
 }
 
@@ -533,8 +577,50 @@ void ClassAnalyzer::AnalyzeClass(ClassDeclNode* value)
         for (auto& arg : method->ArgumentDtos) { ValidateTypename(arg.Type); }
     }
     for (auto* method : value->Members->Methods) { AnalyzeMethod(method); }
+
+    if (value->Members->Constructors.empty()) {
+        Errors.push_back("Class " + std::string{value->ClassName} + " must have at least one constructor");
+    }
 }
 
+
+void ClassAnalyzer::AnalyzeStruct(StructDeclNode* value)
+{
+    value->Namespace = this->Namespace;
+
+    // РџСЂРѕРІРµСЂРєР°, С‡С‚Рѕ СЃС‚СЂСѓРєС‚СѓСЂС‹ РЅРµ РјРѕРіСѓС‚ РЅР°СЃР»РµРґРѕРІР°С‚СЊСЃСЏ
+    if (value->Members->Constructors.size() > 1) {
+        Errors.push_back("Struct " + std::string{value->StructName} + " can have only one constructor");
+    }
+
+    for (auto* field : value->Members->Fields) {
+        AnalyzeField(field);
+
+        // Р”Р»СЏ СЃС‚СЂСѓРєС‚СѓСЂ РІСЃРµ РїРѕР»СЏ РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅС‹
+        if (!field->VarDecl->InitExpr) {
+            Errors.push_back("All fields in struct " + std::string{value->StructName} +
+                            " must be initialized");
+        }
+    }
+
+    // РђРЅР°Р»РёР· СЃРёРіРЅР°С‚СѓСЂ РјРµС‚РѕРґРѕРІ
+    for (auto* method : value->Members->Methods) {
+        method->AnalyzeArguments();
+        for (auto& arg : method->ArgumentDtos) {
+            ValidateTypename(arg.Type);
+        }
+    }
+
+    // РђРЅР°Р»РёР· С‚РµР» РјРµС‚РѕРґРѕРІ
+    for (auto* method : value->Members->Methods) {
+        AnalyzeMethod(method);
+    }
+
+    // РџСЂРѕРІРµСЂРєР°, С‡С‚Рѕ СЃС‚СЂСѓРєС‚СѓСЂС‹ РЅРµ РјРѕРіСѓС‚ РёРјРµС‚СЊ РґРµСЃС‚СЂСѓРєС‚РѕСЂРѕРІ
+    if (value->Members->Destructor) {
+        Errors.push_back("Struct " + std::string{value->StructName} + " cannot have destructor");
+    }
+}
 [[nodiscard]] ExprNode* ClassAnalyzer::AnalyzeExpr(ExprNode* expr)
 {
     if (!expr)
@@ -629,7 +715,10 @@ void ClassAnalyzer::AnalyzeSimpleMethodCall(Qualified_or_expr* expr)
         return types;
     }();
 
-    auto const& allMethods = CurrentClass->Members->Methods;
+    std::vector<MethodDeclNode*> allMethods;
+    if (CurrentClass) allMethods = CurrentClass->Members->Methods;
+    else if (CurrentStruct) allMethods = CurrentStruct->Members->Methods;
+
     const auto foundMethod = std::find_if(allMethods.begin(), allMethods.end(), [&](auto* method)
     {
         return methodName == method->Identifier() && callTypes ==
@@ -666,7 +755,8 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
     AnalyzeQualified_or_expr(expr->Previous);
     const auto typeForPrevious = CalculateTypeForQualified_or_expr(expr->Previous);
     auto* foundClass = FindClass(typeForPrevious);
-    if (foundClass == nullptr)
+    auto* foundStruct = FindStruct(typeForPrevious);
+    if (!foundClass && !foundStruct)
     {
         Errors.push_back("No member " + std::string{ expr->Identifier } + " in type " + ToString(typeForPrevious));
         return;
@@ -685,7 +775,11 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
         return types;
     }();
 
-    auto const& allMethods = foundClass->Members->Methods;
+    // РС‰РµРј РјРµС‚РѕРґ РІ РЅР°Р№РґРµРЅРЅРѕРј РєР»Р°СЃСЃРµ РёР»Рё СЃС‚СЂСѓРєС‚СѓСЂРµ
+    std::vector<MethodDeclNode*> allMethods;
+    if (foundClass) allMethods = foundClass->Members->Methods;
+    else if (foundStruct) allMethods = foundStruct->Members->Methods;
+
     const auto foundMethod = std::find_if(allMethods.begin(), allMethods.end(), [&](auto* method)
     {
         return methodName == method->Identifier() && callTypes ==
@@ -698,6 +792,7 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
                          ToString(callTypes));
         return;
     }
+
     AnalyzeMethodAccessibility(*foundMethod);
     expr->ActualMethodCall = *foundMethod;
 }
@@ -1103,7 +1198,8 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
                 return access->AType;
             }
             auto* foundClass = FindClass(typeForPrevious);
-            if (foundClass == nullptr)
+            auto* foundStruct = FindStruct(typeForPrevious);
+            if (!foundClass && !foundStruct)
             {
                 Errors.push_back("No member " + std::string{
                                      access->Identifier
@@ -1153,6 +1249,8 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         {
             auto isVariableFound = false;
             const auto name = std::string{ access->Identifier };
+
+            // РС‰РµРј РІ Р»РѕРєР°Р»СЊРЅС‹С… РїРµСЂРµРјРµРЅРЅС‹С… РјРµС‚РѕРґР°
             if (CurrentMethod)
             {
                 if (auto* var = CurrentMethod->FindVariableByName(name, CurrentScopingLevel); var)
@@ -1164,17 +1262,40 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
                 }
             }
 
+            // РС‰РµРј РІ РїРѕР»СЏС… РєР»Р°СЃСЃР° РёР»Рё СЃС‚СЂСѓРєС‚СѓСЂС‹
             const auto currentMethodExistsAndNotStatic = CurrentMethod && !CurrentMethod->IsStatic;
             const bool currentMethodDoesntExist = !CurrentMethod;
-            if (CurrentClass && !isVariableFound && (currentMethodDoesntExist || currentMethodExistsAndNotStatic))
+
+            if (!isVariableFound && (currentMethodDoesntExist || currentMethodExistsAndNotStatic))
             {
-                if (auto* var = CurrentClass->FindFieldByName(name); var)
+                if (CurrentClass)
                 {
-                    AnalyzeFieldAccessibility(var);
-                    type = var->VarDecl->AType;
-                    access->AType = type;
-                    isVariableFound = true;
-                    access->ActualField = var;
+                    if (auto* var = CurrentClass->FindFieldByName(name); var)
+                    {
+                        AnalyzeFieldAccessibility(var);
+                        type = var->VarDecl->AType;
+                        access->AType = type;
+                        isVariableFound = true;
+                        access->ActualField = var;
+                    }
+                }
+                else if (CurrentStruct)
+                {
+                    // Р”Р»СЏ СЃС‚СЂСѓРєС‚СѓСЂ РёС‰РµРј РїРѕР»СЏ
+                    auto& fields = CurrentStruct->Members->Fields;
+                    const auto foundField = std::find_if(fields.begin(), fields.end(), [&](FieldDeclNode* field)
+                    {
+                        return field->VarDecl->Identifier == name;
+                    });
+
+                    if (foundField != fields.end())
+                    {
+                        AnalyzeFieldAccessibility(*foundField);
+                        type = (*foundField)->VarDecl->AType;
+                        access->AType = type;
+                        isVariableFound = true;
+                        access->ActualField = *foundField;
+                    }
                 }
             }
 
@@ -1193,8 +1314,12 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
             access->AType = access->Child->AType;
             return access->AType;
         }
-        case Qualified_or_expr::TypeT::ArrayLength: { return access->AType; }
+        case Qualified_or_expr::TypeT::ArrayLength:
+            return access->AType;
+        default:
+            break;
     }
+
     type.IsUnknown = true;
     access->AType = type;
     return type;
@@ -1219,7 +1344,9 @@ ExprNode* ClassAnalyzer::ReplaceAssignmentsOnField(ExprNode* node)
 
 void ClassAnalyzer::ValidateTypename(DataType& dataType)
 {
-    if (dataType.IsUnknown) { Errors.emplace_back("Cannot create object of unknown type"); }
+    if (dataType.IsUnknown) {
+        Errors.emplace_back("Cannot create object of unknown type");
+    }
     else if (dataType.AType == DataType::TypeT::Complex)
     {
         auto* namespace_ = Namespace;
@@ -1238,20 +1365,31 @@ void ClassAnalyzer::ValidateTypename(DataType& dataType)
             }
             namespace_ = *foundNamespace;
         }
+
+        // РС‰РµРј РєР»Р°СЃСЃ
         const auto& allClassesInNamespace = namespace_->Members->Classes;
         const auto foundClass = std::find_if(allClassesInNamespace.begin(), allClassesInNamespace.end(),
                                              [&](ClassDeclNode* class_)
                                              {
                                                  return class_->ClassName == dataType.ComplexType.back();
                                              });
-        if (foundClass == allClassesInNamespace.end())
+
+        // РС‰РµРј СЃС‚СЂСѓРєС‚СѓСЂСѓ
+        const auto& allStructsInNamespace = namespace_->Members->Structs;
+        const auto foundStruct = std::find_if(allStructsInNamespace.begin(), allStructsInNamespace.end(),
+                                              [&](StructDeclNode* struct_)
+                                              {
+                                                  return struct_->StructName == dataType.ComplexType.back();
+                                              });
+
+        if (foundClass == allClassesInNamespace.end() && foundStruct == allStructsInNamespace.end())
         {
-            Errors.push_back("No class " + dataType.ComplexType.back() + " in namespace " + std::string{
-                                 namespace_->NamespaceName
-                             });
+            Errors.push_back("No class or struct " + dataType.ComplexType.back() +
+                            " in namespace " + std::string{namespace_->NamespaceName});
             dataType.IsUnknown = true;
             return;
         }
+
         if (dataType.ComplexType.size() == 1)
         {
             dataType.ComplexType.insert(dataType.ComplexType.begin(), std::string{ Namespace->NamespaceName });
@@ -1293,6 +1431,46 @@ ClassDeclNode* ClassAnalyzer::FindClass(DataType const& dataType) const
     return nullptr;
 }
 
+StructDeclNode* ClassAnalyzer::FindStruct(DataType const& dataType) const
+{
+    if (dataType.AType != DataType::TypeT::Complex)
+        return nullptr;
+    if (dataType.ArrayArity > 0)
+        return nullptr;
+
+    // РС‰РµРј РІ С‚РµРєСѓС‰РµРј namespace
+    if (Namespace)
+    {
+        for (auto* struct_ : Namespace->Members->Structs)
+        {
+            if (dataType.ComplexType.back() == struct_->StructName)
+                return struct_;
+        }
+    }
+
+    // РС‰РµРј РІ РґСЂСѓРіРёС… namespace
+    if (dataType.ComplexType.size() > 1)
+    {
+        const auto& allNamespaces = AllNamespaces->GetSeq();
+        const auto foundNamespace = std::find_if(allNamespaces.begin(), allNamespaces.end(),
+            [&](NamespaceDeclNode const* const namespace_)
+            {
+                return dataType.ComplexType.front() == namespace_->NamespaceName;
+            });
+
+        if (foundNamespace != allNamespaces.end())
+        {
+            for (auto* struct_ : (*foundNamespace)->Members->Structs)
+            {
+                if (dataType.ComplexType.back() == struct_->StructName)
+                    return struct_;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 void ClassAnalyzer::FillTables(FieldDeclNode* field)
 {
     const auto nameId = File.Constants.FindUtf8(field->VarDecl->Identifier);
@@ -1315,8 +1493,24 @@ void ClassAnalyzer::FillTables(MethodDeclNode* method)
 
 void ClassAnalyzer::FillTables()
 {
-    for (auto* field : CurrentClass->Members->Fields) { FillTables(field); }
-    for (auto* method : CurrentClass->Members->Methods) { FillTables(method); }
+    if (CurrentClass)
+    {
+        for (auto* field : CurrentClass->Members->Fields) {
+            FillTables(field);
+        }
+        for (auto* method : CurrentClass->Members->Methods) {
+            FillTables(method);
+        }
+    }
+    else if (CurrentStruct)
+    {
+        for (auto* field : CurrentStruct->Members->Fields) {
+            FillTables(field);
+        }
+        for (auto* method : CurrentStruct->Members->Methods) {
+            FillTables(method);
+        }
+    }
 }
 
 Bytes ToBytes(const ConstantTable& constants)
@@ -1463,10 +1657,10 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
         {
             Bytes bytes;
 
-            // Загрузка this на стек
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ this пїЅпїЅ пїЅпїЅпїЅпїЅ
             append(bytes, (uint8_t)Command::aload_0);
 
-            // Загрузка аргументов на стек
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
             for (auto* arg : expr->Arguments->GetSeq()) { append(bytes, ToBytes(arg, file)); }
 
             const auto* method = expr->ActualMethodCall;
@@ -1497,10 +1691,10 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
         case Qualified_or_expr::TypeT::DotMethodCall:
         {
             Bytes bytes;
-            // Загрузка выражения слева от точки
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             append(bytes, ToBytes(expr->Previous, file));
 
-            // Загрузка аргументов на стек
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
             for (auto* arg : expr->Arguments->GetSeq()) { append(bytes, ToBytes(arg, file)); }
 
             const auto* method = expr->ActualMethodCall;
@@ -1513,7 +1707,7 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
         case Qualified_or_expr::TypeT::ArrayLength:
         {
             Bytes bytes;
-            // Загрузка выражения слева от точки
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
             append(bytes, ToBytes(expr->Previous, file));
             append(bytes, (uint8_t)Command::arraylength);
             return bytes;
@@ -1581,24 +1775,24 @@ Bytes ToBytes(ExprNode* expr, ClassFile& file)
         if (variable)
         {
             auto varIndex = (uint8_t)variable->PositionInMethod;
-            // Загрузить команду iinc
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ iinc
             append(bytes, (uint8_t)Command::iinc);
-            // Загрузить varIndex
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ varIndex
             append(bytes, varIndex);
-            // Загрузить константу 1 / -1
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 1 / -1
             int8_t incVal = expr->Type == ExprNode::TypeT::Increment ? 1 : -1;
             append(bytes, incVal);
-            // Загрузить эту же переменную iload
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ iload
             append(bytes, (uint8_t)Command::iload);
             append(bytes, (uint8_t)variable->PositionInMethod);
         }
         if (field)
         {
-            // Загрузить поле (getfield)
-            // Загрузить 1 на стек (iconst_1)
-            // Загрузить комманду iadd / isub
-            // Загрузить команду dup
-            // Сделать putfield
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ (getfield)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 1 пїЅпїЅ пїЅпїЅпїЅпїЅ (iconst_1)
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ iadd / isub
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ dup
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ putfield
         }
         return bytes;
     }
@@ -1653,16 +1847,16 @@ Bytes ToBytes(ExprNode* expr, ClassFile& file)
         append(bytes, (uint8_t)command);
         const auto falseCommandOffset = ToBytes((int16_t)7);
         append(bytes, falseCommandOffset);
-        // Загружаем true
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ true
         append(bytes, (uint8_t)Command::iconst_1);
-        // Прыгаем за границы if/else
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ if/else
         append(bytes, (uint8_t)Command::goto_);
         const auto trueOffset = ToBytes((int16_t)4);
         append(bytes, trueOffset);
-        // Загружаем false
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ false
         append(bytes, (uint8_t)Command::iconst_0);
-        // Команда, которая ничего не делает.
-        // Добавил на всякий случай, чтобы всегда было куда прыгать из goto
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ goto
         append(bytes, (uint8_t)Command::nop);
 
         return bytes;
@@ -1893,7 +2087,7 @@ Bytes ToBytes(VarDeclNode* node, ClassFile& file)
 {
     Bytes bytes;
 
-    // Инициализация переменной
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     if (node->InitExpr) { append(bytes, ToBytes(node->InitExpr, file)); }
     else
     {
@@ -1975,17 +2169,17 @@ Bytes ToBytes(WhileNode* while_, ClassFile& file)
     constexpr auto gotoCommandLength = 3;
     const auto gotoBytesOffset = -static_cast<int16_t>(conditionBytes.size() + bodyBytes.size() + ifeqCommandLength);
     const auto ifeqBytesOffset = static_cast<int16_t>(bodyBytes.size() + ifeqCommandLength + gotoCommandLength);
-    // Загружаем условие
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     append(bytes, conditionBytes);
 
-    // Проверяем результат условия на ноль
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
     append(bytes, (uint8_t)Command::ifeq);
     append(bytes, ToBytes(ifeqBytesOffset));
 
-    // Тело цикла
+    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     append(bytes, bodyBytes);
 
-    // Прыжок на проверку условия цикла
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     append(bytes, (uint8_t)Command::goto_);
     append(bytes, ToBytes((int16_t)gotoBytesOffset));
 
@@ -2005,20 +2199,20 @@ Bytes ToBytes(DoWhileNode* doWhile, ClassFile& file)
     constexpr auto gotoCommandLength = 3;
     const auto gotoBytesOffset = -static_cast<int16_t>(conditionBytes.size() + bodyBytes.size() + ifeqCommandLength);
     const auto ifeqBytesOffset = static_cast<int16_t>(bodyBytes.size() + ifeqCommandLength + gotoCommandLength);
-    // Тело цикла
+    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     append(bytes, bodyBytes);
 
-    // Загружаем условие
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     append(bytes, conditionBytes);
 
-    // Проверяем результат условия на ноль
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
     append(bytes, (uint8_t)Command::ifeq);
     append(bytes, ToBytes(ifeqBytesOffset));
 
-    // Тело цикла
+    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     append(bytes, bodyBytes);
 
-    // Прыжок на проверку условия цикла
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     append(bytes, (uint8_t)Command::goto_);
     append(bytes, ToBytes((int16_t)gotoBytesOffset));
 
@@ -2050,17 +2244,17 @@ Bytes ToBytes(ForNode* for_, ClassFile& file)
 
     append(bytes, firstBytes);
 
-    // Загружаем условие
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     append(bytes, conditionBytes);
 
-    // Проверяем результат условия на ноль
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
     append(bytes, (uint8_t)Command::ifeq);
     append(bytes, ToBytes(ifeqBytesOffset));
 
-    // Тело цикла
+    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     append(bytes, bodyBytes);
 
-    // Прыжок на проверку условия цикла
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     append(bytes, (uint8_t)Command::goto_);
     append(bytes, ToBytes((int16_t)gotoBytesOffset));
 
@@ -2165,11 +2359,18 @@ Bytes ToBytes(JvmMethod method, ClassFile& classFile)
 void ClassAnalyzer::Generate()
 {
     using namespace std::filesystem;
-    const auto filename = std::string{ CurrentClass->ClassName } + ".class";
+
+    std::string typeName;
+    if (CurrentClass) typeName = std::string{ CurrentClass->ClassName };
+    else if (CurrentStruct) typeName = std::string{ CurrentStruct->StructName };
+
+    const auto filename = typeName + ".class";
     auto filepath = current_path() / "Output" / Namespace->NamespaceName / filename;
     create_directory(current_path() / "Output" / Namespace->NamespaceName);
+
     std::fstream out{ filepath, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc };
     out << (char)0xCA << (char)0xFE << (char)0xBA << (char)0xBE;
+
     const auto minorVersion = ::ToBytes(ClassFile::MinorVersion);
     out.write((char*)minorVersion.data(), minorVersion.size());
     const auto majorVersion = ::ToBytes(ClassFile::MajorVersion);
@@ -2188,9 +2389,19 @@ void ClassAnalyzer::Generate()
 Bytes ClassAnalyzer::ToBytes()
 {
     Bytes bytes;
-    const auto classConstantId = File.Constants.FindClass(CurrentClass->ToDataType().ToTypename());
+
+    // РћРїСЂРµРґРµР»СЏРµРј РёРјСЏ С‚РёРїР°
+    std::string typeName;
+    if (CurrentClass) typeName = CurrentClass->ToDataType().ToTypename();
+    else if (CurrentStruct) typeName = CurrentStruct->ToDataType().ToTypename();
+
+    const auto classConstantId = File.Constants.FindClass(typeName);
     const auto superClassId = File.Constants.FindClass(JAVA_OBJECT_TYPE.ToTypename());
-    const auto accessFlags = AccessFlags::Super | AccessFlags::Public;
+
+    AccessFlags accessFlags = AccessFlags::Super;
+    if (CurrentClass) accessFlags = accessFlags | AccessFlags::Public;
+    else if (CurrentStruct) accessFlags = AccessFlags::Public; // РЎС‚СЂСѓРєС‚СѓСЂС‹ РЅРµ РёРјРµСЋС‚ Super С„Р»Р°РіР°
+
     append(bytes, ::ToBytes((uint16_t)accessFlags));
     append(bytes, ::ToBytes(classConstantId));
     append(bytes, ::ToBytes(superClassId));
@@ -2199,14 +2410,23 @@ Bytes ClassAnalyzer::ToBytes()
     append(bytes, ::ToBytes(interfacesCount));
 
     append(bytes, ::ToBytes((uint16_t)File.Fields.size()));
-    for (auto field : File.Fields) { append(bytes, ::ToBytes(field)); }
+    for (auto field : File.Fields) {
+        append(bytes, ::ToBytes(field));
+    }
 
+    // РЎРѕСЂС‚РёСЂСѓРµРј РјРµС‚РѕРґС‹: СЃРЅР°С‡Р°Р»Р° РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹
     std::sort(File.Methods.begin(), File.Methods.end(), [](auto const& lhs, auto const& rhs)
     {
-        return lhs.ActualMethod->IsConstructor > rhs.ActualMethod->IsConstructor;
+        bool lhsIsCtor = lhs.ActualMethod && lhs.ActualMethod->IsConstructor;
+        bool rhsIsCtor = rhs.ActualMethod && rhs.ActualMethod->IsConstructor;
+        return lhsIsCtor > rhsIsCtor;
     });
+
     append(bytes, ::ToBytes((uint16_t)File.Methods.size()));
-    for (auto method : File.Methods) { append(bytes, ::ToBytes(method, File)); }
+    for (auto method : File.Methods) {
+        append(bytes, ::ToBytes(method, File));
+    }
+
     return bytes;
 }
 

@@ -2,15 +2,11 @@
 #include <fstream>
 #include "Tree/Program.h"
 #include "Dot.h"
+#include "Semantic/Semantic.h"
 
-// extern "C" {
-//     int yyparse();
-//     extern FILE* yyin;
-//     extern Program* treeRoot;
-// }
- extern int yyparse();
- extern FILE* yyin;
- extern struct Program* treeRoot;
+extern int yyparse();
+extern FILE* yyin;
+extern struct Program* treeRoot;
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -39,6 +35,32 @@ int main(int argc, char** argv) {
             // Генерация SVG (если установлен Graphviz)
             RunDot("dot", "ast.dot");
         }
+
+        // ДОБАВЛЯЕМ: Семантический анализ
+        std::cout << "\n=== Semantic Analysis ===" << std::endl;
+        try {
+            Semantic semantic(treeRoot);
+            semantic.Analyze();
+
+            if (!semantic.Errors.empty()) {
+                std::cout << "Semantic errors found:" << std::endl;
+                for (const auto& error : semantic.Errors) {
+                    std::cout << "  ERROR: " << error << std::endl;
+                }
+                return 1;
+            } else {
+                std::cout << "Semantic analysis passed successfully!" << std::endl;
+
+                // Генерация байткода
+                std::cout << "\n=== Code Generation ===" << std::endl;
+                semantic.Generate();
+                std::cout << "Bytecode generated successfully!" << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Semantic analysis failed with exception: " << e.what() << std::endl;
+            return 1;
+        }
+
     } else {
         std::cerr << "Parsing failed!" << std::endl;
     }

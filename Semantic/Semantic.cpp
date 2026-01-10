@@ -1,24 +1,30 @@
 #include "Semantic.h"
 
+
 NamespaceDeclNode* Semantic::CreateSystemNamespace() const
 {
     std::vector<ClassDeclNode*> classes{ CreateConsoleClass(), CreateStringClass() };
 
     auto* systemMembers = new NamespaceMembersNode();
-    for (auto* class_ : classes) { systemMembers->Add(class_); }
+    for (auto* class_ : classes) {
+        systemMembers->Add(class_);
+    }
+
     auto* systemNamespace = new NamespaceDeclNode("System", systemMembers);
+
     for (auto* class_ : classes)
     {
         class_->Namespace = systemNamespace;
-        ClassAnalyzer analyzer(class_, systemNamespace, program->Namespaces); // Создаёт конструктор по умолчанию
+        ClassAnalyzer analyzer(class_, systemNamespace, program->Namespaces);
         analyzer.AnalyzeMemberSignatures();
     }
+
     return systemNamespace;
 }
 
 ClassDeclNode* Semantic::CreateConsoleClass()
 {
-    auto* consoleClassMembers = new ClassMembersNode();
+    auto* consoleClassMembers = new TypeMembersNode();
     auto& consoleMethods = consoleClassMembers->Methods;
 
     [[maybe_unused]] auto* readIntMethod = [&]
@@ -123,7 +129,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
 
 ClassDeclNode* Semantic::CreateStringClass()
 {
-    auto* members = new ClassMembersNode();
+    auto* members = new TypeMembersNode();
     auto& methods = members->Methods;
     [[maybe_unused]] auto* charAtMethod = [&]
     {
