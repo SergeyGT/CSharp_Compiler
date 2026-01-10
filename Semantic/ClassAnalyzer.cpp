@@ -2430,23 +2430,24 @@ Bytes ClassAnalyzer::ToBytes()
     return bytes;
 }
 
-// #include <WinSock2.h>
-// #pragma comment(lib, "Ws2_32.lib")
+ //#include <WinSock2.h>
+ //#pragma comment(lib, "Ws2_32.lib")
 Bytes ToBytes(const uint32_t n)
 {
-    const auto netNum = n;
-
     union
     {
         uint32_t num;
-        unsigned char bytes[sizeof uint32_t];
+        unsigned char bytes[sizeof(uint32_t)];
     } u;
 
-    u.num = netNum;
+    u.num = n;  // Сохраняем значение
 
-    Bytes bytes(sizeof n, '\0');
+    Bytes bytes(sizeof(n), '\0');
 
-    std::copy(std::rbegin(u.bytes), std::rend(u.bytes), bytes.begin());
+    // Копируем байты в обратном порядке (big-endian для JVM)
+    for (size_t i = 0; i < sizeof(n); i++) {
+        bytes[sizeof(n) - 1 - i] = u.bytes[i];
+    }
 
     return bytes;
 }
