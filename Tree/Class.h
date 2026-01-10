@@ -21,6 +21,7 @@ struct FieldDeclNode final : Node
     const VisibilityModifier Visibility;
     VarDeclNode* VarDecl;
     ClassDeclNode* Class{};
+    StructDeclNode* Struct{};
 
     ExprNode* InitInConstructor{};
 

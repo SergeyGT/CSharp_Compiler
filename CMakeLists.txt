@@ -57,4 +57,10 @@ add_executable(CSharp_Compiler
         Tree/Expr.cpp
         Semantic/JvmClass.h
         Semantic/JvmClass.cpp
+        Semantic/Commands.h
+        Semantic/ClassAnalyzer.h
+        Semantic/Semantic.cpp
+        Semantic/ClassAnalyzer.cpp
+        Semantic/Semantic.h
+
 )
