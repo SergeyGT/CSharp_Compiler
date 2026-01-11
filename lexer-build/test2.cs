@@ -1,12 +1,13 @@
-namespace Test {
+namespace Test2 {
     public class Program {
+        
         public static void Main() {
-            
+           
         }
     }
 	
-	public class Class {
-		public Class (){
-		}
+	public struct Point {
+		public int x;
+		public int y;
 	}
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <vector>
 #include <set>
 #include "JvmClass.h"
@@ -21,15 +22,38 @@ struct Semantic
 
     std::set<std::string> Errors;
 
+    // В методе Analyze() Semantic.h
     void Analyze()
     {
+        std::cout << "[DEBUG] Starting semantic analysis..." << std::endl;
+        std::cout << "[DEBUG] System namespace check..." << std::endl;
+
         CheckSystemNamespace();
+
+        std::cout << "[DEBUG] Found " << program->Namespaces->GetSeq().size() << " namespaces" << std::endl;
+
         for (auto* _namespace : program->Namespaces->GetSeq())
         {
-            if (_namespace->NamespaceName != "System") { AnalyzeNamespace(_namespace); }
+            if (_namespace->NamespaceName != "System") {
+                std::cout << "[DEBUG] Analyzing namespace: " << _namespace->NamespaceName << std::endl;
+                std::cout << "[DEBUG] Classes in namespace: " << _namespace->Members->Classes.size() << std::endl;
+                AnalyzeNamespace(_namespace);
+            }
         }
-        if (AllMains.size() > 1) { Errors.insert("There must be only one main in the program"); }
-        if (AllMains.empty()) { Errors.insert("Cannot run a program without an entry point"); }
+
+        std::cout << "[DEBUG] Checking Main methods..." << std::endl;
+        std::cout << "[DEBUG] Found " << AllMains.size() << " Main methods" << std::endl;
+
+        if (AllMains.size() > 1) {
+            std::cout << "[DEBUG] Too many Main methods" << std::endl;
+            Errors.insert("There must be only one main in the program");
+        }
+        if (AllMains.empty()) {
+            std::cout << "[DEBUG] No Main method found" << std::endl;
+            Errors.insert("Cannot run a program without an entry point");
+        }
+
+        std::cout << "[DEBUG] Semantic analysis completed. Errors: " << Errors.size() << std::endl;
     }
 
     NamespaceDeclNode* CreateSystemNamespace() const;

@@ -26,6 +26,8 @@ void ToDot(ClassDeclNode* node, std::ostream& out);
 
 void ToDot(EnumDeclNode* node, std::ostream& out);
 
+void ToDot(StructDeclNode* node, std::ostream& out);
+
 void ToDot(NamespaceDeclNode* node, std::ostream& out);
 
 void ToDot(NamespaceDeclSeq* node, std::ostream& out);

@@ -1,17 +1,29 @@
 digraph Program {
-14 [label="Program"]
+17 [label="Program"]
 0 [label="UsingDirectives"]
-13 [label="NamespaceDeclSeq"]
-12 [label="NamespaceDecl\nTest"]
+16 [label="NamespaceDeclSeq"]
+15 [label="NamespaceDecl\nTest2"]
 5 [label="ClassDecl\nProgram\n Inherited from: "]
 3 [label="MethodDecl\nVisibility: public\nName: Main"]
 2 [label="Stmt Seq"]
 3 -> 2 [label="Method body"]
 5 -> 3
-12 -> 5
-11 [label="ClassDecl\nClass\n Inherited from: "]
-12 -> 11
-13 -> 12
-14 -> 0
+15 -> 5
+14 [label="StructDecl\nPoint"]
+9 [label="FieldDeclNode\nVisibility: public"]
+8 [label="VarDecl\nName = x\nCalculated data type: int"]
+7 [label="Type\nint"]
+8 -> 7 [label="Variable type"]
+9 -> 8 [label="Field Variable"]
+14 -> 9
+13 [label="FieldDeclNode\nVisibility: public"]
+12 [label="VarDecl\nName = y\nCalculated data type: int"]
+11 [label="Type\nint"]
+12 -> 11 [label="Variable type"]
+13 -> 12 [label="Field Variable"]
 14 -> 13
+15 -> 14
+16 -> 15
+17 -> 0
+17 -> 16
 }

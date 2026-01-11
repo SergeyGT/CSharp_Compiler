@@ -2,6 +2,8 @@
 #include "Program.h"
 #include <process.h>
 #include <string>
+
+#include "Struct.h"
 #include "Tree/Expr.h"
 #include "Tree/Stmt.h"
 #include "Tree/Type.h"
@@ -172,6 +174,23 @@ void ToDot(const TypeNode* node, std::ostream& out)
     }
 }
 
+void ToDot(StructDeclNode* node, std::ostream& out)
+{
+    auto name = std::string{ node->Name() } + "\\n" + std::string{ node->StructName };
+    out << MakeNode(node->Id, name);
+
+    for (auto* method : node->Members->Methods)
+    {
+        ToDot(method, out);
+        out << MakeConnection(node->Id, method->Id);
+    }
+
+    for (auto* field : node->Members->Fields)
+    {
+        ToDot(field, out);
+        out << MakeConnection(node->Id, field->Id);
+    }
+}
 
 void ToDot(ExprNode* const node, std::ostream& out)
 {
@@ -506,6 +525,12 @@ void ToDot(NamespaceDeclNode* node, std::ostream& out)
     {
         ToDot(interface_, out);
         out << MakeConnection(node->Id, interface_->Id);
+    }
+
+    for (const auto& struct_ : node->Members->Structs)
+    {
+        ToDot(struct_, out);
+        out << MakeConnection(node->Id, struct_->Id);
     }
 }
 
