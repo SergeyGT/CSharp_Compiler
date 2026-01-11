@@ -215,7 +215,7 @@ ClassAnalyzer::ClassAnalyzer(ClassDeclNode* node, NamespaceDeclNode* namespace_,
             StmtSeqNode::MakeEmpty()
         };
         constructor->Class = CurrentClass;
-        CurrentClass->Members->Constructors.push_back(dynamic_cast<std::vector<ConstructorDeclNode *>::value_type>(constructor));
+        CurrentClass->Members->Constructors.push_back(dynamic_cast<std::vector<ConstructorDeclNode *>::value_type>(constructor)); //TODO
     }
 }
 
