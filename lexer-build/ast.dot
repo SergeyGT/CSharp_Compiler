@@ -1,29 +1,91 @@
 digraph Program {
-17 [label="Program"]
+48 [label="Program"]
 0 [label="UsingDirectives"]
-16 [label="NamespaceDeclSeq"]
-15 [label="NamespaceDecl\nTest2"]
-5 [label="ClassDecl\nProgram\n Inherited from: "]
-3 [label="MethodDecl\nVisibility: public\nName: Main"]
-2 [label="Stmt Seq"]
-3 -> 2 [label="Method body"]
-5 -> 3
-15 -> 5
-14 [label="StructDecl\nPoint"]
-9 [label="FieldDeclNode\nVisibility: public"]
-8 [label="VarDecl\nName = x\nCalculated data type: int"]
-7 [label="Type\nint"]
-8 -> 7 [label="Variable type"]
-9 -> 8 [label="Field Variable"]
-14 -> 9
-13 [label="FieldDeclNode\nVisibility: public"]
-12 [label="VarDecl\nName = y\nCalculated data type: int"]
-11 [label="Type\nint"]
-12 -> 11 [label="Variable type"]
-13 -> 12 [label="Field Variable"]
+47 [label="NamespaceDeclSeq"]
+46 [label="NamespaceDecl\nIntArray"]
+44 [label="ClassDecl\nM\n Inherited from: "]
+42 [label="MethodDecl\nVisibility: public\nName: Main"]
+7 [label="Stmt Seq"]
+6 [label="STMT"]
+5 [label="VarDeclWithInit\nName = x\nCalculated data type: int"]
+2 [label="Type\nint"]
+5 -> 2 [label="Variable type"]
+4 [label="Qualified_or_expr"]
+3 [label="5\nCalculated data type: int"]
+4 -> 3
+5 -> 4 [label="Init"]
+6 -> 5
+7 -> 6
+12 [label="STMT"]
+11 [label="VarDeclWithInit\nName = y\nCalculated data type: int"]
+8 [label="Type\nint"]
+11 -> 8 [label="Variable type"]
+10 [label="Qualified_or_expr"]
+9 [label="6\nCalculated data type: int"]
+10 -> 9
+11 -> 10 [label="Init"]
+12 -> 11
+7 -> 12
+6 -> 12 [label="next stmt"][style="dashed"]
+41 [label="STMT"]
+40 [label="If"]
+17 [label=">\nCalculated data type: char"]
+14 [label="Qualified_or_expr"]
+13 [label="x\nCalculated data type: char"]
 14 -> 13
-15 -> 14
+16 [label="Qualified_or_expr"]
+15 [label="y\nCalculated data type: char"]
 16 -> 15
-17 -> 0
-17 -> 16
+17 -> 14 [label="left operand"]
+17 -> 16 [label="right operand"]
+40 -> 17 [label="Condition"]
+28 [label="Block Statement"]
+26 [label="Expr statement"]
+25 [label="=\nCalculated data type: char"]
+19 [label="Qualified_or_expr"]
+18 [label="x\nCalculated data type: char"]
+19 -> 18
+24 [label="+\nCalculated data type: char"]
+21 [label="Qualified_or_expr"]
+20 [label="x\nCalculated data type: char"]
+21 -> 20
+23 [label="Qualified_or_expr"]
+22 [label="1\nCalculated data type: int"]
+23 -> 22
+24 -> 21 [label="left operand"]
+24 -> 23 [label="right operand"]
+25 -> 19 [label="left operand"]
+25 -> 24 [label="right operand"]
+26 -> 25
+28 -> 26
+40 -> 28 [label="Then Branch"]
+39 [label="Block Statement"]
+37 [label="Expr statement"]
+36 [label="=\nCalculated data type: char"]
+30 [label="Qualified_or_expr"]
+29 [label="y\nCalculated data type: char"]
+30 -> 29
+35 [label="+\nCalculated data type: char"]
+32 [label="Qualified_or_expr"]
+31 [label="y\nCalculated data type: char"]
+32 -> 31
+34 [label="Qualified_or_expr"]
+33 [label="1\nCalculated data type: int"]
+34 -> 33
+35 -> 32 [label="left operand"]
+35 -> 34 [label="right operand"]
+36 -> 30 [label="left operand"]
+36 -> 35 [label="right operand"]
+37 -> 36
+39 -> 37
+40 -> 39 [label="Else Branch"]
+41 -> 40
+7 -> 41
+12 -> 41 [label="next stmt"][style="dashed"]
+42 -> 7 [label="Method body"]
+44 -> 42
+46 -> 44
+47 -> 46
+48 -> 0
+48 -> 47
 }

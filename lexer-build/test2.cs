@@ -1,13 +1,12 @@
-namespace Test2 {
+namespace Test {
     public class Program {
-        
         public static void Main() {
-           
+            Cl1 cl = new Test.Cl1();
         }
     }
-	
-	public struct Point {
-		public int x;
-		public int y;
-	}
+  
+  public class Cl1 {
+    public Cl1 (){
+    }
+  }
 }

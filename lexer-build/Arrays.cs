@@ -6,7 +6,7 @@ namespace IntArray
         {
             int[] array = new int[10];
 
-            for (int i = 0; i < array.Length; ++i)
+            for (int i = 0; i < 9; i = i + 1)
             {
                 array[i] = i;
             }
