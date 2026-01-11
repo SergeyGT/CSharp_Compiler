@@ -25,35 +25,53 @@ struct Semantic
     // В методе Analyze() Semantic.h
     void Analyze()
     {
-        std::cout << "[DEBUG] Starting semantic analysis..." << std::endl;
-        std::cout << "[DEBUG] System namespace check..." << std::endl;
+        std::cout << "[DEBUG] ===== START Semantic::Analyze() =====" << std::endl;
 
+        std::cout << "[DEBUG] Step 1: CheckSystemNamespace" << std::endl;
         CheckSystemNamespace();
 
-        std::cout << "[DEBUG] Found " << program->Namespaces->GetSeq().size() << " namespaces" << std::endl;
+        std::cout << "[DEBUG] Step 2: List all namespaces" << std::endl;
+        std::cout << "[DEBUG] program->Namespaces pointer: " << program->Namespaces << std::endl;
 
-        for (auto* _namespace : program->Namespaces->GetSeq())
-        {
-            if (_namespace->NamespaceName != "System") {
-                std::cout << "[DEBUG] Analyzing namespace: " << _namespace->NamespaceName << std::endl;
-                std::cout << "[DEBUG] Classes in namespace: " << _namespace->Members->Classes.size() << std::endl;
-                AnalyzeNamespace(_namespace);
+        if (program->Namespaces) {
+            std::cout << "[DEBUG] Number of namespaces: " << program->Namespaces->GetSeq().size() << std::endl;
+
+            for (size_t i = 0; i < program->Namespaces->GetSeq().size(); ++i) {
+                auto* ns = program->Namespaces->GetSeq()[i];
+                std::cout << "[DEBUG] Namespace " << i << ": " << ns->NamespaceName
+                          << " (System? " << (ns->NamespaceName == "System" ? "yes" : "no") << ")" << std::endl;
             }
+
+            std::cout << "[DEBUG] Step 3: Analyze non-System namespaces" << std::endl;
+            for (auto* _namespace : program->Namespaces->GetSeq())
+            {
+                std::cout << "[DEBUG] Processing namespace: " << _namespace->NamespaceName << std::endl;
+                if (_namespace->NamespaceName != "System") {
+                    std::cout << "[DEBUG] Calling AnalyzeNamespace for: " << _namespace->NamespaceName << std::endl;
+                    AnalyzeNamespace(_namespace);
+                    std::cout << "[DEBUG] AnalyzeNamespace completed for: " << _namespace->NamespaceName << std::endl;
+                  } else {
+                     std::cout << "[DEBUG] Skipping System namespace" << std::endl;
+                  }
+            }
+        } else {
+            std::cout << "[DEBUG] ERROR: program->Namespaces is null!" << std::endl;
         }
 
-        std::cout << "[DEBUG] Checking Main methods..." << std::endl;
+        std::cout << "[DEBUG] Step 4: Check Main methods" << std::endl;
         std::cout << "[DEBUG] Found " << AllMains.size() << " Main methods" << std::endl;
 
         if (AllMains.size() > 1) {
-            std::cout << "[DEBUG] Too many Main methods" << std::endl;
+            std::cout << "[DEBUG] ERROR: Too many Main methods" << std::endl;
             Errors.insert("There must be only one main in the program");
         }
         if (AllMains.empty()) {
-            std::cout << "[DEBUG] No Main method found" << std::endl;
+            std::cout << "[DEBUG] ERROR: No Main method found" << std::endl;
             Errors.insert("Cannot run a program without an entry point");
         }
 
-        std::cout << "[DEBUG] Semantic analysis completed. Errors: " << Errors.size() << std::endl;
+        std::cout << "[DEBUG] Total errors: " << Errors.size() << std::endl;
+        std::cout << "[DEBUG] ===== END Semantic::Analyze() =====" << std::endl;
     }
 
     NamespaceDeclNode* CreateSystemNamespace() const;
@@ -80,6 +98,7 @@ struct Semantic
 
     void AnalyzeNamespace(NamespaceDeclNode* namespace_)
     {
+
         // Анализ сигнатур классов
         for (auto* class_ : namespace_->Members->Classes)
         {
@@ -99,6 +118,20 @@ struct Semantic
         {
             ClassAnalyzer analyzer(class_, namespace_, program->Namespaces);
             analyzer.Analyze();
+            if (class_->Members->Constructors.empty()) {
+                std::cout << "[FIX] No constructors in " << class_->ClassName
+                          << ", adding default..." << std::endl;
+
+                auto* constructor = new ConstructorDeclNode(
+                    VisibilityModifier::Public,
+                    std::string{class_->ClassName},
+                    MethodArguments::MakeEmpty(),
+                    StmtSeqNode::MakeEmpty()
+                );
+                constructor->Class = class_;
+                constructor->IsDefault = true;
+                class_->Members->Constructors.push_back(constructor);
+            }
             Errors.insert(analyzer.Errors.begin(), analyzer.Errors.end());
             AllMains.insert(AllMains.end(), analyzer.AllMains.begin(), analyzer.AllMains.end());
         }
@@ -111,6 +144,7 @@ struct Semantic
             Errors.insert(analyzer.Errors.begin(), analyzer.Errors.end());
             // Структуры не могут содержать Main метод
         }
+
 
     } // TODO enums
 

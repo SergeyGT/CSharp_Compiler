@@ -34,6 +34,7 @@ struct DataType
         String = 4,
         Complex = 5,
         Void = 6,
+        Namespace = 7,
         Null
     } AType{};
 
@@ -45,6 +46,8 @@ struct DataType
     int ArrayArity = 0;
 
     bool IsUnknown{};
+
+    std::string NamespaceName;
 
     std::vector<std::string> ComplexType{};
 
@@ -58,6 +61,7 @@ struct DataType
                && ComplexType == data.ComplexType;
     }
 
+    bool IsNamespace() const { return AType == TypeT::Namespace; }
     bool operator!=(const DataType& data) const { return !(*this == data); }
 
     [[nodiscard]] std::string ToDescriptor() const

@@ -1191,6 +1191,45 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         case Qualified_or_expr::TypeT::Dot:
         {
             auto typeForPrevious = CalculateTypeForQualified_or_expr(access->Previous);
+
+            if (typeForPrevious.AType == DataType::TypeT::Namespace)
+            {
+                // Ищем класс в этом пространстве имён
+                std::string namespaceName = typeForPrevious.NamespaceName;
+                for (auto* ns : AllNamespaces->GetSeq())
+                {
+                    if (ns->NamespaceName == namespaceName)
+                    {
+                        // Ищем класс
+                        for (auto* class_ : ns->Members->Classes)
+                        {
+                            if (class_->ClassName == access->Identifier)
+                            {
+                                access->AType = class_->ToDataType();
+                                return access->AType;
+                            }
+                        }
+                        // Ищем структуру
+                        for (auto* struct_ : ns->Members->Structs)
+                        {
+                            if (struct_->StructName == access->Identifier)
+                            {
+                                access->AType = struct_->ToDataType();
+                                return access->AType;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                // Если не нашли класс/структуру в AST
+                Errors.push_back("No class or struct '" + std::string(access->Identifier) +
+                                "' in namespace '" + namespaceName + "'");
+                type.IsUnknown = true;
+                access->AType = type;
+                return type;
+            }
+
             if (typeForPrevious.ArrayArity >= 1 && access->Identifier == "Length")
             {
                 access->Type = Qualified_or_expr::TypeT::ArrayLength;
@@ -1249,6 +1288,20 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         {
             auto isVariableFound = false;
             const auto name = std::string{ access->Identifier };
+
+            for (auto* ns : AllNamespaces->GetSeq())
+            {
+                if (ns->NamespaceName == name)
+                {
+                    // Это пространство имён!
+                    // Создаём специальный тип для пространства имён
+                    DataType namespaceType;
+                    namespaceType.AType = DataType::TypeT::Namespace;
+                    namespaceType.NamespaceName = name;
+                    access->AType = namespaceType;
+                    return namespaceType;
+                }
+            }
 
             // Ищем в локальных переменных метода
             if (CurrentMethod)

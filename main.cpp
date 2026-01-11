@@ -55,6 +55,28 @@ int main(int argc, char** argv) {
                 std::cout << "\n=== Code Generation ===" << std::endl;
                 semantic.Generate();
                 std::cout << "Bytecode generated successfully!" << std::endl;
+
+                //Подключение файлов из System.
+                std::cout << "\n=== Running Program ===" << std::endl;
+
+                // Собираем classpath
+                std::string classpath = "Output";
+
+                #ifdef _WIN32
+                    classpath += ";lib";
+                #endif
+
+                for (auto* ns : treeRoot->Namespaces->GetSeq()) {
+                    if (ns->NamespaceName != "System") {
+                        std::string nsPath = "Output/" + std::string(ns->NamespaceName);
+                        classpath += (":" + nsPath);
+                    }
+                }
+
+                std::string command = "java -cp \"" + classpath + "\" Test.Program";
+                std::cout << "Running: " << command << std::endl;
+                system(command.c_str());
+
             }
         } catch (const std::exception& e) {
             std::cerr << "Semantic analysis failed with exception: " << e.what() << std::endl;

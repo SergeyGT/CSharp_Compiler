@@ -1,228 +1,69 @@
 digraph Program {
-124 [label="Program"]
+38 [label="Program"]
 0 [label="UsingDirectives"]
-123 [label="NamespaceDeclSeq"]
-122 [label="NamespaceDecl\nReturnTest"]
-120 [label="ClassDecl\nTestClass\n Inherited from: "]
-3 [label="MethodDecl\nVisibility: public\nName: Main"]
-2 [label="Stmt Seq"]
-3 -> 2 [label="Method body"]
-120 -> 3
-11 [label="MethodDecl\nVisibility: private\nName: GetNumber"]
-5 [label="Type\nint"]
-11 -> 5 [label="Return value type"]
-10 [label="Stmt Seq"]
-9 [label="Return"]
-8 [label="Qualified_or_expr"]
-7 [label="42\nCalculated data type: int"]
-8 -> 7
-9 -> 8 [label="value"]
-10 -> 9
-11 -> 10 [label="Method body"]
-120 -> 11
-23 [label="MethodDecl\nVisibility: public\nName: ReturnVariable"]
-12 [label="Type\nint"]
-23 -> 12 [label="Return value type"]
-19 [label="Stmt Seq"]
-18 [label="STMT"]
-17 [label="VarDeclWithInit\nName = x\nCalculated data type: int"]
-14 [label="Type\nint"]
-17 -> 14 [label="Variable type"]
+37 [label="NamespaceDeclSeq"]
+36 [label="NamespaceDecl\nCons"]
+34 [label="ClassDecl\nM\n Inherited from: "]
+32 [label="MethodDecl\nVisibility: public\nName: Main"]
+31 [label="Stmt Seq"]
+30 [label="STMT"]
+29 [label="For"]
+5 [label="VarDeclWithInit\nName = i\nCalculated data type: int"]
+2 [label="Type\nint"]
+5 -> 2 [label="Variable type"]
+4 [label="Qualified_or_expr"]
+3 [label="0\nCalculated data type: int"]
+4 -> 3
+5 -> 4 [label="Init"]
+29 -> 5 [label="Loop variable"]
+10 [label="<\nCalculated data type: char"]
+7 [label="Qualified_or_expr"]
+6 [label="i\nCalculated data type: char"]
+7 -> 6
+9 [label="Qualified_or_expr"]
+8 [label="10\nCalculated data type: int"]
+9 -> 8
+10 -> 7 [label="left operand"]
+10 -> 9 [label="right operand"]
+29 -> 10 [label="Condition"]
+18 [label="=\nCalculated data type: char"]
+12 [label="Qualified_or_expr"]
+11 [label="i\nCalculated data type: char"]
+12 -> 11
+17 [label="+\nCalculated data type: char"]
+14 [label="Qualified_or_expr"]
+13 [label="i\nCalculated data type: char"]
+14 -> 13
 16 [label="Qualified_or_expr"]
-15 [label="100\nCalculated data type: int"]
+15 [label="1\nCalculated data type: int"]
 16 -> 15
-17 -> 16 [label="Init"]
-18 -> 17
-19 -> 18
-22 [label="Return"]
-21 [label="Qualified_or_expr"]
-20 [label="x\nCalculated data type: char"]
-21 -> 20
-22 -> 21 [label="value"]
-19 -> 22
-18 -> 22 [label="next stmt"][style="dashed"]
-23 -> 19 [label="Method body"]
-120 -> 23
-27 [label="MethodDecl\nVisibility: public\nName: ReturnVoid"]
-26 [label="Stmt Seq"]
-25 [label="Return"]
+17 -> 14 [label="left operand"]
+17 -> 16 [label="right operand"]
+18 -> 12 [label="left operand"]
+18 -> 17 [label="right operand"]
+29 -> 18 [label="IterExpr"]
+28 [label="Block Statement"]
+26 [label="Expr statement"]
+25 [label="Qualified_or_expr"]
+24 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
+20 [label=".Console\nCalculated data type: char"]
+19 [label="System\nCalculated data type: char"]
+20 -> 19
+24 -> 20 [label="call expr"]
+22 [label="Qualified_or_expr"]
+21 [label="1\nCalculated data type: int"]
+22 -> 21
+24 -> 22 [label="argument"]
+25 -> 24
 26 -> 25
-27 -> 26 [label="Method body"]
-120 -> 27
-37 [label="MethodDecl\nVisibility: public\nName: ReturnExpression"]
-28 [label="Type\nint"]
-37 -> 28 [label="Return value type"]
-36 [label="Stmt Seq"]
-35 [label="Return"]
-34 [label="+\nCalculated data type: char"]
-31 [label="Qualified_or_expr"]
-30 [label="2\nCalculated data type: int"]
+28 -> 26
+29 -> 28 [label="Body"]
+30 -> 29
 31 -> 30
-33 [label="Qualified_or_expr"]
-32 [label="2\nCalculated data type: int"]
-33 -> 32
-34 -> 31 [label="left operand"]
-34 -> 33 [label="right operand"]
-35 -> 34 [label="value"]
-36 -> 35
-37 -> 36 [label="Method body"]
-120 -> 37
-67 [label="MethodDecl\nVisibility: public\nName: ReturnComplexExpression"]
-38 [label="Type\nint"]
-67 -> 38 [label="Return value type"]
-45 [label="Stmt Seq"]
-44 [label="STMT"]
-43 [label="VarDeclWithInit\nName = a\nCalculated data type: int"]
-40 [label="Type\nint"]
-43 -> 40 [label="Variable type"]
-42 [label="Qualified_or_expr"]
-41 [label="5\nCalculated data type: int"]
-42 -> 41
-43 -> 42 [label="Init"]
-44 -> 43
-45 -> 44
-50 [label="STMT"]
-49 [label="VarDeclWithInit\nName = b\nCalculated data type: int"]
-46 [label="Type\nint"]
-49 -> 46 [label="Variable type"]
-48 [label="Qualified_or_expr"]
-47 [label="3\nCalculated data type: int"]
-48 -> 47
-49 -> 48 [label="Init"]
-50 -> 49
-45 -> 50
-44 -> 50 [label="next stmt"][style="dashed"]
-66 [label="Return"]
-65 [label="+\nCalculated data type: char"]
-57 [label="Qualified_or_expr"]
-56 [label="()\nCalculated data type: char"]
-55 [label="*\nCalculated data type: char"]
-52 [label="Qualified_or_expr"]
-51 [label="a\nCalculated data type: char"]
-52 -> 51
-54 [label="Qualified_or_expr"]
-53 [label="b\nCalculated data type: char"]
-54 -> 53
-55 -> 52 [label="left operand"]
-55 -> 54 [label="right operand"]
-56 -> 55
-57 -> 56
-64 [label="Qualified_or_expr"]
-63 [label="()\nCalculated data type: char"]
-62 [label="-\nCalculated data type: char"]
-59 [label="Qualified_or_expr"]
-58 [label="a\nCalculated data type: char"]
-59 -> 58
-61 [label="Qualified_or_expr"]
-60 [label="b\nCalculated data type: char"]
-61 -> 60
-62 -> 59 [label="left operand"]
-62 -> 61 [label="right operand"]
-63 -> 62
-64 -> 63
-65 -> 57 [label="left operand"]
-65 -> 64 [label="right operand"]
-66 -> 65 [label="value"]
-45 -> 66
-50 -> 66 [label="next stmt"][style="dashed"]
-67 -> 45 [label="Method body"]
-120 -> 67
-93 [label="MethodDecl\nVisibility: public\nName: ReturnConditional"]
-68 [label="Type\nstring"]
-93 -> 68 [label="Return value type"]
-70 [label="VarDecl\nName = value\nCalculated data type: int"]
-69 [label="Type\nint"]
-70 -> 69 [label="Variable type"]
-93 -> 70 [label="Method argument"]
-89 [label="Stmt Seq"]
-88 [label="STMT"]
-87 [label="If"]
-76 [label=">\nCalculated data type: char"]
-73 [label="Qualified_or_expr"]
-72 [label="value\nCalculated data type: char"]
-73 -> 72
-75 [label="Qualified_or_expr"]
-74 [label="0\nCalculated data type: int"]
-75 -> 74
-76 -> 73 [label="left operand"]
-76 -> 75 [label="right operand"]
-87 -> 76 [label="Condition"]
-81 [label="Block Statement"]
-79 [label="Return"]
-78 [label="Qualified_or_expr"]
-77 [label="Positive\nCalculated data type: char"]
-78 -> 77
-79 -> 78 [label="value"]
-81 -> 79
-87 -> 81 [label="Then Branch"]
-86 [label="Block Statement"]
-84 [label="Return"]
-83 [label="Qualified_or_expr"]
-82 [label="Non-positive\nCalculated data type: char"]
-83 -> 82
-84 -> 83 [label="value"]
-86 -> 84
-87 -> 86 [label="Else Branch"]
-88 -> 87
-89 -> 88
-92 [label="Return"]
-91 [label="Qualified_or_expr"]
-90 [label=" \nCalculated data type: char"]
-91 -> 90
-92 -> 91 [label="value"]
-89 -> 92
-88 -> 92 [label="next stmt"][style="dashed"]
-93 -> 89 [label="Method body"]
-120 -> 93
-105 [label="MethodDecl\nVisibility: public\nName: ReturnMethodWithArgs"]
-94 [label="Type\nint"]
-105 -> 94 [label="Return value type"]
-104 [label="Stmt Seq"]
-103 [label="Return"]
-102 [label="Qualified_or_expr"]
-101 [label="Method call\nMethodName: Multiply\nCalculated data type: char"]
-97 [label="Qualified_or_expr"]
-96 [label="4\nCalculated data type: int"]
-97 -> 96
-101 -> 97 [label="argument"]
-100 [label="Qualified_or_expr"]
-99 [label="5\nCalculated data type: int"]
-100 -> 99
-101 -> 100 [label="argument"]
-97 -> 100 [label="next"][style="dashed"]
-102 -> 101
-103 -> 102 [label="value"]
-104 -> 103
-105 -> 104 [label="Method body"]
-120 -> 105
-119 [label="MethodDecl\nVisibility: private\nName: Multiply"]
-106 [label="Type\nint"]
-119 -> 106 [label="Return value type"]
-108 [label="VarDecl\nName = x\nCalculated data type: int"]
-107 [label="Type\nint"]
-108 -> 107 [label="Variable type"]
-119 -> 108 [label="Method argument"]
-111 [label="VarDecl\nName = y\nCalculated data type: int"]
-110 [label="Type\nint"]
-111 -> 110 [label="Variable type"]
-119 -> 111 [label="Method argument"]
-118 [label="Stmt Seq"]
-117 [label="Return"]
-116 [label="*\nCalculated data type: char"]
-113 [label="Qualified_or_expr"]
-112 [label="x\nCalculated data type: char"]
-113 -> 112
-115 [label="Qualified_or_expr"]
-114 [label="y\nCalculated data type: char"]
-115 -> 114
-116 -> 113 [label="left operand"]
-116 -> 115 [label="right operand"]
-117 -> 116 [label="value"]
-118 -> 117
-119 -> 118 [label="Method body"]
-120 -> 119
-122 -> 120
-123 -> 122
-124 -> 0
-124 -> 123
+32 -> 31 [label="Method body"]
+34 -> 32
+36 -> 34
+37 -> 36
+38 -> 0
+38 -> 37
 }

@@ -1,5 +1,7 @@
+
 namespace IntArray
 {
+    
     public class M
     {
         public static void Main()
@@ -8,7 +10,8 @@ namespace IntArray
 
             for (int i = 0; i < 9; i = i + 1)
             {
-                array[i] = i;
+                array[i] = i; 
+				System.Console.WriteLine(i);
             }
         }
     }

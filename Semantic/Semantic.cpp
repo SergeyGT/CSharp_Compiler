@@ -30,7 +30,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
     [[maybe_unused]] auto* readIntMethod = [&]
     {
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "ReadInt",
-                                          MethodArguments::MakeEmpty(), nullptr);
+                                          MethodArguments::MakeEmpty(), StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::IntType;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
@@ -41,7 +41,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* arg = new VarDeclNode(new TypeNode(StandardType::Int), "arg", nullptr);
         auto* args = MethodArguments::MakeEmpty();
         args->Add(arg);
-        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, nullptr);
+        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
@@ -53,7 +53,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* arg = new VarDeclNode(new TypeNode(StandardType::Int), "arg", nullptr);
         auto* args = MethodArguments::MakeEmpty();
         args->Add(arg);
-        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, nullptr);
+        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
@@ -65,7 +65,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* arg = new VarDeclNode(new TypeNode(StandardType::Bool), "arg", nullptr);
         auto* args = MethodArguments::MakeEmpty();
         args->Add(arg);
-        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, nullptr);
+        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
@@ -77,7 +77,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* arg = new VarDeclNode(new TypeNode(StandardType::String), "arg", nullptr);
         auto* args = MethodArguments::MakeEmpty();
         args->Add(arg);
-        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, nullptr);
+        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
@@ -89,7 +89,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* arg = new VarDeclNode(new TypeNode(StandardType::String), "arg", nullptr);
         auto* args = MethodArguments::MakeEmpty();
         args->Add(arg);
-        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, nullptr);
+        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
@@ -101,7 +101,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* arg = new VarDeclNode(new TypeNode(StandardType::Char), "arg", nullptr);
         auto* args = MethodArguments::MakeEmpty();
         args->Add(arg);
-        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, nullptr);
+        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
@@ -113,7 +113,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* arg = new VarDeclNode(new TypeNode(StandardType::Char), "arg", nullptr);
         auto* args = MethodArguments::MakeEmpty();
         args->Add(arg);
-        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, nullptr);
+        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
