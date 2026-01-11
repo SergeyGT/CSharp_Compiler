@@ -477,19 +477,37 @@ void ToDot(FieldDeclNode* node, std::ostream& out)
 void ToDot(ClassDeclNode* node, std::ostream& out)
 {
     auto name = std::string{ node->Name() } + "\\n" + std::string{ node->ClassName };
-    name += "\\n Inherited from: " + QualifiedNameToString(node->ParentType);
+    name += "\\nInherited from: " + QualifiedNameToString(node->ParentType);
     out << MakeNode(node->Id, name);
 
-    for (auto* method : node->Members->Methods)
+    // Конструкторы (если есть)
+    if (!node->Members->Constructors.empty())
     {
-        ToDot(method, out);
-        out << MakeConnection(node->Id, method->Id);
+        for (auto* constructor : node->Members->Constructors)
+        {
+            ToDot(constructor, out);
+            out << MakeConnection(node->Id, constructor->Id, "constructor");
+        }
     }
 
+    
+
+    // Методы (исключая конструкторы/деструкторы)
+    for (auto* method : node->Members->Methods)
+    {
+        // Проверяем, не является ли это конструктором/деструктором
+        if (method->IsConstructor) {
+            continue; // Пропускаем, так как уже обработали отдельно
+        }
+        ToDot(method, out);
+        out << MakeConnection(node->Id, method->Id, "method");
+    }
+
+    // Поля
     for (auto* field : node->Members->Fields)
     {
         ToDot(field, out);
-        out << MakeConnection(node->Id, field->Id);
+        out << MakeConnection(node->Id, field->Id, "field");
     }
 }
 
@@ -541,6 +559,34 @@ void ToDot(NamespaceDeclSeq* node, std::ostream& out)
     {
         ToDot(child, out);
         out << MakeConnection(node->Id, child->Id);
+    }
+}
+
+void ToDot(ConstructorDeclNode* node, std::ostream& out)
+{
+
+    const auto name = std::string{ "Constructor" }
+    + "\\nVisibility: " + std::string{ ToString(node->Visibility) }
+    + "\\nName: " + std::string{ node->Identifier() }
+    + (node->IsDefault ? "\\n(Default Constructor)" : "");
+
+    out << MakeNode(node->Id, name);
+
+    // Аргументы конструктора
+    if (node->Arguments && !node->Arguments->GetSeq().empty())
+    {
+        for (auto* arg : node->Arguments->GetSeq())
+        {
+            ToDot(arg, out);
+            out << MakeConnection(node->Id, arg->Id, "argument");
+        }
+    }
+
+    // Тело конструктора
+    if (node->Body)
+    {
+        ToDot(node->Body, out, node, true, true);
+        out << MakeConnection(node->Id, node->Body->Id, "body");
     }
 }
 

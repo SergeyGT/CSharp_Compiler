@@ -225,7 +225,7 @@ struct ConstructorDeclNode final : public MethodDeclNode {
     bool IsDefault{};
 
     ConstructorDeclNode(const VisibilityModifier visibility,
-                       const std::string_view className,
+                       const std::string className,
                        MethodArguments* const arguments,
                        StmtSeqNode* const body)
         : MethodDeclNode(visibility, nullptr, className, arguments, body, false)

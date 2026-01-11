@@ -1719,7 +1719,7 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
             const auto* method = expr->ActualMethodCall;
             const auto methodRefConstant = file.Constants.FindMethodRef(method->Class->ToDataType().ToTypename(),
                                                                         method->Identifier(), method->ToDescriptor());
-            append(bytes, (uint8_t)Command::invokevirtual);
+            append(bytes, (uint8_t)Command::invokestatic);
             append(bytes, ToBytes(methodRefConstant));
             return bytes;
         }
@@ -1753,7 +1753,7 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
             const auto* method = expr->ActualMethodCall;
             const auto methodRefConstant = file.Constants.FindMethodRef(method->Class->ToDataType().ToTypename(),
                                                                         method->Identifier(), method->ToDescriptor());
-            append(bytes, (uint8_t)Command::invokevirtual);
+            append(bytes, (uint8_t)Command::invokestatic);
             append(bytes, ToBytes(methodRefConstant));
             return bytes;
         }

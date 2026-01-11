@@ -118,6 +118,7 @@ struct Semantic
         {
             ClassAnalyzer analyzer(class_, namespace_, program->Namespaces);
             analyzer.Analyze();
+            analyzer.AnalyzeMemberSignatures();
             if (class_->Members->Constructors.empty()) {
                 std::cout << "[FIX] No constructors in " << class_->ClassName
                           << ", adding default..." << std::endl;

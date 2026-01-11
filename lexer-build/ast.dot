@@ -1,69 +1,70 @@
 digraph Program {
-38 [label="Program"]
+40 [label="Program"]
 0 [label="UsingDirectives"]
-37 [label="NamespaceDeclSeq"]
-36 [label="NamespaceDecl\nCons"]
-34 [label="ClassDecl\nM\n Inherited from: "]
-32 [label="MethodDecl\nVisibility: public\nName: Main"]
-31 [label="Stmt Seq"]
-30 [label="STMT"]
-29 [label="For"]
-5 [label="VarDeclWithInit\nName = i\nCalculated data type: int"]
-2 [label="Type\nint"]
-5 -> 2 [label="Variable type"]
-4 [label="Qualified_or_expr"]
-3 [label="0\nCalculated data type: int"]
-4 -> 3
-5 -> 4 [label="Init"]
-29 -> 5 [label="Loop variable"]
-10 [label="<\nCalculated data type: char"]
-7 [label="Qualified_or_expr"]
-6 [label="i\nCalculated data type: char"]
-7 -> 6
-9 [label="Qualified_or_expr"]
-8 [label="10\nCalculated data type: int"]
+39 [label="NamespaceDeclSeq"]
+38 [label="NamespaceDecl\nInitObj"]
+24 [label="ClassDecl\nProgram\nInherited from: "]
+22 [label="MethodDecl\nVisibility: public\nName: Main"]
+10 [label="Stmt Seq"]
+9 [label="STMT"]
+8 [label="VarDeclWithInit\nName = newClass\nCalculated data type: A"]
+3 [label="Type"]
+2 [label="A"]
+3 -> 2 [label="Complex type"]
+8 -> 3 [label="Variable type"]
+7 [label="new\nCalculated data type: InitObj.A"]
+6 [label="Type"]
+5 [label=".A"]
+4 [label="InitObj\nCalculated data type: char"]
+5 -> 4
+6 -> 5 [label="Complex type"]
+7 -> 6 [label="type"]
+8 -> 7 [label="Init"]
 9 -> 8
-10 -> 7 [label="left operand"]
-10 -> 9 [label="right operand"]
-29 -> 10 [label="Condition"]
-18 [label="=\nCalculated data type: char"]
-12 [label="Qualified_or_expr"]
-11 [label="i\nCalculated data type: char"]
+10 -> 9
+21 [label="Expr statement"]
+20 [label="Qualified_or_expr"]
+19 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
+12 [label=".Console\nCalculated data type: char"]
+11 [label="System\nCalculated data type: char"]
 12 -> 11
+19 -> 12 [label="call expr"]
 17 [label="+\nCalculated data type: char"]
 14 [label="Qualified_or_expr"]
-13 [label="i\nCalculated data type: char"]
+13 [label="10\nCalculated data type: int"]
 14 -> 13
 16 [label="Qualified_or_expr"]
-15 [label="1\nCalculated data type: int"]
+15 [label="10\nCalculated data type: int"]
 16 -> 15
 17 -> 14 [label="left operand"]
 17 -> 16 [label="right operand"]
-18 -> 12 [label="left operand"]
-18 -> 17 [label="right operand"]
-29 -> 18 [label="IterExpr"]
-28 [label="Block Statement"]
-26 [label="Expr statement"]
-25 [label="Qualified_or_expr"]
-24 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
-20 [label=".Console\nCalculated data type: char"]
-19 [label="System\nCalculated data type: char"]
+19 -> 17 [label="argument"]
 20 -> 19
-24 -> 20 [label="call expr"]
-22 [label="Qualified_or_expr"]
-21 [label="1\nCalculated data type: int"]
-22 -> 21
-24 -> 22 [label="argument"]
-25 -> 24
-26 -> 25
-28 -> 26
-29 -> 28 [label="Body"]
-30 -> 29
-31 -> 30
-32 -> 31 [label="Method body"]
-34 -> 32
-36 -> 34
-37 -> 36
-38 -> 0
+21 -> 20
+10 -> 21
+9 -> 21 [label="next stmt"][style="dashed"]
+22 -> 10 [label="Method body"]
+24 -> 22 [label="method"]
+38 -> 24
+37 [label="ClassDecl\nA\nInherited from: "]
+28 [label="Constructor\nVisibility: public\nName: °\n(Default Constructor)"]
+26 [label="Stmt Seq"]
+28 -> 26 [label="body"]
+37 -> 28 [label="constructor"]
+36 [label="MethodDecl\nVisibility: public\nName: GetNum"]
+30 [label="Type\nint"]
+36 -> 30 [label="Return value type"]
+35 [label="Stmt Seq"]
+34 [label="Return"]
+33 [label="Qualified_or_expr"]
+32 [label="8\nCalculated data type: int"]
+33 -> 32
+34 -> 33 [label="value"]
+35 -> 34
+36 -> 35 [label="Method body"]
+37 -> 36 [label="method"]
 38 -> 37
+39 -> 38
+40 -> 0
+40 -> 39
 }

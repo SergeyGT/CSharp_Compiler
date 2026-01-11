@@ -22,6 +22,8 @@ void ToDot(MethodDeclNode* node, std::ostream& out);
 
 void ToDot(FieldDeclNode* node, std::ostream& out);
 
+void ToDot(ConstructorDeclNode* node, std::ostream& out);
+
 void ToDot(ClassDeclNode* node, std::ostream& out);
 
 void ToDot(EnumDeclNode* node, std::ostream& out);
