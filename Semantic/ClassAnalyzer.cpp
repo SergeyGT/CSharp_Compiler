@@ -723,6 +723,11 @@ void ClassAnalyzer::AnalyzeSimpleMethodCall(Qualified_or_expr* expr)
     if (expr->Type != Qualified_or_expr::TypeT::SimpleMethodCall)
         return;
 
+    std::cout << "[DEBUG SimpleMethodCall] Method: " << std::string(expr->Identifier)
+              << ", CurrentMethod: " << (CurrentMethod ? CurrentMethod->Identifier() : "null")
+              << ", CurrentMethod IsStatic: " << (CurrentMethod ? CurrentMethod->IsStatic : false)
+              << std::endl;
+
     for (auto*& argument : expr->Arguments->GetSeq())
         argument = AnalyzeExpr(argument);
 
@@ -745,23 +750,51 @@ void ClassAnalyzer::AnalyzeSimpleMethodCall(Qualified_or_expr* expr)
 
     const auto foundMethod = std::find_if(allMethods.begin(), allMethods.end(), [&](auto* method)
     {
-        return methodName == method->Identifier() && callTypes ==
-               ToTypes(method->ArgumentDtos) && !method->IsStatic;
+        bool nameMatches = methodName == method->Identifier();
+        bool typesMatch = callTypes == ToTypes(method->ArgumentDtos);
+
+        // Проверка статического контекста
+        bool staticValid = true;
+        if (CurrentMethod) {
+            // Если текущий метод статический, можно вызывать только статические методы
+            // Если текущий метод нестатический, можно вызывать любые методы
+            staticValid = !CurrentMethod->IsStatic || method->IsStatic;
+        }
+
+        std::cout << "[DEBUG SimpleMethodCall] Checking: " << method->Identifier()
+                  << ", IsStatic=" << method->IsStatic
+                  << ", nameMatches=" << nameMatches
+                  << ", typesMatch=" << typesMatch
+                  << ", staticValid=" << staticValid << std::endl;
+
+        return nameMatches && typesMatch && staticValid;
     });
 
     if (foundMethod == allMethods.end())
     {
-        Errors.push_back("Cannot call method with name " + std::string{ methodName } + " with arguments of types " +
-                         ToString(callTypes));
+        std::cout << "[DEBUG SimpleMethodCall] Method not found: " << std::string(methodName)
+                  << " with types " << ToString(callTypes) << std::endl;
+
+        // Может быть, это вызов статического метода из другого класса?
+        // Например, System.Console.Write внутри метода?
+        // Тогда это должно быть DotMethodCall, а не SimpleMethodCall!
+
+        Errors.push_back("Cannot call method with name " + std::string{ methodName } +
+                        " with arguments of types " + ToString(callTypes));
         return;
     }
 
-    if (CurrentMethod->IsStatic && !(*foundMethod)->IsStatic)
+    std::cout << "[DEBUG SimpleMethodCall] Found method: " << (*foundMethod)->Identifier()
+              << ", IsStatic=" << (*foundMethod)->IsStatic << std::endl;
+
+    // Проверка доступности
+    if (CurrentMethod && CurrentMethod->IsStatic && !(*foundMethod)->IsStatic)
     {
-        Errors.push_back("Cannot call non-static method with name \'" + std::string{ methodName } +
-                         "\' from static method with name \'" + CurrentMethod->Identifier() + "\'");
+        Errors.push_back("Cannot call non-static method '" + std::string{ methodName } +
+                        "' from static method '" + CurrentMethod->Identifier() + "'");
         return;
     }
+
     AnalyzeMethodAccessibility(*foundMethod);
     expr->ActualMethodCall = *foundMethod;
 }
@@ -1232,10 +1265,10 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
             std::string identifierStr = std::string(access->Identifier);
             if (identifierStr == "ReadInt" || identifierStr == "ReadFloat" ||
                 identifierStr == "ReadChar" || identifierStr == "ReadString" ||
-                identifierStr == "ReadBool") {
+                identifierStr == "ReadBool" ||     identifierStr == "Write" || identifierStr == "WriteLine") {
                 // ЭТО МЕТОД! Преобразуем в MethodCall
                 std::cout << "[DEBUG] Converting Dot to MethodCall for: " << identifierStr << std::endl;
-                access->Type = Qualified_or_expr::TypeT::MethodCall;
+                access->Type = Qualified_or_expr::TypeT::DotMethodCall;
                 // Нужно создать пустой список аргументов
                 if (!access->Arguments) {
                     access->Arguments = new ExprSeqNode(); // Пустой список аргументов
@@ -1328,7 +1361,15 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
                 // Это вызов через точку, должен быть обработан как DotMethodCall
                 std::cout << "[DEBUG] MethodCall has Previous, converting to DotMethodCall" << std::endl;
                 access->Type = Qualified_or_expr::TypeT::DotMethodCall;
-                return CalculateTypeForQualified_or_expr(access);
+                AnalyzeDotMethodCall(access);
+                if (access->ActualMethodCall) {
+                    type = access->ActualMethodCall->AReturnType;
+                    access->AType = type;
+                } else {
+                    type = { {}, {}, true };
+                    access->AType = type;
+                }
+                return type;
             }
 
             // Простой вызов метода (без точки)
