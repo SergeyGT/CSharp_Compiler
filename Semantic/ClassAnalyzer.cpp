@@ -200,23 +200,38 @@ ClassAnalyzer::ClassAnalyzer(ClassDeclNode* node, NamespaceDeclNode* namespace_,
   , Namespace{ namespace_ }
   , AllNamespaces{ allNamespaces }
 {
-    const auto hasConstructor = std::any_of(CurrentClass->Members->Methods.begin(),
-                                            CurrentClass->Members->Methods.end(), [](auto* method)
-                                            {
-                                                return method->IsConstructor;
-                                            });
-    if (!hasConstructor)
+
+
+    // Проверяем, есть ли конструктор (в Members->Constructors)
+    if (CurrentClass->Members->Constructors.empty())
     {
-        auto* constructor = new MethodDeclNode{
+        auto* constructor = new ConstructorDeclNode{
             VisibilityModifier::Public,
-            nullptr,
-            "<init>",
+            std::string{CurrentClass->ClassName},
             MethodArguments::MakeEmpty(),
             StmtSeqNode::MakeEmpty()
         };
         constructor->Class = CurrentClass;
-        CurrentClass->Members->Constructors.push_back(dynamic_cast<std::vector<ConstructorDeclNode *>::value_type>(constructor)); //TODO
+        constructor->IsDefault = true;
+        CurrentClass->Members->Constructors.push_back(constructor);
     }
+    // const auto hasConstructor = std::any_of(CurrentClass->Members->Methods.begin(),
+    //                                         CurrentClass->Members->Methods.end(), [](auto* method)
+    //                                         {
+    //                                             return method->IsConstructor;
+    //                                         });
+    // if (!hasConstructor)
+    // {
+    //     auto* constructor = new MethodDeclNode{
+    //         VisibilityModifier::Public,
+    //         nullptr,
+    //         "<init>",
+    //         MethodArguments::MakeEmpty(),
+    //         StmtSeqNode::MakeEmpty()
+    //     };
+    //     constructor->Class = CurrentClass;
+    //     CurrentClass->Members->Constructors.push_back(dynamic_cast<std::vector<ConstructorDeclNode *>::value_type>(constructor)); //TODO
+    // }
 }
 
 ClassAnalyzer::ClassAnalyzer(StructDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces)
@@ -580,6 +595,15 @@ void ClassAnalyzer::AnalyzeClass(ClassDeclNode* value)
 
     if (value->Members->Constructors.empty()) {
         Errors.push_back("Class " + std::string{value->ClassName} + " must have at least one constructor");
+        auto* constructor = new ConstructorDeclNode{
+            VisibilityModifier::Public,
+            std::string{value->ClassName},
+            MethodArguments::MakeEmpty(),
+            StmtSeqNode::MakeEmpty()
+        };
+        constructor->Class = value;
+        constructor->IsDefault = true;
+        value->Members->Constructors.push_back(constructor);
     }
 }
 
@@ -1607,6 +1631,14 @@ void ClassAnalyzer::FillTables()
 {
     if (CurrentClass)
     {
+        for (auto* constructor : CurrentClass->Members->Constructors)
+        {
+            const auto nameId = File.Constants.FindUtf8("<init>");
+            const auto typeId = File.Constants.FindUtf8("()V");
+            const auto accessFlags = ToAccessFlags(constructor->Visibility, false);
+            File.Methods.push_back({ nameId, typeId, accessFlags, constructor });
+        }
+
         for (auto* field : CurrentClass->Members->Fields) {
             FillTables(field);
         }
@@ -1769,19 +1801,39 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
         {
             Bytes bytes;
 
-            // �������� this �� ����
-            append(bytes, (uint8_t)Command::aload_0);
-
-            // �������� ���������� �� ����
-            for (auto* arg : expr->Arguments->GetSeq()) { append(bytes, ToBytes(arg, file)); }
-
             const auto* method = expr->ActualMethodCall;
-            const auto methodRefConstant = file.Constants.FindMethodRef(method->Class->ToDataType().ToTypename(),
-                                                                        method->Identifier(), method->ToDescriptor());
-            append(bytes, (uint8_t)Command::invokestatic);
+
+            // Если метод нестатический, загружаем this (aload_0)
+            if (method && !method->IsStatic)
+            {
+                append(bytes, (uint8_t)Command::aload_0);
+            }
+
+            // Загружаем аргументы на стек
+            for (auto* arg : expr->Arguments->GetSeq())
+            {
+                append(bytes, ToBytes(arg, file));
+            }
+
+            const auto methodRefConstant = file.Constants.FindMethodRef(
+                method->Class->ToDataType().ToTypename(),
+                method->Identifier(),
+                method->ToDescriptor()
+            );
+
+            // Выбираем правильную инструкцию вызова
+            if (method->IsStatic)
+            {
+                append(bytes, (uint8_t)Command::invokestatic);
+            }
+            else
+            {
+                append(bytes, (uint8_t)Command::invokevirtual);
+            }
             append(bytes, ToBytes(methodRefConstant));
             return bytes;
         }
+
         case Qualified_or_expr::TypeT::Dot:
         {
             if (expr->ActualField)
@@ -1803,16 +1855,38 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
         case Qualified_or_expr::TypeT::DotMethodCall:
         {
             Bytes bytes;
-            // �������� ��������� ����� �� �����
+            // Загружаем объект (предыдущее выражение) на стек
             append(bytes, ToBytes(expr->Previous, file));
 
-            // �������� ���������� �� ����
-            for (auto* arg : expr->Arguments->GetSeq()) { append(bytes, ToBytes(arg, file)); }
+            // Загружаем аргументы на стек
+            for (auto* arg : expr->Arguments->GetSeq())
+            {
+                append(bytes, ToBytes(arg, file));
+            }
 
             const auto* method = expr->ActualMethodCall;
-            const auto methodRefConstant = file.Constants.FindMethodRef(method->Class->ToDataType().ToTypename(),
-                                                                        method->Identifier(), method->ToDescriptor());
-            append(bytes, (uint8_t)Command::invokestatic);
+
+            std::cout << "[DEBUG] Generating DotMethodCall: "
+              << method->Identifier()
+              << ", Class: " << method->Class->ToDataType().ToTypename()
+              << ", Descriptor: " << method->ToDescriptor()
+              << ", IsStatic: " << method->IsStatic << std::endl;
+
+            const auto methodRefConstant = file.Constants.FindMethodRef(
+                method->Class->ToDataType().ToTypename(),
+                method->Identifier(),
+                method->ToDescriptor()
+            );
+
+            // Выбираем правильную инструкцию вызова
+            if (method->IsStatic)
+            {
+                append(bytes, (uint8_t)Command::invokestatic);
+            }
+            else
+            {
+                append(bytes, (uint8_t)Command::invokevirtual);
+            }
             append(bytes, ToBytes(methodRefConstant));
             return bytes;
         }

@@ -2,9 +2,6 @@ namespace Sort
 {
     public class M
     {
-		
-		public M () {
-		}
         public void PrintArray(int[] array)
         {
             System.Console.Write("[");

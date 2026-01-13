@@ -50,6 +50,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
+        method->IsStatic=true;
         consoleMethods.push_back(method);
         return method;
     }();
@@ -62,6 +63,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
+        method->IsStatic=true;
         consoleMethods.push_back(method);
         return method;
     }();
@@ -74,6 +76,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
+        method->IsStatic=true;
         consoleMethods.push_back(method);
         return method;
     }();
@@ -86,6 +89,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
+        method->IsStatic=true;
         consoleMethods.push_back(method);
         return method;
     }();
@@ -98,6 +102,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
+        method->IsStatic=true;
         consoleMethods.push_back(method);
         return method;
     }();
@@ -110,6 +115,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
+        method->IsStatic=true;
         consoleMethods.push_back(method);
         return method;
     }();
@@ -122,6 +128,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "Write", args, StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::VoidType;
         method->AnalyzeArguments();
+        method->IsStatic=true;
         consoleMethods.push_back(method);
         return method;
     }();
