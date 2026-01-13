@@ -32,8 +32,14 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "ReadInt",
                                           MethodArguments::MakeEmpty(), StmtSeqNode::MakeEmpty());
         method->AReturnType = DataType::IntType;
+        method->IsStatic=true;
         method->AnalyzeArguments();
         consoleMethods.push_back(method);
+
+        // ДОБАВЬТЕ ПРОВЕРКУ:
+        std::cout << "[DEBUG] Created ReadInt method, return type: "
+                  << ToString(method->AReturnType) << std::endl;
+
         return method;
     }();
     [[maybe_unused]] auto* writeLineIntMethod = [&]
@@ -122,7 +128,7 @@ ClassDeclNode* Semantic::CreateConsoleClass()
 
     auto* consoleClass = new ClassDeclNode("Console", nullptr, consoleClassMembers);
 
-    for (auto* method : consoleMethods) { method->Class = consoleClass; }
+    for (auto* method : consoleMethods) { method->Class = consoleClass;}
 
     return consoleClass;
 }

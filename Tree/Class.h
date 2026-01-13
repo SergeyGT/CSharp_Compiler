@@ -96,7 +96,7 @@ private:
 public:
     MethodArguments* Arguments{};
     StmtSeqNode* Body{};
-    const bool IsStatic{};
+    bool IsStatic{};
     bool IsConstructor{};
     std::vector<VarDeclNode*> Variables{};
     DataType AReturnType{};

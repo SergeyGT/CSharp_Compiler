@@ -782,17 +782,30 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
 
     const auto foundMethod = std::find_if(allMethods.begin(), allMethods.end(), [&](auto* method)
     {
-        return methodName == method->Identifier() && callTypes ==
-               ToTypes(method->ArgumentDtos) && !method->IsStatic;
+        bool nameMatches = methodName == method->Identifier();
+         bool typesMatch = callTypes == ToTypes(method->ArgumentDtos);
+
+         std::cout << "[DEBUG] Checking method: " << method->Identifier()
+                   << ", nameMatches=" << nameMatches
+                   << ", typesMatch=" << typesMatch
+                   << ", method args count=" << method->ArgumentDtos.size()
+                   << ", call args count=" << callTypes.size() << std::endl;
+
+         return nameMatches && typesMatch;  // ← БЕЗ !method->IsStatic
     });
 
     if (foundMethod == allMethods.end())
     {
         Errors.push_back("Cannot call method with name " + std::string{ methodName } + " with arguments of types " +
                          ToString(callTypes));
+        std::cout << "[DEBUG] Method not found: " << std::string(methodName)
+                  << " in type " << ToString(typeForPrevious) << std::endl;
         return;
     }
 
+    std::cout << "[DEBUG] Found method: " << (*foundMethod)->Identifier()
+                 << ", return type: " << ToString((*foundMethod)->AReturnType)
+                 << ", IsStatic: " << (*foundMethod)->IsStatic << std::endl;
     AnalyzeMethodAccessibility(*foundMethod);
     expr->ActualMethodCall = *foundMethod;
 }
@@ -1192,6 +1205,21 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         {
             auto typeForPrevious = CalculateTypeForQualified_or_expr(access->Previous);
 
+            std::string identifierStr = std::string(access->Identifier);
+            if (identifierStr == "ReadInt" || identifierStr == "ReadFloat" ||
+                identifierStr == "ReadChar" || identifierStr == "ReadString" ||
+                identifierStr == "ReadBool") {
+                // ЭТО МЕТОД! Преобразуем в MethodCall
+                std::cout << "[DEBUG] Converting Dot to MethodCall for: " << identifierStr << std::endl;
+                access->Type = Qualified_or_expr::TypeT::MethodCall;
+                // Нужно создать пустой список аргументов
+                if (!access->Arguments) {
+                    access->Arguments = new ExprSeqNode(); // Пустой список аргументов
+                }
+                // Теперь это MethodCall, рекурсивно обработаем
+                return CalculateTypeForQualified_or_expr(access);
+                }
+
             if (typeForPrevious.AType == DataType::TypeT::Namespace)
             {
                 // Ищем класс в этом пространстве имён
@@ -1266,6 +1294,36 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
             access->AType = access->ActualField->VarDecl->AType;
             return access->AType;
         }
+
+        case Qualified_or_expr::TypeT::MethodCall:
+        {
+            std::cout << "[DEBUG] MethodCall case for: " << std::string(access->Identifier) << std::endl;
+
+            // Проверяем, есть ли Previous (вызов через точку)
+            if (access->Previous != nullptr) {
+                // Это вызов через точку, должен быть обработан как DotMethodCall
+                std::cout << "[DEBUG] MethodCall has Previous, converting to DotMethodCall" << std::endl;
+                access->Type = Qualified_or_expr::TypeT::DotMethodCall;
+                return CalculateTypeForQualified_or_expr(access);
+            }
+
+            // Простой вызов метода (без точки)
+            // Анализируем вызов
+            if (!access->ActualMethodCall) {
+                AnalyzeSimpleMethodCall(access);
+            }
+
+            if (access->ActualMethodCall) {
+                type = access->ActualMethodCall->AReturnType;
+                access->AType = type;
+                std::cout << "[DEBUG] MethodCall return type: " << ToString(type) << std::endl;
+            } else {
+                type = { {}, {}, true }; // unknown
+                access->AType = type;
+            }
+
+            return type;
+        }
         case Qualified_or_expr::TypeT::DotMethodCall:
         {
             if (access->ActualMethodCall)
@@ -1275,6 +1333,7 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
             }
             else
             {
+                std::cout << "[DEBUG] DotMethodCall: No ActualMethodCall, analyzing..." << std::endl;
                 AnalyzeDotMethodCall(access);
                 if (access->ActualMethodCall)
                     type = access->ActualMethodCall->AReturnType;
