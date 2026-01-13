@@ -4,18 +4,17 @@ namespace Sort
     {
         public void PrintArray(int[] array)
         {
-            int Console = new System.Console;
-            Console.Write("[");
+            System.Console.Write("[");
             for (int i = 0; i < array.Length; ++i)
             {
-                Console.Write(array[i]);
+                System.Console.Write(array[i]);
                 bool isLast = i == array.Length - 1;
                 if (!isLast)
                 {
-                    Console.Write(", ");
+                    System.Console.Write(", ");
                 }
             }
-            Console.WriteLine("]");
+            System.Console.WriteLine("]");
         }
 
         public void SortArray(int[] array)
@@ -24,27 +23,37 @@ namespace Sort
             {
                 for (int inner = 0; inner < array.Length - 1; ++inner)
                 {
-                    if (array[inner] < array[inner + 1])
-          {
-            int temp = array[inner];
-            array[inner] = array[inner + 1];
-            array[inner + 1] = temp;
-          }
+                    if (array[inner] < array[inner + 1]) 
+					{
+						int temp = array[inner];
+						array[inner] = array[inner + 1];
+						array[inner + 1] = temp;
+					}
                 }
             }
         }
 
-		
-		public static void Main()
+        public static void Main()
         {
+            System.Console.Write("Enter array length: ");
+            int length = System.Console.ReadInt();
+				
+			//int length = 5;
 
+            int[] array = new int[length];
+			
 
-            Console.Write("Array before sorting: ");
-            main.PrintArray(array);
+             for (int i = 0; i < array.Length; ++i)
+                 array[i] = System.Console.ReadInt();
+		
+			M m = new Sort.M();
 
-            main.SortArray(array);
-            Console.Write("Array after sorting: ");
-            main.PrintArray(array);
+            System.Console.Write("Array before sorting: ");
+            m.PrintArray(array);
+
+            m.SortArray(array);
+            System.Console.Write("Array after sorting: ");
+            m.PrintArray(array);
         }
     }
 }

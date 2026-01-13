@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class Console {
-    Scanner in = new Scanner(System.in);
+    static Scanner in = new Scanner(System.in);
 
     //Функции печати в консоль в строку
     public static void WriteLine(int value) {
@@ -28,15 +28,15 @@ public class Console {
     }
 
     //Функции чтения из консоли
-    public int ReadInt() {
+    public static int ReadInt() {
         return in.nextInt();
     }
 
-    public float ReadFloat() {
+    public static float ReadFloat() {
         return in.nextFloat();
     }
 
-    public char ReadChar() {
+    public static char ReadChar() {
         char value = 0;
         try {
             value = (char) System.in.read();
@@ -46,11 +46,11 @@ public class Console {
         return value;
     }
 
-    public String ReadString() {
+    public static String ReadString() {
         return new String(in.next());
     }
 
-    public boolean ReadBool() {
+    public static boolean ReadBool() {
         return in.nextBoolean();
     }
 

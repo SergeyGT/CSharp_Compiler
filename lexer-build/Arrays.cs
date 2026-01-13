@@ -8,7 +8,7 @@ namespace IntArray
         {
             int[] array = new int[10];
 
-            for (int i = 0; i < 9; i = i + 1)
+            for (int i = 0; i < 8; i++)
             {
                 array[i] = i; 
 				System.Console.WriteLine(i);
