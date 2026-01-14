@@ -584,6 +584,20 @@ void ClassAnalyzer::AnalyzeField(FieldDeclNode* field)
 void ClassAnalyzer::AnalyzeClass(ClassDeclNode* value)
 {
     value->Namespace = this->Namespace;
+    std::cout << "[DEBUG] Analyzing class: " << value->ClassName
+              << ", constructors count: " << value->Members->Constructors.size() << std::endl;
+
+    for (auto* constructor : value->Members->Constructors) {
+        std::cout << "[DEBUG]   Constructor: "
+                  << ", class pointer: " << constructor->Class
+                  << ", is default: " << constructor->IsDefault << std::endl;
+
+        // Проверяем, что конструктор ссылается на правильный класс
+        if (constructor->Class != value) {
+            std::cout << "[ERROR] Constructor class mismatch! Expected: "
+                      << value << ", got: " << constructor->Class << std::endl;
+        }
+    }
 
     for (auto* field : value->Members->Fields) { AnalyzeField(field); }
     for (auto* method : value->Members->Methods)
@@ -2214,17 +2228,32 @@ Bytes ToBytes(ExprNode* expr, ClassFile& file)
 
     if (expr->Type == ExprNode::TypeT::SimpleNew)
     {
+
         const auto type = expr->AType;
         if (type.AType != DataType::TypeT::Complex && type.ArrayArity > 0)
             throw std::runtime_error{ "Cannot create object of type " + ToString(type) };
+
         const auto classIdConstant = file.Constants.FindClass(type.ToTypename());
+
+        // ОТЛАДКА
+        std::cout << "[DEBUG BYTECODE] SimpleNew: creating object of type: "
+                  << type.ToTypename() << std::endl;
 
         Bytes bytes;
         append(bytes, (uint8_t)Command::new_);
         append(bytes, ToBytes(classIdConstant));
         append(bytes, (uint8_t)Command::dup);
 
-        const auto constructorRef = file.Constants.FindMethodRef(type.ToTypename(), "<init>", "()V");
+        // ИСПРАВЛЕНИЕ: Всегда вызываем конструктор Object
+        const auto constructorRef = file.Constants.FindMethodRef(
+            JAVA_OBJECT_TYPE.ToTypename(),
+            "<init>",
+            "()V"
+        );
+
+        std::cout << "[DEBUG BYTECODE] Calling Object constructor, ref id: "
+                  << constructorRef << std::endl;
+
         append(bytes, (uint8_t)Command::invokespecial);
         append(bytes, ToBytes(constructorRef));
 
@@ -2536,15 +2565,38 @@ Bytes ToBytes(MethodDeclNode* method, ClassFile& classFile)
 
     Bytes codeBytes;
 
+    std::cout << "[DEBUG] Generating bytecode for method: "
+              << (method->IsConstructor ? "constructor " : "")
+              << method->Identifier()
+              << " in class: ";
+
     if (method->IsConstructor)
     {
+        std::cout << "[DEBUG BYTECODE] Generating constructor for class: ";
+        if (method->Class) {
+            std::cout << method->Class->ClassName;
+        } else {
+            std::cout << "null";
+        }
+        std::cout << std::endl;
+
         append(codeBytes, (uint8_t)Command::aload_0);
         append(codeBytes, (uint8_t)Command::invokespecial);
+
+        // ВАЖНО: убедитесь, что вызывается конструктор Object, а не этого же класса
+        std::string superClassName = JAVA_OBJECT_TYPE.ToTypename();
+
+
         const auto javaBaseObjectConstructor = classFile.Constants.FindMethodRef(
-             JAVA_OBJECT_TYPE.ToTypename(),
-             "<init>",
-             "()V"
-            );
+            superClassName,
+            "<init>",
+            "()V"
+        );
+
+        std::cout << "[DEBUG BYTECODE] Calling super constructor: "
+                  << superClassName << ".<init>()"
+                  << " (constant id: " << javaBaseObjectConstructor << ")" << std::endl;
+
         append(codeBytes, ToBytes(javaBaseObjectConstructor));
     }
 

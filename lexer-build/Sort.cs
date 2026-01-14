@@ -23,7 +23,7 @@ namespace Sort
             {
                 for (int inner = 0; inner < array.Length - 1; ++inner)
                 {
-                    if (array[inner] < array[inner + 1]) 
+                    if (array[inner] > array[inner + 1]) 
 					{
 						int temp = array[inner];
 						array[inner] = array[inner + 1];

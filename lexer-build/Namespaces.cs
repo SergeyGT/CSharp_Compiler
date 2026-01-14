@@ -4,8 +4,8 @@ namespace Namespaces
     {
         public static void Main()
         {
-            var first = new First.Class;
-            var second = new Second.Class;
+            ClassFirst first = new First.ClassFirst();
+            ClassSecond second = new Second.ClassSecond();
             first.Print();
             second.Print();
         }
@@ -13,23 +13,21 @@ namespace Namespaces
 }
 namespace First
 {
-    public class Class
+    public class ClassFirst
     {
         public void Print()
         {
-            var Console = new System.Console;
-            Console.WriteLine("Namespace First");
+            System.Console.WriteLine("Namespace First");
         }
     }
 }
 namespace Second
 {
-    public class Class
+    public class ClassSecond
     {
         public void Print()
         {
-            var Console = new System.Console;
-            Console.WriteLine("Namespace Second");
+            System.Console.WriteLine("Namespace Second");
         }
     }
 }

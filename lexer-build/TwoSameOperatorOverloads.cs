@@ -4,15 +4,15 @@ namespace OperatorOverload
     {
         public static int operator+(B lhs, C rhs)
         {
-            return 0;
+            return 5;
         }
     }
 
     public class C
     {
-        public static int operator+(B lhs, C rhs)
+        public static int operator+(C lhs, B rhs)
         {
-            return 0;
+            return 10;
         }
     }
 
@@ -20,10 +20,11 @@ namespace OperatorOverload
     {
         public static void Main()
         {
-            B var1 = new B;
-            C var2 = new C;
+            B var1 = new OperatorOverload.B();
+            C var2 = new OperatorOverload.C();
 
-            var1 + var2;
+            System.Console.WriteLine(var1 + var2);
+            System.Console.WriteLine(var2 + var1);
         }
     }
 }
