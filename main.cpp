@@ -73,9 +73,9 @@ int main(int argc, char** argv) {
                     }
                 }
 
-                std::string command = "java -cp \"" + classpath + "\" Test.Program";
-                std::cout << "Running: " << command << std::endl;
-                system(command.c_str());
+                // std::string command = "java -cp \"" + classpath + "\" Test.Program";
+                // std::cout << "Running: " << command << std::endl;
+                // system(command.c_str());
 
             }
         } catch (const std::exception& e) {

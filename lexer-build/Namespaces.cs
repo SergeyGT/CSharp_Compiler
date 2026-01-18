@@ -4,8 +4,8 @@ namespace Namespaces
     {
         public static void Main()
         {
-            First.ClassFirst first = new First.ClassFirst();
-            Second.ClassSecond second = new Second.ClassSecond();
+            var first = new First.ClassFirst();
+            var second = new Second.ClassSecond();
             first.Print();
             second.Print();
         }

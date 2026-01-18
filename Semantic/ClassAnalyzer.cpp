@@ -453,7 +453,7 @@ void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
         AllMains.push_back(method);
         CurrentMethod->_identifier = "main";
         // ��������� ���������� args ��� �����
-        CurrentMethod->Variables.push_back(new VarDeclNode(nullptr, "", nullptr));
+        //CurrentMethod->Variables.push_back(new VarDeclNode(nullptr, "", nullptr));
     }
 
     const auto canBeStatic = CurrentMethod->IsOperatorOverload || CurrentMethod->Identifier() == "main";
@@ -820,6 +820,10 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
     if (expr->Type != Qualified_or_expr::TypeT::DotMethodCall)
         return;
 
+
+    std::cout << "[DEBUG AnalyzeDotMethodCall] Method: " << std::string(expr->Identifier)
+              << ", arguments count: " << expr->Arguments->GetSeq().size() << std::endl;
+
     for (auto*& argument : expr->Arguments->GetSeq())
         argument = AnalyzeExpr(argument);
 
@@ -844,7 +848,15 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
             return arg->AType;
         });
         return types;
+
+
     }();
+
+
+    std::cout << "[DEBUG AnalyzeDotMethodCall] callTypes size: " << callTypes.size() << std::endl;
+    for (size_t i = 0; i < callTypes.size(); i++) {
+        std::cout << "[DEBUG AnalyzeDotMethodCall]   Arg " << i << ": " << ToString(callTypes[i]) << std::endl;
+    }
 
     // Ищем метод в найденном классе или структуре
     std::vector<MethodDeclNode*> allMethods;
@@ -1274,22 +1286,22 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         }
         case Qualified_or_expr::TypeT::Dot:
         {
+
             auto typeForPrevious = CalculateTypeForQualified_or_expr(access->Previous);
 
-            std::string identifierStr = std::string(access->Identifier);
-            if (identifierStr == "ReadInt" || identifierStr == "ReadFloat" ||
-                identifierStr == "ReadChar" || identifierStr == "ReadString" ||
-                identifierStr == "ReadBool" ||     identifierStr == "Write" || identifierStr == "WriteLine") {
-                // ЭТО МЕТОД! Преобразуем в MethodCall
-                std::cout << "[DEBUG] Converting Dot to MethodCall for: " << identifierStr << std::endl;
-                access->Type = Qualified_or_expr::TypeT::DotMethodCall;
-                // Нужно создать пустой список аргументов
-                if (!access->Arguments) {
-                    access->Arguments = new ExprSeqNode(); // Пустой список аргументов
-                }
-                // Теперь это MethodCall, рекурсивно обработаем
-                return CalculateTypeForQualified_or_expr(access);
-                }
+            // Быстрая проверка для System.Console
+            if (typeForPrevious.AType == DataType::TypeT::Namespace &&
+                typeForPrevious.NamespaceName == "System" &&
+                std::string(access->Identifier) == "Console")
+            {
+                std::cout << "[DEBUG] Found System.Console" << std::endl;
+                // Создаем тип для класса Console
+                DataType consoleType;
+                consoleType.AType = DataType::TypeT::Complex;
+                consoleType.ComplexType = {"System", "Console"};
+                access->AType = consoleType;
+                return consoleType;
+            }
 
             if (typeForPrevious.AType == DataType::TypeT::Namespace)
             {
@@ -1335,35 +1347,61 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
                 access->AType = DataType::IntType;
                 return access->AType;
             }
-            auto* foundClass = FindClass(typeForPrevious);
-            auto* foundStruct = FindStruct(typeForPrevious);
-            if (!foundClass && !foundStruct)
-            {
-                Errors.push_back("No member " + std::string{
-                                     access->Identifier
-                                 } + " in type " + ToString(typeForPrevious));
-                type.IsUnknown = true;
-                access->AType = type;
-                return type;
-            }
-            auto const& fields = foundClass->Members->Fields;
-            const auto foundField = std::find_if(fields.begin(), fields.end(), [&](FieldDeclNode* field)
-            {
+           auto* foundClass = FindClass(typeForPrevious);
+    auto* foundStruct = FindStruct(typeForPrevious);
+
+    if (!foundClass && !foundStruct)
+    {
+        Errors.push_back("No member " + std::string{ access->Identifier } +
+                        " in type " + ToString(typeForPrevious));
+        type.IsUnknown = true;
+        access->AType = type;
+        return type;
+    }
+
+    // Проверяем, есть ли метод с таким именем
+    const auto& methods = foundClass ? foundClass->Members->Methods : foundStruct->Members->Methods;
+    const auto foundMethod = std::find_if(methods.begin(), methods.end(),
+        [&](MethodDeclNode* method) {
+            return method->Identifier() == access->Identifier;
+        });
+
+    if (foundMethod != methods.end())
+    {
+        // Это метод! Преобразуем в DotMethodCall
+        std::cout << "[DEBUG] Converting Dot to DotMethodCall for: "
+                  << access->Identifier << std::endl;
+
+        access->Type = Qualified_or_expr::TypeT::DotMethodCall;
+        if (!access->Arguments) {
+            access->Arguments = new ExprSeqNode(); // Пустой список аргументов
+        }
+        // Теперь это DotMethodCall, рекурсивно обработаем
+        return CalculateTypeForQualified_or_expr(access);
+    }
+    else
+    {
+        // Проверяем поля (существующий код)
+        const auto& fields = foundClass ? foundClass->Members->Fields : foundStruct->Members->Fields;
+        const auto foundField = std::find_if(fields.begin(), fields.end(),
+            [&](FieldDeclNode* field) {
                 return field->VarDecl->Identifier == access->Identifier;
             });
-            if (foundField == fields.end())
-            {
-                Errors.push_back("No member " + std::string{
-                                     access->Identifier
-                                 } + " in type " + ToString(typeForPrevious));
-                type.IsUnknown = true;
-                access->AType = type;
-                return type;
-            }
-            access->ActualField = *foundField;
-            AnalyzeFieldAccessibility(access->ActualField);
-            access->AType = access->ActualField->VarDecl->AType;
-            return access->AType;
+
+        if (foundField == fields.end())
+        {
+            Errors.push_back("No member " + std::string{ access->Identifier } +
+                            " in type " + ToString(typeForPrevious));
+            type.IsUnknown = true;
+            access->AType = type;
+            return type;
+        }
+
+        access->ActualField = *foundField;
+        AnalyzeFieldAccessibility(access->ActualField);
+        access->AType = access->ActualField->VarDecl->AType;
+        return access->AType;
+    }
         }
 
         case Qualified_or_expr::TypeT::MethodCall:
@@ -2228,36 +2266,44 @@ Bytes ToBytes(ExprNode* expr, ClassFile& file)
 
     if (expr->Type == ExprNode::TypeT::SimpleNew)
     {
-
         const auto type = expr->AType;
-        if (type.AType != DataType::TypeT::Complex && type.ArrayArity > 0)
-            throw std::runtime_error{ "Cannot create object of type " + ToString(type) };
 
-        const auto classIdConstant = file.Constants.FindClass(type.ToTypename());
+        // Для простых типов создаем массив, для Complex - объект
+        if (type.AType == DataType::TypeT::Complex)
+        {
+            const auto classIdConstant = file.Constants.FindClass(type.ToTypename());
 
-        // ОТЛАДКА
-        std::cout << "[DEBUG BYTECODE] SimpleNew: creating object of type: "
-                  << type.ToTypename() << std::endl;
+            std::cout << "[DEBUG] Creating object of type: " << type.ToTypename() << std::endl;
 
-        Bytes bytes;
-        append(bytes, (uint8_t)Command::new_);
-        append(bytes, ToBytes(classIdConstant));
-        append(bytes, (uint8_t)Command::dup);
+            Bytes bytes;
+            append(bytes, (uint8_t)Command::new_);
+            append(bytes, ToBytes(classIdConstant));
+            append(bytes, (uint8_t)Command::dup);
 
-        // ИСПРАВЛЕНИЕ: Всегда вызываем конструктор Object
-        const auto constructorRef = file.Constants.FindMethodRef(
-            JAVA_OBJECT_TYPE.ToTypename(),
-            "<init>",
-            "()V"
-        );
+            // ВАЖНО: вызываем конструктор СОЗДАВАЕМОГО КЛАССА, а не Object!
+            const auto constructorRef = file.Constants.FindMethodRef(
+                type.ToTypename(),  // Например "HelloWorld/N"
+                "<init>",           // Имя конструктора
+                "()V"               // Дескриптор (без аргументов)
+            );
 
-        std::cout << "[DEBUG BYTECODE] Calling Object constructor, ref id: "
-                  << constructorRef << std::endl;
+            std::cout << "[DEBUG] Constructor ref for " << type.ToTypename()
+                      << ".<init>()V: " << constructorRef << std::endl;
 
-        append(bytes, (uint8_t)Command::invokespecial);
-        append(bytes, ToBytes(constructorRef));
+            if (constructorRef == 0)
+            {
+                // Если конструктор не найден (ошибка в таблице констант)
+                std::cout << "[ERROR] Constructor not found for " << type.ToTypename() << std::endl;
+                throw std::runtime_error("Constructor not found for " + type.ToTypename());
+            }
 
-        return bytes;
+            append(bytes, (uint8_t)Command::invokespecial);
+            append(bytes, ToBytes(constructorRef));
+
+            return bytes;
+        }
+
+        throw std::runtime_error{ "Cannot create object of type " + ToString(type) };
     }
 
     if (expr->Type == ExprNode::TypeT::ArrayNew)
@@ -2559,7 +2605,7 @@ Bytes ToBytes(MethodDeclNode* method, ClassFile& classFile)
     constexpr auto stackSize = (uint16_t)1000;
     append(bytes, ToBytes(stackSize));
 
-    const uint16_t localVariablesCount = method->Variables.size();
+    const uint16_t localVariablesCount = method->Variables.size()+1;
 
     append(bytes, ToBytes(localVariablesCount));
 
