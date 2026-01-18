@@ -12,7 +12,6 @@ namespace ClassObj
         public static void Main()
         {
             X cla = new ClassObj.X();
-			int x = cla.GetNum();
 			System.Console.WriteLine(cla.GetNum());
         }
     }
