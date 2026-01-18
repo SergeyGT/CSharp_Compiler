@@ -1,17 +1,20 @@
 namespace ClassObj
 {
+	public class X {
+		public int GetNum(){
+			return 0;
+		}
+	}
+	
     public class M
     {
         public static void Main()
         {
             X cla = new ClassObj.X();
-			cla.GetNum();
+			int x = cla.GetNum();
+			System.Console.WriteLine(x);
         }
     }
 	
-	public class X {
-		public int GetNum(){
-			return 3;
-		}
-	}
+	
 }

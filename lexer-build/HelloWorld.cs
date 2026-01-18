@@ -6,14 +6,14 @@ namespace HelloWorld
         {
 			string name = "Alice";
             int age = 25;
-			int num = new HelloWorld.N();
-            
-            System.Console.WriteLine(num.x);
+			N num = new HelloWorld.N();
+            int y = num.x;
+            System.Console.WriteLine(y);
         }
     }
 	
 	public class N {
-		private int x =3;
+		public int x =3;
 	}
 	
 }
