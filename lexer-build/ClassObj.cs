@@ -1,8 +1,9 @@
 namespace ClassObj
 {
 	public class X {
+		public int num = 5;
 		public int GetNum(){
-			return 0;
+			return num;
 		}
 	}
 	
@@ -12,7 +13,7 @@ namespace ClassObj
         {
             X cla = new ClassObj.X();
 			int x = cla.GetNum();
-			System.Console.WriteLine(x);
+			System.Console.WriteLine(cla.GetNum());
         }
     }
 	
