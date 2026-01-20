@@ -224,6 +224,8 @@ public:
 struct ConstructorDeclNode final : public MethodDeclNode {
     bool IsDefault{};
 
+public:
+    StructDeclNode* Struct = nullptr;
     ConstructorDeclNode(const VisibilityModifier visibility,
                        const std::string className,
                        MethodArguments* const arguments,

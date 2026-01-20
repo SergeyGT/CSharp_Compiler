@@ -1,19 +1,18 @@
-namespace Var
+namespace Structs
 {
     public class M
     {
 
 			public static void Main()
 			{
-				N n = new Var.N();
-				n.Print();
+				var n = new Structs2.N();
 			}
-    }
+    }	
 	
+}
+
+namespace Structs2{
 	public struct N {
 		public int x = 3;
-		public void Print(){
-			System.Console.WriteLine(2);
-		}
 	}
 }

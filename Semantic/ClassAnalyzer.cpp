@@ -148,13 +148,21 @@ IdT ConstantTable::FindFloat(FloatT i)
 
 IdT ConstantTable::FindClass(std::string_view className)
 {
+    std::cout << "[DEBUG FindClass] Looking for class: " << className
+              << " in table with " << Constants.size() << " constants" << std::endl;
+
     const auto constant = Constant::CreateClass(FindUtf8(className));
     const auto foundIter = std::find(Constants.begin(), Constants.end(), constant);
     if (foundIter == Constants.end())
     {
+        std::cout << "[DEBUG FindClass] Not found, adding new constant. Index: "
+                  << (Constants.size() + 1) << std::endl;
         Constants.push_back(constant);
         return Constants.end() - Constants.begin();
     }
+
+    std::cout << "[DEBUG FindClass] Found at index: "
+              << (foundIter - Constants.begin() + 1) << std::endl;
     return foundIter - Constants.begin() + 1;
 }
 
@@ -239,6 +247,7 @@ ClassAnalyzer::ClassAnalyzer(StructDeclNode* node, NamespaceDeclNode* namespace_
 , AllNamespaces{ allNamespaces }
 , CurrentClass{ nullptr }  // ЯВНО установите в nullptr
 {
+    File.Constants.Constants.clear();
     // Проверяем, есть ли конструктор
     if (CurrentStruct->Members->Constructors.empty())
     {
@@ -463,10 +472,13 @@ void ClassAnalyzer::AnalyzeStmt(StmtNode* stmt)
 
 void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
 {
+    // Сохраняем текущий тип (класс или структуру) в методе
     if (CurrentClass) {
         method->Class = CurrentClass;
     } else if (CurrentStruct) {
-        method->Class = nullptr; // Для структур
+        // Для методов структур временно храним указатель на структуру в поле Class
+        // Это нужно только для генерации байткода
+        method->Class = reinterpret_cast<ClassDeclNode*>(CurrentStruct);
     }
     CurrentMethod = method;
     CurrentScopingLevel = 1;
@@ -677,6 +689,26 @@ void ClassAnalyzer::AnalyzeStruct(StructDeclNode* value)
         Errors.push_back("Struct " + std::string{value->StructName} + " can have only one constructor");
     }
 
+    // ПРОВЕРЬТЕ, что конструктор действительно создается и Struct устанавливается
+    if (CurrentStruct->Members->Constructors.empty())
+    {
+        auto* constructor = new ConstructorDeclNode{
+            VisibilityModifier::Public,
+            std::string{CurrentStruct->StructName},
+            MethodArguments::MakeEmpty(),
+            StmtSeqNode::MakeEmpty()
+        };
+        constructor->Struct = CurrentStruct;  // ВАЖНО: устанавливаем Struct
+        constructor->Class = nullptr; // Для структур Class = nullptr
+        constructor->IsDefault = true;
+        constructor->IsConstructor = true;
+        CurrentStruct->Members->Constructors.push_back(constructor);
+
+        std::cout << "[DEBUG STRUCT] Created default constructor for struct: "
+                  << CurrentStruct->StructName
+                  << ", constructor->Struct = " << constructor->Struct
+                  << ", constructor->Class = " << constructor->Class << std::endl;
+    }
     for (auto* field : value->Members->Fields) {
         AnalyzeField(field);
 
@@ -1787,6 +1819,18 @@ void ClassAnalyzer::FillTables()
     }
     else if (CurrentStruct)
     {
+        // Добавляем конструкторы структур
+        for (auto* constructor : CurrentStruct->Members->Constructors)
+        {
+            const auto nameId = File.Constants.FindUtf8("<init>");
+            const auto typeId = File.Constants.FindUtf8("()V");
+            const auto accessFlags = ToAccessFlags(constructor->Visibility, false);
+            File.Methods.push_back({ nameId, typeId, accessFlags, constructor });
+
+            // Устанавливаем связь конструктора со структурой
+            constructor->Struct = CurrentStruct;
+        }
+
         for (auto* field : CurrentStruct->Members->Fields) {
             FillTables(field);
         }
@@ -2657,18 +2701,36 @@ Bytes ToBytes(MethodDeclNode* method, ClassFile& classFile)
 
     Bytes codeBytes;
 
+    // ИСПРАВЛЕННЫЙ ОТЛАДОЧНЫЙ ВЫВОД
     std::cout << "[DEBUG] Generating bytecode for method: "
               << (method->IsConstructor ? "constructor " : "")
-              << method->Identifier()
-              << " in class: ";
+              << method->Identifier();
+
+    // Добавляем информацию о том, для чего генерируем метод
+    if (method->IsConstructor) {
+        std::cout << " for ";
+        // Проверяем, есть ли у конструктора указатель на структуру
+        ConstructorDeclNode* ctor = dynamic_cast<ConstructorDeclNode*>(method);
+        if (ctor && ctor->Struct) {
+            std::cout << "struct: " << ctor->Struct->StructName;
+        } else if (method->Class) {
+            std::cout << "class: " << method->Class->ClassName;
+        } else {
+            std::cout << "unknown type";
+        }
+    }
+    std::cout << std::endl;
 
     if (method->IsConstructor)
     {
-        std::cout << "[DEBUG BYTECODE] Generating constructor for class: ";
-        if (method->Class) {
-            std::cout << method->Class->ClassName;
+        std::cout << "[DEBUG BYTECODE] Generating constructor for ";
+        ConstructorDeclNode* ctor = dynamic_cast<ConstructorDeclNode*>(method);
+        if (ctor && ctor->Struct) {
+            std::cout << "struct: " << ctor->Struct->StructName;
+        } else if (method->Class) {
+            std::cout << "class: " << method->Class->ClassName;
         } else {
-            std::cout << "null";
+            std::cout << "unknown type";
         }
         std::cout << std::endl;
 
@@ -2677,7 +2739,6 @@ Bytes ToBytes(MethodDeclNode* method, ClassFile& classFile)
 
         // ВАЖНО: убедитесь, что вызывается конструктор Object, а не этого же класса
         std::string superClassName = JAVA_OBJECT_TYPE.ToTypename();
-
 
         const auto javaBaseObjectConstructor = classFile.Constants.FindMethodRef(
             superClassName,
@@ -2736,9 +2797,17 @@ void ClassAnalyzer::Generate()
     else if (CurrentStruct) typeName = std::string{ CurrentStruct->StructName };
     else return ;
 
+    // ДОБАВЬТЕ ЭТОТ ОТЛАДОЧНЫЙ ВЫВОД
+    std::cout << "[DEBUG GENERATE] Generating .class file for ";
+    if (CurrentClass) std::cout << "class: " << typeName;
+    else if (CurrentStruct) std::cout << "struct: " << typeName;
+    std::cout << std::endl;
+
     const auto filename = typeName + ".class";
     auto filepath = current_path() / "Output" / Namespace->NamespaceName / filename;
     create_directory(current_path() / "Output" / Namespace->NamespaceName);
+
+    std::cout << "[DEBUG GENERATE] File path: " << filepath << std::endl;
 
     std::fstream out{ filepath, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc };
     out << (char)0xCA << (char)0xFE << (char)0xBA << (char)0xBE;
@@ -2756,6 +2825,8 @@ void ClassAnalyzer::Generate()
 
     const auto classAttributesCount = ::ToBytes((uint16_t)0);
     out.write((char*)classAttributesCount.data(), classAttributesCount.size());
+
+    std::cout << "[DEBUG GENERATE] File generated successfully!" << std::endl;
 }
 
 Bytes ClassAnalyzer::ToBytes()
@@ -2764,28 +2835,36 @@ Bytes ClassAnalyzer::ToBytes()
 
     // Определяем имя типа
     std::string typeName;
-    AccessFlags accessFlags = AccessFlags::Super;
+    AccessFlags accessFlags;
 
     if (CurrentClass)
     {
         typeName = CurrentClass->ToDataType().ToTypename();
-        accessFlags = accessFlags | AccessFlags::Public;
+        accessFlags = AccessFlags::Public | AccessFlags::Super;  // Классы имеют Super
     }
     else if (CurrentStruct)
     {
         typeName = CurrentStruct->ToDataType().ToTypename();
-        accessFlags = AccessFlags::Public | AccessFlags::Final; // Структуры final
-        // У структур НЕТ флага Super!
+        accessFlags = AccessFlags::Public | AccessFlags::Final; // Структуры final, НЕТ Super!
     }
     else
     {
+        std::cout << "[ERROR ToBytes] Neither CurrentClass nor CurrentStruct is set!" << std::endl;
         return bytes; // Пустой результат
     }
 
+    // ДОБАВЬТЕ ОТЛАДОЧНЫЙ ВЫВОД
+    std::cout << "[DEBUG ToBytes] Type: " << typeName
+              << ", accessFlags: " << static_cast<uint16_t>(accessFlags)
+              << std::endl;
+
     const auto classConstantId = File.Constants.FindClass(typeName);
+    std::cout << "[DEBUG ToBytes] Class constant id: " << classConstantId << std::endl;
 
     // ВАЖНО: Для структур суперкласс должен быть java/lang/Object
     const auto superClassId = File.Constants.FindClass(JAVA_OBJECT_TYPE.ToTypename());
+    std::cout << "[DEBUG ToBytes] Super class id: " << superClassId
+              << " (" << JAVA_OBJECT_TYPE.ToTypename() << ")" << std::endl;
 
     append(bytes, ::ToBytes((uint16_t)accessFlags));
     append(bytes, ::ToBytes(classConstantId));
@@ -2794,6 +2873,7 @@ Bytes ClassAnalyzer::ToBytes()
     constexpr auto interfacesCount = (uint16_t)0;
     append(bytes, ::ToBytes(interfacesCount));
 
+    std::cout << "[DEBUG ToBytes] Fields count: " << File.Fields.size() << std::endl;
     append(bytes, ::ToBytes((uint16_t)File.Fields.size()));
     for (auto field : File.Fields) {
         append(bytes, ::ToBytes(field));
@@ -2807,11 +2887,18 @@ Bytes ClassAnalyzer::ToBytes()
         return lhsIsCtor > rhsIsCtor;
     });
 
+    std::cout << "[DEBUG ToBytes] Methods count: " << File.Methods.size() << std::endl;
     append(bytes, ::ToBytes((uint16_t)File.Methods.size()));
+
     for (auto method : File.Methods) {
+        std::cout << "[DEBUG ToBytes] Method: "
+                  << (method.ActualMethod ? method.ActualMethod->Identifier() : "unknown")
+                  << " (constructor: " << (method.ActualMethod && method.ActualMethod->IsConstructor)
+                  << ")" << std::endl;
         append(bytes, ::ToBytes(method, File));
     }
 
+    std::cout << "[DEBUG ToBytes] Total bytes generated: " << bytes.size() << std::endl;
     return bytes;
 }
 
