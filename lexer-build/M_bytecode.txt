@@ -1,0 +1,50 @@
+Classfile /C:/Compile_CSharp/CSharp_Compiler/lexer-build/Output/Cons/M.class
+  Last modified 11 џэт. 2026?у.; size 212 bytes
+  SHA-256 checksum d05476813215d0507c5e92031c6508e126980fdec0d473a4dd5507e4ce0718f0
+public class Cons.M
+  minor version: 0
+  major version: 52
+  flags: (0x0021) ACC_PUBLIC, ACC_SUPER
+  this_class: #4                          // Cons/M
+  super_class: #6                         // java/lang/Object
+  interfaces: 0, fields: 0, methods: 1, attributes: 0
+Constant pool:
+   #1 = Utf8               main
+   #2 = Utf8               ([Ljava/lang/String;)V
+   #3 = Utf8               Cons/M
+   #4 = Class              #3             // Cons/M
+   #5 = Utf8               java/lang/Object
+   #6 = Class              #5             // java/lang/Object
+   #7 = Utf8               Code
+   #8 = Utf8               System/Console
+   #9 = Class              #8             // System/Console
+  #10 = Utf8               (I)V
+  #11 = Utf8               WriteLine
+  #12 = NameAndType        #11:#10        // WriteLine:(I)V
+  #13 = Methodref          #9.#12         // System/Console.WriteLine:(I)V
+{
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=1000, locals=2, args_size=1
+         0: sipush        0
+         3: istore        1
+         5: iload         1
+         7: sipush        10
+        10: if_icmpge     17
+        13: iconst_1
+        14: goto          18
+        17: iconst_0
+        18: nop
+        19: ifeq          38
+        22: iload         1
+        24: invokevirtual #13                 // Method System/Console.WriteLine:(I)V
+        27: iload         1
+        29: sipush        1
+        32: iadd
+        33: istore        1
+        35: goto          5
+        38: nop
+        39: return
+}

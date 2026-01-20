@@ -1,0 +1,81 @@
+digraph Program {
+42 [label="Program"]
+0 [label="UsingDirectives"]
+41 [label="NamespaceDeclSeq"]
+40 [label="NamespaceDecl\nTwoDimArr"]
+38 [label="ClassDecl\nM\nInherited from: "]
+36 [label="MethodDecl\nVisibility: public\nName: Main"]
+35 [label="Stmt Seq"]
+34 [label="STMT"]
+33 [label="VarDeclWithInit\nName = matrix\nCalculated data type: int[][]"]
+2 [label="Type\nint[][]"]
+33 -> 2 [label="Variable type"]
+32 [label="new[]\nCalculated data type: char"]
+3 [label="Type\nint[][]"]
+32 -> 3 [label="type"]
+12 [label="new[]\nCalculated data type: char"]
+4 [label="Type\nint[]"]
+12 -> 4 [label="type"]
+6 [label="Qualified_or_expr"]
+5 [label="1\nCalculated data type: int"]
+6 -> 5
+12 -> 6
+9 [label="Qualified_or_expr"]
+8 [label="2\nCalculated data type: int"]
+9 -> 8
+12 -> 9
+6 -> 9 [label="next"][style="dashed"]
+11 [label="Qualified_or_expr"]
+10 [label="3\nCalculated data type: int"]
+11 -> 10
+12 -> 11
+9 -> 11 [label="next"][style="dashed"]
+32 -> 12
+22 [label="new[]\nCalculated data type: char"]
+14 [label="Type\nint[]"]
+22 -> 14 [label="type"]
+16 [label="Qualified_or_expr"]
+15 [label="4\nCalculated data type: int"]
+16 -> 15
+22 -> 16
+19 [label="Qualified_or_expr"]
+18 [label="5\nCalculated data type: int"]
+19 -> 18
+22 -> 19
+16 -> 19 [label="next"][style="dashed"]
+21 [label="Qualified_or_expr"]
+20 [label="6\nCalculated data type: int"]
+21 -> 20
+22 -> 21
+19 -> 21 [label="next"][style="dashed"]
+32 -> 22
+12 -> 22 [label="next"][style="dashed"]
+31 [label="new[]\nCalculated data type: char"]
+23 [label="Type\nint[]"]
+31 -> 23 [label="type"]
+25 [label="Qualified_or_expr"]
+24 [label="7\nCalculated data type: int"]
+25 -> 24
+31 -> 25
+28 [label="Qualified_or_expr"]
+27 [label="8\nCalculated data type: int"]
+28 -> 27
+31 -> 28
+25 -> 28 [label="next"][style="dashed"]
+30 [label="Qualified_or_expr"]
+29 [label="9\nCalculated data type: int"]
+30 -> 29
+31 -> 30
+28 -> 30 [label="next"][style="dashed"]
+32 -> 31
+22 -> 31 [label="next"][style="dashed"]
+33 -> 32 [label="Init"]
+34 -> 33
+35 -> 34
+36 -> 35 [label="Method body"]
+38 -> 36 [label="method"]
+40 -> 38
+41 -> 40
+42 -> 0
+42 -> 41
+}

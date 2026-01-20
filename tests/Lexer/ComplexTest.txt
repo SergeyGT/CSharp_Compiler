@@ -1,0 +1,21 @@
+class Program {
+    static void Main() {
+        int[] array = new int[10];
+        int[,] matrix = new int[5,5];
+        
+	float = 5_0;
+
+        if (array[0] == 0) {
+            Console.WriteLine("First eleme\65464 nt is zero");
+        }
+        
+        for (int i = 0; i < 10; i++) {
+            array[i] = i * 2;
+        }
+        
+        while (true) {
+            string input = Console.ReadLine();
+            if (input == "1\2131231") break;
+        }
+    }
+}
