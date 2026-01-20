@@ -233,18 +233,14 @@ ClassAnalyzer::ClassAnalyzer(ClassDeclNode* node, NamespaceDeclNode* namespace_,
     //     CurrentClass->Members->Constructors.push_back(dynamic_cast<std::vector<ConstructorDeclNode *>::value_type>(constructor)); //TODO
     // }
 }
-
 ClassAnalyzer::ClassAnalyzer(StructDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces)
     : CurrentStruct{ node }
 , Namespace{ namespace_ }
 , AllNamespaces{ allNamespaces }
+, CurrentClass{ nullptr }  // ЯВНО установите в nullptr
 {
-    const auto hasConstructor = std::any_of(CurrentStruct->Members->Methods.begin(),
-                                            CurrentStruct->Members->Methods.end(), [](auto* method)
-                                            {
-                                                return method->IsConstructor;
-                                            });
-    if (!hasConstructor)
+    // Проверяем, есть ли конструктор
+    if (CurrentStruct->Members->Constructors.empty())
     {
         auto* constructor = new ConstructorDeclNode{
             VisibilityModifier::Public,
@@ -252,34 +248,66 @@ ClassAnalyzer::ClassAnalyzer(StructDeclNode* node, NamespaceDeclNode* namespace_
             MethodArguments::MakeEmpty(),
             StmtSeqNode::MakeEmpty()
         };
-        constructor->Class = nullptr; // Для структур
+        constructor->Class = nullptr; // Для структур Class = nullptr
+        constructor->IsDefault = true;
         CurrentStruct->Members->Constructors.push_back(constructor);
     }
 }
 
-void ClassAnalyzer::Analyze() { AnalyzeClass(CurrentClass); }
+void ClassAnalyzer::Analyze() {
+    if (CurrentClass)
+    {
+        AnalyzeClass(CurrentClass);
+    }
+    else if (CurrentStruct)
+    {
+        AnalyzeStruct(CurrentStruct);
+    }
+}
 
 void ClassAnalyzer::AnalyzeMemberSignatures()
 {
-    for (auto* method : CurrentClass->Members->Methods)
+    // Определяем, с чем работаем
+    auto* members = CurrentClass ? CurrentClass->Members :
+                   (CurrentStruct ? CurrentStruct->Members : nullptr);
+
+    if (!members) return;
+
+    // Анализ методов
+    for (auto* method : members->Methods)
     {
-        if (CurrentClass) method->Class = CurrentClass;
-        else if (CurrentStruct) method->Class = nullptr; // Для структур Class = nullptr
+        // Устанавливаем ссылку на родительский тип
+        if (CurrentClass)
+            method->Class = CurrentClass;
+        else if (CurrentStruct)
+            method->Class = nullptr; // Для структур Class = nullptr
+
+        // Анализ типов только для не-системных namespace
         if (Namespace->NamespaceName != "System")
         {
             method->AReturnType = ToDataType(method->Type);
             ValidateTypename(method->AReturnType);
         }
+
+        // Анализ аргументов
         for (auto* var : method->Arguments->GetSeq())
         {
             AnalyzeVarDecl(var);
             ValidateTypename(var->AType);
         }
-        for (auto& arg : method->ArgumentDtos) { ValidateTypename(arg.Type); }
+        for (auto& arg : method->ArgumentDtos)
+        {
+            ValidateTypename(arg.Type);
+        }
     }
-    for (auto* field : CurrentClass->Members->Fields)
+
+    // Анализ полей
+    auto& fields = CurrentClass ? CurrentClass->Members->Fields : CurrentStruct->Members->Fields;
+    for (auto* field : fields)
     {
-        field->Class = CurrentClass;
+        if (CurrentClass) field->Class = CurrentClass;
+        else if (CurrentStruct) field->Class = nullptr;
+
         AnalyzeVarDecl(field->VarDecl, false);
     }
 }
@@ -466,13 +494,18 @@ void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
 
     if (!CurrentMethod->IsStatic)
     {
-        // ��������� ���������� this
+        // Создаем переменную this
         auto thisVar = new VarDeclNode(nullptr, "this", nullptr);
-        thisVar->AType = CurrentClass->ToDataType();
+        if (CurrentClass)
+            thisVar->AType = CurrentClass->ToDataType();
+        else if (CurrentStruct)
+            thisVar->AType = CurrentStruct->ToDataType(); // Для структур
         CurrentMethod->Variables.push_back(thisVar);
     }
 
-    const auto& allMethods = CurrentClass->Members->Methods;
+    const auto& allMethods =  CurrentClass ?
+        CurrentClass->Members->Methods :
+        CurrentStruct->Members->Methods;
     const auto sameMethodsCount = std::count_if(allMethods.begin(), allMethods.end(), [&](auto* otherMethod)
     {
         return method->Identifier() == otherMethod->Identifier() &&
@@ -556,7 +589,7 @@ void ClassAnalyzer::AnalyzeField(FieldDeclNode* field)
         if (CurrentClass) {
             defaultConstructor = CurrentClass->GetDefaultConstructor();
         } else if (CurrentStruct) {
-            // Для структур берем первый (и единственный) конструктор
+            // Для структур берем первый конструктор
             if (!CurrentStruct->Members->Constructors.empty()) {
                 defaultConstructor = CurrentStruct->Members->Constructors[0];
             }
@@ -567,17 +600,25 @@ void ClassAnalyzer::AnalyzeField(FieldDeclNode* field)
         }
     }
 
-    const auto& allFields = CurrentClass ? CurrentClass->Members->Fields : CurrentStruct->Members->Fields;
-    const auto fieldNameCount = std::count_if(allFields.begin(), allFields.end(), [&](auto* other)
-    {
-        return field->VarDecl->Identifier == other->VarDecl->Identifier;
-    });
+    // Получаем все поля в зависимости от типа
+    const auto& allFields = CurrentClass ?
+        CurrentClass->Members->Fields :
+        CurrentStruct->Members->Fields;
+
+    const auto fieldNameCount = std::count_if(allFields.begin(), allFields.end(),
+        [&](auto* other) {
+            return field->VarDecl->Identifier == other->VarDecl->Identifier;
+        });
 
     if (fieldNameCount > 1)
     {
-        std::string typeName = CurrentClass ? std::string{CurrentClass->ClassName} : std::string{CurrentStruct->StructName};
-        Errors.push_back("Field with name \"" + std::string{ field->VarDecl->Identifier } +
-                         "\" already defined in " + typeName + "!");
+        std::string typeName = CurrentClass ?
+            std::string{CurrentClass->ClassName} :
+            std::string{CurrentStruct->StructName};
+
+        Errors.push_back("Field with name \"" +
+            std::string{ field->VarDecl->Identifier } +
+            "\" already defined in " + typeName + "!");
     }
 }
 
@@ -624,6 +665,11 @@ void ClassAnalyzer::AnalyzeClass(ClassDeclNode* value)
 
 void ClassAnalyzer::AnalyzeStruct(StructDeclNode* value)
 {
+    std::cout << "[DEBUG STRUCT] Analyzing struct: " << value->StructName
+              << " in namespace: " << Namespace->NamespaceName << std::endl;
+    std::cout << "[DEBUG STRUCT] Fields count: " << value->Members->Fields.size()
+              << ", Methods count: " << value->Members->Methods.size() << std::endl;
+
     value->Namespace = this->Namespace;
 
     // Проверка, что структуры не могут наследоваться
@@ -2688,6 +2734,7 @@ void ClassAnalyzer::Generate()
     std::string typeName;
     if (CurrentClass) typeName = std::string{ CurrentClass->ClassName };
     else if (CurrentStruct) typeName = std::string{ CurrentStruct->StructName };
+    else return ;
 
     const auto filename = typeName + ".class";
     auto filepath = current_path() / "Output" / Namespace->NamespaceName / filename;
@@ -2717,15 +2764,28 @@ Bytes ClassAnalyzer::ToBytes()
 
     // Определяем имя типа
     std::string typeName;
-    if (CurrentClass) typeName = CurrentClass->ToDataType().ToTypename();
-    else if (CurrentStruct) typeName = CurrentStruct->ToDataType().ToTypename();
+    AccessFlags accessFlags = AccessFlags::Super;
+
+    if (CurrentClass)
+    {
+        typeName = CurrentClass->ToDataType().ToTypename();
+        accessFlags = accessFlags | AccessFlags::Public;
+    }
+    else if (CurrentStruct)
+    {
+        typeName = CurrentStruct->ToDataType().ToTypename();
+        accessFlags = AccessFlags::Public | AccessFlags::Final; // Структуры final
+        // У структур НЕТ флага Super!
+    }
+    else
+    {
+        return bytes; // Пустой результат
+    }
 
     const auto classConstantId = File.Constants.FindClass(typeName);
-    const auto superClassId = File.Constants.FindClass(JAVA_OBJECT_TYPE.ToTypename());
 
-    AccessFlags accessFlags = AccessFlags::Super;
-    if (CurrentClass) accessFlags = accessFlags | AccessFlags::Public;
-    else if (CurrentStruct) accessFlags = AccessFlags::Public; // Структуры не имеют Super флага
+    // ВАЖНО: Для структур суперкласс должен быть java/lang/Object
+    const auto superClassId = File.Constants.FindClass(JAVA_OBJECT_TYPE.ToTypename());
 
     append(bytes, ::ToBytes((uint16_t)accessFlags));
     append(bytes, ::ToBytes(classConstantId));

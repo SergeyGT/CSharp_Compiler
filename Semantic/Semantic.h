@@ -109,6 +109,7 @@ struct Semantic
         // Анализ сигнатур структур
         for (auto* struct_ : namespace_->Members->Structs)
         {
+            std::cout << "[DEBUG] Analyzing struct: " << struct_->StructName << std::endl;
             ClassAnalyzer analyzer(struct_, namespace_, program->Namespaces);
             analyzer.AnalyzeMemberSignatures();
         }
