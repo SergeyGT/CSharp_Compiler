@@ -2,15 +2,14 @@ namespace InitObj {
     public class Program {
         public static void Main() {
             A newClass = new InitObj.A();
-            System.Console.WriteLine(10+10);
+            System.Console.WriteLine(newClass.GetNum());
         }
     }
 	
 	public class A {
-		public A(){
-		}
+		public int a = 3;
 		public int GetNum(){
-			return 8;
+			return a;
 		}
 	}
 }

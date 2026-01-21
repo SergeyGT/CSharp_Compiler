@@ -48,11 +48,11 @@ namespace Sort
 		
 			M m = new Sort.M();
 
-            System.Console.Write("Array before sorting: ");
+            System.Console.Write("The array before sorting: ");
             m.PrintArray(array);
 
             m.SortArray(array);
-            System.Console.Write("Array after sorting: ");
+            System.Console.Write("The array after sorting: ");
             m.PrintArray(array);
         }
     }

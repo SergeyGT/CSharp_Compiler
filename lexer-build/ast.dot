@@ -1,81 +1,396 @@
 digraph Program {
-42 [label="Program"]
+204 [label="Program"]
 0 [label="UsingDirectives"]
-41 [label="NamespaceDeclSeq"]
-40 [label="NamespaceDecl\nTwoDimArr"]
-38 [label="ClassDecl\nM\nInherited from: "]
-36 [label="MethodDecl\nVisibility: public\nName: Main"]
-35 [label="Stmt Seq"]
-34 [label="STMT"]
-33 [label="VarDeclWithInit\nName = matrix\nCalculated data type: int[][]"]
-2 [label="Type\nint[][]"]
-33 -> 2 [label="Variable type"]
-32 [label="new[]\nCalculated data type: char"]
-3 [label="Type\nint[][]"]
-32 -> 3 [label="type"]
-12 [label="new[]\nCalculated data type: char"]
-4 [label="Type\nint[]"]
-12 -> 4 [label="type"]
-6 [label="Qualified_or_expr"]
-5 [label="1\nCalculated data type: int"]
-6 -> 5
-12 -> 6
-9 [label="Qualified_or_expr"]
-8 [label="2\nCalculated data type: int"]
-9 -> 8
-12 -> 9
-6 -> 9 [label="next"][style="dashed"]
-11 [label="Qualified_or_expr"]
-10 [label="3\nCalculated data type: int"]
-11 -> 10
-12 -> 11
-9 -> 11 [label="next"][style="dashed"]
-32 -> 12
-22 [label="new[]\nCalculated data type: char"]
-14 [label="Type\nint[]"]
-22 -> 14 [label="type"]
+203 [label="NamespaceDeclSeq"]
+202 [label="NamespaceDecl\nFib"]
+200 [label="ClassDecl\nM\nInherited from: "]
+111 [label="MethodDecl\nVisibility: public\nName: Fib"]
+1 [label="Type\nint"]
+111 -> 1 [label="Return value type"]
+3 [label="VarDecl\nName = n\nCalculated data type: int"]
+2 [label="Type\nint"]
+3 -> 2 [label="Variable type"]
+111 -> 3 [label="Method argument"]
+6 [label="VarDecl\nName = arr\nCalculated data type: int[]"]
+5 [label="Type\nint[]"]
+6 -> 5 [label="Variable type"]
+111 -> 6 [label="Method argument"]
+26 [label="Stmt Seq"]
+25 [label="STMT"]
+24 [label="If"]
+18 [label="||\nCalculated data type: char"]
+11 [label="<=\nCalculated data type: char"]
+8 [label="Qualified_or_expr"]
+7 [label="n\nCalculated data type: char"]
+8 -> 7
+10 [label="Qualified_or_expr"]
+9 [label="0\nCalculated data type: int"]
+10 -> 9
+11 -> 8 [label="left operand"]
+11 -> 10 [label="right operand"]
+17 [label="<\nCalculated data type: char"]
+14 [label="Qualified_or_expr"]
+13 [label=".Length\nCalculated data type: char"]
+12 [label="arr\nCalculated data type: char"]
+13 -> 12
+14 -> 13
 16 [label="Qualified_or_expr"]
-15 [label="4\nCalculated data type: int"]
+15 [label="n\nCalculated data type: char"]
 16 -> 15
-22 -> 16
-19 [label="Qualified_or_expr"]
-18 [label="5\nCalculated data type: int"]
-19 -> 18
-22 -> 19
-16 -> 19 [label="next"][style="dashed"]
-21 [label="Qualified_or_expr"]
-20 [label="6\nCalculated data type: int"]
-21 -> 20
-22 -> 21
-19 -> 21 [label="next"][style="dashed"]
-32 -> 22
-12 -> 22 [label="next"][style="dashed"]
-31 [label="new[]\nCalculated data type: char"]
-23 [label="Type\nint[]"]
-31 -> 23 [label="type"]
-25 [label="Qualified_or_expr"]
-24 [label="7\nCalculated data type: int"]
+17 -> 14 [label="left operand"]
+17 -> 16 [label="right operand"]
+18 -> 11 [label="left operand"]
+18 -> 17 [label="right operand"]
+24 -> 18 [label="Condition"]
+23 [label="Block Statement"]
+21 [label="Return"]
+20 [label="Qualified_or_expr"]
+19 [label="1\nCalculated data type: int"]
+20 -> 19
+21 -> 20 [label="value"]
+23 -> 21
+24 -> 23 [label="Then Branch"]
 25 -> 24
-31 -> 25
+26 -> 25
+44 [label="STMT"]
+43 [label="If"]
+31 [label=">=\nCalculated data type: char"]
 28 [label="Qualified_or_expr"]
-27 [label="8\nCalculated data type: int"]
+27 [label="n\nCalculated data type: char"]
 28 -> 27
-31 -> 28
-25 -> 28 [label="next"][style="dashed"]
 30 [label="Qualified_or_expr"]
-29 [label="9\nCalculated data type: int"]
+29 [label="1\nCalculated data type: int"]
 30 -> 29
-31 -> 30
-28 -> 30 [label="next"][style="dashed"]
-32 -> 31
-22 -> 31 [label="next"][style="dashed"]
-33 -> 32 [label="Init"]
+31 -> 28 [label="left operand"]
+31 -> 30 [label="right operand"]
+43 -> 31 [label="Condition"]
+42 [label="Block Statement"]
+40 [label="Expr statement"]
+39 [label="=\nCalculated data type: char"]
+36 [label="Qualified_or_expr"]
+35 [label="Array Indexing\nCalculated data type: char"]
+32 [label="arr\nCalculated data type: char"]
+35 -> 32 [label="array expr"]
+34 [label="Qualified_or_expr"]
+33 [label="0\nCalculated data type: int"]
 34 -> 33
-35 -> 34
-36 -> 35 [label="Method body"]
-38 -> 36 [label="method"]
-40 -> 38
-41 -> 40
-42 -> 0
-42 -> 41
+35 -> 34 [label="element expr"]
+36 -> 35
+38 [label="Qualified_or_expr"]
+37 [label="0\nCalculated data type: int"]
+38 -> 37
+39 -> 36 [label="left operand"]
+39 -> 38 [label="right operand"]
+40 -> 39
+42 -> 40
+43 -> 42 [label="Then Branch"]
+44 -> 43
+26 -> 44
+25 -> 44 [label="next stmt"][style="dashed"]
+62 [label="STMT"]
+61 [label="If"]
+49 [label=">=\nCalculated data type: char"]
+46 [label="Qualified_or_expr"]
+45 [label="n\nCalculated data type: char"]
+46 -> 45
+48 [label="Qualified_or_expr"]
+47 [label="2\nCalculated data type: int"]
+48 -> 47
+49 -> 46 [label="left operand"]
+49 -> 48 [label="right operand"]
+61 -> 49 [label="Condition"]
+60 [label="Block Statement"]
+58 [label="Expr statement"]
+57 [label="=\nCalculated data type: char"]
+54 [label="Qualified_or_expr"]
+53 [label="Array Indexing\nCalculated data type: char"]
+50 [label="arr\nCalculated data type: char"]
+53 -> 50 [label="array expr"]
+52 [label="Qualified_or_expr"]
+51 [label="1\nCalculated data type: int"]
+52 -> 51
+53 -> 52 [label="element expr"]
+54 -> 53
+56 [label="Qualified_or_expr"]
+55 [label="1\nCalculated data type: int"]
+56 -> 55
+57 -> 54 [label="left operand"]
+57 -> 56 [label="right operand"]
+58 -> 57
+60 -> 58
+61 -> 60 [label="Then Branch"]
+62 -> 61
+26 -> 62
+44 -> 62 [label="next stmt"][style="dashed"]
+107 [label="STMT"]
+106 [label="For"]
+66 [label="VarDeclWithInit\nName = i\nCalculated data type: int"]
+63 [label="Type\nint"]
+66 -> 63 [label="Variable type"]
+65 [label="Qualified_or_expr"]
+64 [label="2\nCalculated data type: int"]
+65 -> 64
+66 -> 65 [label="Init"]
+106 -> 66 [label="Loop variable"]
+71 [label="<\nCalculated data type: char"]
+68 [label="Qualified_or_expr"]
+67 [label="i\nCalculated data type: char"]
+68 -> 67
+70 [label="Qualified_or_expr"]
+69 [label="n\nCalculated data type: char"]
+70 -> 69
+71 -> 68 [label="left operand"]
+71 -> 70 [label="right operand"]
+106 -> 71 [label="Condition"]
+79 [label="=\nCalculated data type: char"]
+73 [label="Qualified_or_expr"]
+72 [label="i\nCalculated data type: char"]
+73 -> 72
+78 [label="+\nCalculated data type: char"]
+75 [label="Qualified_or_expr"]
+74 [label="i\nCalculated data type: char"]
+75 -> 74
+77 [label="Qualified_or_expr"]
+76 [label="1\nCalculated data type: int"]
+77 -> 76
+78 -> 75 [label="left operand"]
+78 -> 77 [label="right operand"]
+79 -> 73 [label="left operand"]
+79 -> 78 [label="right operand"]
+106 -> 79 [label="IterExpr"]
+105 [label="Block Statement"]
+103 [label="Expr statement"]
+102 [label="=\nCalculated data type: char"]
+84 [label="Qualified_or_expr"]
+83 [label="Array Indexing\nCalculated data type: char"]
+80 [label="arr\nCalculated data type: char"]
+83 -> 80 [label="array expr"]
+82 [label="Qualified_or_expr"]
+81 [label="i\nCalculated data type: char"]
+82 -> 81
+83 -> 82 [label="element expr"]
+84 -> 83
+101 [label="+\nCalculated data type: char"]
+92 [label="Qualified_or_expr"]
+91 [label="Array Indexing\nCalculated data type: char"]
+85 [label="arr\nCalculated data type: char"]
+91 -> 85 [label="array expr"]
+90 [label="-\nCalculated data type: char"]
+87 [label="Qualified_or_expr"]
+86 [label="i\nCalculated data type: char"]
+87 -> 86
+89 [label="Qualified_or_expr"]
+88 [label="1\nCalculated data type: int"]
+89 -> 88
+90 -> 87 [label="left operand"]
+90 -> 89 [label="right operand"]
+91 -> 90 [label="element expr"]
+92 -> 91
+100 [label="Qualified_or_expr"]
+99 [label="Array Indexing\nCalculated data type: char"]
+93 [label="arr\nCalculated data type: char"]
+99 -> 93 [label="array expr"]
+98 [label="-\nCalculated data type: char"]
+95 [label="Qualified_or_expr"]
+94 [label="i\nCalculated data type: char"]
+95 -> 94
+97 [label="Qualified_or_expr"]
+96 [label="2\nCalculated data type: int"]
+97 -> 96
+98 -> 95 [label="left operand"]
+98 -> 97 [label="right operand"]
+99 -> 98 [label="element expr"]
+100 -> 99
+101 -> 92 [label="left operand"]
+101 -> 100 [label="right operand"]
+102 -> 84 [label="left operand"]
+102 -> 101 [label="right operand"]
+103 -> 102
+105 -> 103
+106 -> 105 [label="Body"]
+107 -> 106
+26 -> 107
+62 -> 107 [label="next stmt"][style="dashed"]
+110 [label="Return"]
+109 [label="Qualified_or_expr"]
+108 [label="0\nCalculated data type: int"]
+109 -> 108
+110 -> 109 [label="value"]
+26 -> 110
+107 -> 110 [label="next stmt"][style="dashed"]
+111 -> 26 [label="Method body"]
+200 -> 111 [label="method"]
+199 [label="MethodDecl\nVisibility: public\nName: Main"]
+122 [label="Stmt Seq"]
+121 [label="Expr statement"]
+120 [label="Qualified_or_expr"]
+119 [label="Method call\nMethodName: Write\nCalculated data type: char"]
+115 [label=".Console\nCalculated data type: char"]
+114 [label="System\nCalculated data type: char"]
+115 -> 114
+119 -> 115 [label="call expr"]
+117 [label="Qualified_or_expr"]
+116 [label="Enter n: \nCalculated data type: char"]
+117 -> 116
+119 -> 117 [label="argument"]
+120 -> 119
+121 -> 120
+122 -> 121
+129 [label="STMT"]
+128 [label="VarDeclWithInit\nName = n\nCalculated data type: int"]
+123 [label="Type\nint"]
+128 -> 123 [label="Variable type"]
+127 [label="Qualified_or_expr"]
+126 [label=".ReadInt\nCalculated data type: char"]
+125 [label=".Console\nCalculated data type: char"]
+124 [label="System\nCalculated data type: char"]
+125 -> 124
+126 -> 125
+127 -> 126
+128 -> 127 [label="Init"]
+129 -> 128
+122 -> 129
+121 -> 129 [label="next stmt"][style="dashed"]
+137 [label="STMT"]
+136 [label="VarDeclWithInit\nName = main\nCalculated data type: M"]
+131 [label="Type"]
+130 [label="M"]
+131 -> 130 [label="Complex type"]
+136 -> 131 [label="Variable type"]
+135 [label="new\nCalculated data type: Fib.M"]
+134 [label="Type"]
+133 [label=".M"]
+132 [label="Fib\nCalculated data type: char"]
+133 -> 132
+134 -> 133 [label="Complex type"]
+135 -> 134 [label="type"]
+136 -> 135 [label="Init"]
+137 -> 136
+122 -> 137
+129 -> 137 [label="next stmt"][style="dashed"]
+146 [label="STMT"]
+145 [label="VarDeclWithInit\nName = arr3\nCalculated data type: int[]"]
+138 [label="Type\nint[]"]
+145 -> 138 [label="Variable type"]
+144 [label="new[]\nCalculated data type: int[]"]
+143 [label="+\nCalculated data type: char"]
+140 [label="Qualified_or_expr"]
+139 [label="n\nCalculated data type: char"]
+140 -> 139
+142 [label="Qualified_or_expr"]
+141 [label="1\nCalculated data type: int"]
+142 -> 141
+143 -> 140 [label="left operand"]
+143 -> 142 [label="right operand"]
+144 -> 143 [label="Array size"]
+145 -> 144 [label="Init"]
+146 -> 145
+122 -> 146
+137 -> 146 [label="next stmt"][style="dashed"]
+158 [label="Expr statement"]
+157 [label="Qualified_or_expr"]
+156 [label="Method call\nMethodName: Fib\nCalculated data type: char"]
+147 [label="main\nCalculated data type: char"]
+156 -> 147 [label="call expr"]
+152 [label="+\nCalculated data type: char"]
+149 [label="Qualified_or_expr"]
+148 [label="n\nCalculated data type: char"]
+149 -> 148
+151 [label="Qualified_or_expr"]
+150 [label="1\nCalculated data type: int"]
+151 -> 150
+152 -> 149 [label="left operand"]
+152 -> 151 [label="right operand"]
+156 -> 152 [label="argument"]
+155 [label="Qualified_or_expr"]
+154 [label="arr3\nCalculated data type: char"]
+155 -> 154
+156 -> 155 [label="argument"]
+152 -> 155 [label="next"][style="dashed"]
+157 -> 156
+158 -> 157
+122 -> 158
+146 -> 158 [label="next stmt"][style="dashed"]
+166 [label="Expr statement"]
+165 [label="Qualified_or_expr"]
+164 [label="Method call\nMethodName: Write\nCalculated data type: char"]
+160 [label=".Console\nCalculated data type: char"]
+159 [label="System\nCalculated data type: char"]
+160 -> 159
+164 -> 160 [label="call expr"]
+162 [label="Qualified_or_expr"]
+161 [label="Filled array: \nCalculated data type: char"]
+162 -> 161
+164 -> 162 [label="argument"]
+165 -> 164
+166 -> 165
+122 -> 166
+158 -> 166 [label="next stmt"][style="dashed"]
+198 [label="STMT"]
+197 [label="For"]
+170 [label="VarDeclWithInit\nName = i\nCalculated data type: int"]
+167 [label="Type\nint"]
+170 -> 167 [label="Variable type"]
+169 [label="Qualified_or_expr"]
+168 [label="0\nCalculated data type: int"]
+169 -> 168
+170 -> 169 [label="Init"]
+197 -> 170 [label="Loop variable"]
+175 [label="<=\nCalculated data type: char"]
+172 [label="Qualified_or_expr"]
+171 [label="i\nCalculated data type: char"]
+172 -> 171
+174 [label="Qualified_or_expr"]
+173 [label="n\nCalculated data type: char"]
+174 -> 173
+175 -> 172 [label="left operand"]
+175 -> 174 [label="right operand"]
+197 -> 175 [label="Condition"]
+183 [label="=\nCalculated data type: char"]
+177 [label="Qualified_or_expr"]
+176 [label="i\nCalculated data type: char"]
+177 -> 176
+182 [label="+\nCalculated data type: char"]
+179 [label="Qualified_or_expr"]
+178 [label="i\nCalculated data type: char"]
+179 -> 178
+181 [label="Qualified_or_expr"]
+180 [label="1\nCalculated data type: int"]
+181 -> 180
+182 -> 179 [label="left operand"]
+182 -> 181 [label="right operand"]
+183 -> 177 [label="left operand"]
+183 -> 182 [label="right operand"]
+197 -> 183 [label="IterExpr"]
+196 [label="Block Statement"]
+194 [label="Expr statement"]
+193 [label="Qualified_or_expr"]
+192 [label="Method call\nMethodName: Write\nCalculated data type: char"]
+185 [label=".Console\nCalculated data type: char"]
+184 [label="System\nCalculated data type: char"]
+185 -> 184
+192 -> 185 [label="call expr"]
+190 [label="Qualified_or_expr"]
+189 [label="Array Indexing\nCalculated data type: char"]
+186 [label="arr3\nCalculated data type: char"]
+189 -> 186 [label="array expr"]
+188 [label="Qualified_or_expr"]
+187 [label="i\nCalculated data type: char"]
+188 -> 187
+189 -> 188 [label="element expr"]
+190 -> 189
+192 -> 190 [label="argument"]
+193 -> 192
+194 -> 193
+196 -> 194
+197 -> 196 [label="Body"]
+198 -> 197
+122 -> 198
+166 -> 198 [label="next stmt"][style="dashed"]
+199 -> 122 [label="Method body"]
+200 -> 199 [label="method"]
+202 -> 200
+203 -> 202
+204 -> 0
+204 -> 203
 }

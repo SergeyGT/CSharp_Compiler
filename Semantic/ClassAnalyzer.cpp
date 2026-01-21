@@ -432,6 +432,13 @@ void ClassAnalyzer::AnalyzeStmt(StmtNode* stmt)
     }
 }
 
+ClassAnalyzer::ClassAnalyzer(EnumDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces)
+    : CurrentEnum{ node }
+, Namespace{ namespace_ }
+, AllNamespaces{ allNamespaces }
+{
+    // Инициализация для enum
+}
 
 void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
 {
@@ -2489,6 +2496,8 @@ Bytes ToBytes(WhileNode* while_, ClassFile& file)
 
     return bytes;
 }
+
+
 
 Bytes ToBytes(DoWhileNode* doWhile, ClassFile& file)
 {

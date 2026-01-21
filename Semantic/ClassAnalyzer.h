@@ -176,6 +176,7 @@ struct ClassAnalyzer
     MethodDeclNode* CurrentMethod = nullptr;
     ClassDeclNode* CurrentClass = nullptr;
     StructDeclNode* CurrentStruct = nullptr;
+    EnumDeclNode* CurrentEnum = nullptr;
     ClassFile File{};
     std::vector<std::string> Errors{};
     NamespaceDeclNode* Namespace{};
@@ -201,6 +202,8 @@ struct ClassAnalyzer
     explicit ClassAnalyzer(ClassDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces);
 
     explicit ClassAnalyzer(StructDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces);
+
+    explicit ClassAnalyzer(EnumDeclNode* node, NamespaceDeclNode* namespace_, NamespaceDeclSeq* allNamespaces);
 
     void Analyze();
 
@@ -233,6 +236,10 @@ struct ClassAnalyzer
     [[nodiscard]] ExprNode* AnalyzeExpr(ExprNode* expr);
 
     void AnalyzeQualified_or_expr(Qualified_or_expr* expr);
+
+    void AnalyzeEnum(EnumDeclNode* value);
+    void AnalyzeEnumMemberSignatures();
+    void FillTables(EnumDeclNode* enumNode);
 
     void AnalyzeSimpleMethodCall(ExprNode* node);
 
