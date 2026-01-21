@@ -311,10 +311,27 @@ void ClassAnalyzer::AnalyzeVarDecl(VarDeclNode* varDecl, bool withInit)
 
     ValidateTypename(varDecl->AType);
 
-    if (withInit && varDecl->InitExpr && varDecl->AType != varDecl->InitExpr->AType)
+    if (withInit && varDecl->InitExpr)
     {
-        Errors.push_back("Cannot initialize variable of type " + ToString(varDecl->AType) + " with object of type " +
-                         ToString(varDecl->InitExpr->AType));
+        std::cout << "[DEBUG AnalyzeVarDecl] Init expr type: "
+                  << ToString(varDecl->InitExpr->AType)
+                  << ", var type: " << ToString(varDecl->AType) << std::endl;
+
+        // РАЗРЕШАЕМ ПРИСВАИВАНИЕ int К enum
+        bool isEnumAssignment = varDecl->AType.AType == DataType::TypeT::Complex &&
+                               varDecl->InitExpr->AType == DataType::IntType;
+
+        // РАЗРЕШАЕМ ПРИСВАИВАНИЕ enum К int (для передачи в методы)
+        bool isIntFromEnumAssignment = varDecl->AType == DataType::IntType &&
+                                      varDecl->InitExpr->AType.AType == DataType::TypeT::Complex;
+
+        if (varDecl->AType != varDecl->InitExpr->AType && !isEnumAssignment && !isIntFromEnumAssignment)
+        {
+            Errors.push_back("Cannot initialize variable of type " +
+                           ToString(varDecl->AType) +
+                           " with object of type " +
+                           ToString(varDecl->InitExpr->AType));
+        }
     }
 
     if (CurrentMethod)
@@ -666,6 +683,101 @@ void ClassAnalyzer::AnalyzeStruct(StructDeclNode* value)
         Errors.push_back("Struct " + std::string{value->StructName} + " cannot have destructor");
     }
 }
+
+void ClassAnalyzer::AnalyzeEnum(EnumDeclNode* enumNode)
+{
+    if (!enumNode || !enumNode->Enumerators)
+        return;
+
+    if (Namespace)
+    {
+        enumNode->SetNamespace(std::string(Namespace->NamespaceName));
+    }
+
+    std::cout << "[DEBUG] Analyzing enum: " << enumNode->EnumName
+              << " with " << enumNode->Enumerators->Identifiers.size()
+              << " values" << std::endl;
+
+    // Проверка уникальности идентификаторов в перечислении
+    std::set<std::string> uniqueNames;
+    int value = 0;
+    for (const auto& enumerator : enumNode->Enumerators->Identifiers)
+    {
+        if (uniqueNames.find(std::string(enumerator)) != uniqueNames.end())
+        {
+            Errors.push_back("Duplicate enumerator '" + std::string(enumerator) +
+                            "' in enum " + std::string(enumNode->EnumName));
+        }
+        uniqueNames.insert(std::string(enumerator));
+
+        std::cout << "[DEBUG] Enum value: " << enumerator << " = " << value << std::endl;
+        value++;
+    }
+}
+
+
+std::pair<EnumDeclNode*, int> ClassAnalyzer::FindEnumValue(const std::string& name) const
+{
+    if (!Namespace) return {nullptr, -1};
+
+    // Ищем во всех enum в текущем namespace
+    for (auto* enum_ : Namespace->Members->Enums)
+    {
+        if (!enum_->Enumerators) continue;
+
+        int value = 0;
+        for (const auto& enumerator : enum_->Enumerators->Identifiers)
+        {
+            if (enumerator == name)
+            {
+                return {enum_, value};
+            }
+            value++;
+        }
+    }
+
+    return {nullptr, -1};
+}
+
+void ClassAnalyzer::AnalyzeEnumMemberSignatures()
+{
+    if (!CurrentEnum)
+        return;
+
+    // Enums не могут содержать методы или поля в базовой реализации
+    // Если нужно добавить методы к enum, здесь будет их анализ
+}
+
+void ClassAnalyzer::FillTables(EnumDeclNode* enumNode)
+{
+    if (!enumNode)
+        return;
+
+    std::cout << "[DEBUG] Filling tables for enum: " << enumNode->EnumName << std::endl;
+
+    // Для перечислений создаем класс со статическими полями
+    std::string enumClassName = std::string(enumNode->EnumName);
+
+    // Добавляем поля для каждого значения перечисления
+    int value = 0;
+    for (const auto& enumerator : enumNode->Enumerators->Identifiers)
+    {
+        // Создаем поле для значения перечисления
+        std::string fieldName = std::string(enumerator);
+
+        // Добавляем в таблицу констант
+        const auto nameId = File.Constants.FindUtf8(fieldName);
+        const auto typeId = File.Constants.FindUtf8("I"); // int тип для значений enum
+        const auto accessFlags = AccessFlags::Public | AccessFlags::Static | AccessFlags::Final;
+
+        // Создаем JvmField
+        JvmField field{nameId, typeId, accessFlags};
+        File.Fields.push_back(field);
+
+        // Добавляем значение в таблицу констант
+        File.Constants.FindInt(value++);
+    }
+}
 [[nodiscard]] ExprNode* ClassAnalyzer::AnalyzeExpr(ExprNode* expr)
 {
     if (!expr)
@@ -827,17 +939,14 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
     if (expr->Type != Qualified_or_expr::TypeT::DotMethodCall)
         return;
 
-
     std::cout << "[DEBUG AnalyzeDotMethodCall] Method: " << std::string(expr->Identifier)
               << ", arguments count: " << expr->Arguments->GetSeq().size() << std::endl;
-
-    for (auto*& argument : expr->Arguments->GetSeq())
-        argument = AnalyzeExpr(argument);
 
     AnalyzeQualified_or_expr(expr->Previous);
     const auto typeForPrevious = CalculateTypeForQualified_or_expr(expr->Previous);
     auto* foundClass = FindClass(typeForPrevious);
     auto* foundStruct = FindStruct(typeForPrevious);
+
     if (!foundClass && !foundStruct)
     {
         Errors.push_back("No member " + std::string{ expr->Identifier } + " in type " + ToString(typeForPrevious));
@@ -845,25 +954,38 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
     }
 
     const auto methodName = expr->Identifier;
-    const auto callTypes = [expr, this]()
+
+    // Анализируем аргументы и проверяем типы
+    std::vector<DataType> originalCallTypes;
+    std::vector<DataType> actualCallTypes; // Могут быть преобразованы
+
+    for (auto*& argument : expr->Arguments->GetSeq())
     {
-        auto const& arguments = expr->Arguments->GetSeq();
-        std::vector<DataType> types(arguments.size());
-        std::transform(arguments.begin(), arguments.end(), types.begin(), [this](auto& arg)
+        argument = AnalyzeExpr(argument);
+        originalCallTypes.push_back(argument->AType);
+
+        // ПРЕОБРАЗУЕМ enum К int
+        DataType actualType = argument->AType;
+        if (argument->AType.AType == DataType::TypeT::Complex)
         {
-            ValidateTypename(arg->AType);
-            return arg->AType;
-        });
-        return types;
+            // Проверяем, является ли это enum'ом
+            auto* foundEnum = FindEnum(argument->AType);
+            if (foundEnum)
+            {
+                std::cout << "[DEBUG] Converting enum argument to int for method call" << std::endl;
+                actualType = DataType::IntType;
 
-
-    }();
-
-
-    std::cout << "[DEBUG AnalyzeDotMethodCall] callTypes size: " << callTypes.size() << std::endl;
-    for (size_t i = 0; i < callTypes.size(); i++) {
-        std::cout << "[DEBUG AnalyzeDotMethodCall]   Arg " << i << ": " << ToString(callTypes[i]) << std::endl;
+                // СОЗДАЕМ ВЫРАЖЕНИЕ ПРИВЕДЕНИЯ ТИПА
+                auto* castExpr = ExprNode::FromCast(StandardType::Int, argument);
+                castExpr->AType = DataType::IntType;
+                argument = castExpr;
+            }
+        }
+        actualCallTypes.push_back(actualType);
     }
+
+    std::cout << "[DEBUG AnalyzeDotMethodCall] Original callTypes: " << ToString(originalCallTypes) << std::endl;
+    std::cout << "[DEBUG AnalyzeDotMethodCall] Actual callTypes: " << ToString(actualCallTypes) << std::endl;
 
     // Ищем метод в найденном классе или структуре
     std::vector<MethodDeclNode*> allMethods;
@@ -873,21 +995,21 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
     const auto foundMethod = std::find_if(allMethods.begin(), allMethods.end(), [&](auto* method)
     {
         bool nameMatches = methodName == method->Identifier();
-         bool typesMatch = callTypes == ToTypes(method->ArgumentDtos);
+        bool typesMatch = actualCallTypes == ToTypes(method->ArgumentDtos);
 
-         std::cout << "[DEBUG] Checking method: " << method->Identifier()
-                   << ", nameMatches=" << nameMatches
-                   << ", typesMatch=" << typesMatch
-                   << ", method args count=" << method->ArgumentDtos.size()
-                   << ", call args count=" << callTypes.size() << std::endl;
+        std::cout << "[DEBUG] Checking method: " << method->Identifier()
+                  << ", nameMatches=" << nameMatches
+                  << ", typesMatch=" << typesMatch
+                  << ", method args count=" << method->ArgumentDtos.size()
+                  << ", call args count=" << actualCallTypes.size() << std::endl;
 
-         return nameMatches && typesMatch;  // ← БЕЗ !method->IsStatic
+        return nameMatches && typesMatch;
     });
 
     if (foundMethod == allMethods.end())
     {
         Errors.push_back("Cannot call method with name " + std::string{ methodName } + " with arguments of types " +
-                         ToString(callTypes));
+                         ToString(originalCallTypes) + " (after conversion: " + ToString(actualCallTypes) + ")");
         std::cout << "[DEBUG] Method not found: " << std::string(methodName)
                   << " in type " << ToString(typeForPrevious) << std::endl;
         return;
@@ -931,6 +1053,15 @@ void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
     if (!node)
         return;
 
+    if (node->Type == ExprNode::TypeT::Qualified_or_expr && node->Access)
+    {
+        if (node->Access->IsEnumValue)
+        {
+            node->AType = DataType::IntType;
+            return;
+        }
+    }
+
     if (node->Type == ExprNode::TypeT::AssignOnArrayElement)
     {
         const auto dataTypeForArray = CalculateTypeForQualified_or_expr(node->ArrayExpr);
@@ -963,17 +1094,25 @@ void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
         CalculateTypesForExpr(node->Child);
         const auto& exprType = node->Child->AType;
 
+        // РАЗРЕШАЕМ ПРИВЕДЕНИЕ enum К int
+        bool isEnumToInt = castType == DataType::IntType &&
+                          exprType.AType == DataType::TypeT::Complex;
+
         const auto anyIsBool = castType == DataType::BoolType
                                || exprType == DataType::BoolType;
         const auto anyIsVoid = castType == DataType::VoidType
                                || exprType == DataType::VoidType;
         const auto anyIsUnknown = castType.IsUnknown || exprType.IsUnknown;
-        if (anyIsBool || anyIsVoid || anyIsUnknown)
+
+        if ((anyIsBool || anyIsVoid || anyIsUnknown) && !isEnumToInt)
         {
             Errors.push_back("Cannot cast '" + ToString(exprType) + "' to '" + ToString(castType) + "'");
             node->AType.IsUnknown = true;
             return;
         }
+
+        node->AType = castType;
+        return;
     }
 
     if (node->Type == ExprNode::TypeT::Qualified_or_expr)
@@ -1299,6 +1438,7 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         case Qualified_or_expr::TypeT::Dot:
         {
 
+
             auto typeForPrevious = CalculateTypeForQualified_or_expr(access->Previous);
 
             // Быстрая проверка для System.Console
@@ -1314,6 +1454,50 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
                 access->AType = consoleType;
                 return consoleType;
             }
+
+            std::cout << "[DEBUG] Previous type: " << ToString(typeForPrevious) << std::endl;
+            // Проверяем, является ли предыдущий тип enum'ом
+             // Проверяем, является ли предыдущий тип enum'ом
+            if (typeForPrevious.AType == DataType::TypeT::Complex)
+            {
+                auto* foundEnum = FindEnum(typeForPrevious);
+                if (foundEnum)
+                {
+                    std::cout << "[DEBUG ENUM] Found enum: " << foundEnum->EnumName
+                              << ", looking for value: " << access->Identifier << std::endl;
+
+                    int enumValue = foundEnum->GetEnumValue(access->Identifier);
+                    if (enumValue != -1)
+                    {
+                        std::cout << "[DEBUG ENUM] Converting to integer: " << enumValue << std::endl;
+
+                        // ВАЖНО: Не создаем новый узел, а преобразуем текущий
+                        // Сохраняем старое состояние для очистки
+                        auto* oldPrevious = access->Previous;
+                        auto* oldChild = access->Child;
+                        auto* oldArguments = access->Arguments;
+
+                        // Преобразуем текущий узел в Integer
+                        access->Type = Qualified_or_expr::TypeT::Integer;
+                        access->Integer = enumValue;
+                        access->AType = DataType::IntType;
+
+                        // Очищаем ненужные указатели
+                        access->Previous = nullptr;
+                        access->Child = nullptr;
+                        access->Arguments = nullptr;
+                        // Идентификатор больше не нужен, но оставляем для отладки
+
+                        // Освобождаем память старых узлов, если они больше не нужны
+                        // НЕ удаляйте oldPrevious, если он используется где-то еще!
+
+                        std::cout << "[DEBUG ENUM] Successfully converted to integer node" << std::endl;
+
+                        return DataType::IntType;
+                    }
+                }
+            }
+
 
             if (typeForPrevious.AType == DataType::TypeT::Namespace)
             {
@@ -1484,6 +1668,58 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
                 return nullType;
             }
 
+            // 1. Проверяем, является ли это именем типа enum
+            for (auto* enum_ : Namespace->Members->Enums)
+            {
+                if (std::string(enum_->EnumName) == name)
+                {
+                    // Это тип enum
+                    DataType enumType;
+                    enumType.AType = DataType::TypeT::Complex;
+                    enumType.ComplexType.push_back(std::string(Namespace->NamespaceName));
+                    enumType.ComplexType.push_back(std::string(enum_->EnumName));
+                    access->AType = enumType;
+                    return enumType;
+                }
+            }
+
+            // 2. Проверяем, является ли это значением enum
+            for (auto* enum_ : Namespace->Members->Enums)
+            {
+                if (!enum_->Enumerators) continue;
+
+                int value = 0;
+                bool found = false;
+                for (const auto& enumerator : enum_->Enumerators->Identifiers)
+                {
+                    if (enumerator == access->Identifier)
+                    {
+                        found = true;
+                        break;
+                    }
+                    value++;
+                }
+
+                if (found)
+                {
+                    std::cout << "[DEBUG] Converting enum value to int: "
+                              << name << " = " << value << std::endl;
+
+                    // ВАЖНО: Нужно корректно создать новый узел
+                    auto* newAccess = Qualified_or_expr::FromInt(value);
+                    newAccess->AType = DataType::IntType;
+
+                    // Вместо удаления и замены, лучше вернуть новый Expression Node
+                    auto* newExpr = ExprNode::FromQualified_or_expr(newAccess);
+                    newExpr->AType = DataType::IntType;
+
+                    // Но поскольку мы в CalculateTypeForQualified_or_expr, просто устанавливаем тип
+                    access->Type = Qualified_or_expr::TypeT::Integer;
+                    access->Integer = value;
+                    access->AType = DataType::IntType;
+                    return DataType::IntType;
+                }
+            }
             for (auto* ns : AllNamespaces->GetSeq())
             {
                 if (ns->NamespaceName == name)
@@ -1547,6 +1783,22 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
                 }
             }
 
+
+            if (!isVariableFound && !access->ActualField) {
+                // Ищем во всех enum в текущем namespace
+                for (auto* enum_ : Namespace->Members->Enums)
+                {
+                    for (const auto& enumerator : enum_->Enumerators->Identifiers)
+                    {
+                        if (enumerator == access->Identifier)
+                        {
+                            // Нашли значение enum
+                            access->AType = DataType::IntType; // Значения enum имеют тип int
+                            return DataType::IntType;
+                        }
+                    }
+                }
+            }
             if (isVariableFound)
             {
                 access->AType = type;
@@ -1603,8 +1855,7 @@ void ClassAnalyzer::ValidateTypename(DataType& dataType)
             const auto foundNamespace = std::find_if(AllNamespaces->GetSeq().begin(), AllNamespaces->GetSeq().end(),
                                                      [&](NamespaceDeclNode* namespaceDecl)
                                                      {
-                                                         return namespaceDecl->NamespaceName == dataType.ComplexType.
-                                                                front();
+                                                         return namespaceDecl->NamespaceName == dataType.ComplexType.front();
                                                      });
             if (foundNamespace == AllNamespaces->GetSeq().end())
             {
@@ -1630,9 +1881,19 @@ void ClassAnalyzer::ValidateTypename(DataType& dataType)
                                                   return struct_->StructName == dataType.ComplexType.back();
                                               });
 
-        if (foundClass == allClassesInNamespace.end() && foundStruct == allStructsInNamespace.end())
+        // Ищем ENUM (ДОБАВЬТЕ ЭТО!)
+        const auto& allEnumsInNamespace = namespace_->Members->Enums;
+        const auto foundEnum = std::find_if(allEnumsInNamespace.begin(), allEnumsInNamespace.end(),
+                                            [&](EnumDeclNode* enum_)
+                                            {
+                                                return enum_->EnumName == dataType.ComplexType.back();
+                                            });
+
+        if (foundClass == allClassesInNamespace.end() &&
+            foundStruct == allStructsInNamespace.end() &&
+            foundEnum == allEnumsInNamespace.end())  // ДОБАВЬТЕ ЭТО УСЛОВИЕ
         {
-            Errors.push_back("No class or struct " + dataType.ComplexType.back() +
+            Errors.push_back("No class, struct or enum " + dataType.ComplexType.back() +
                             " in namespace " + std::string{namespace_->NamespaceName});
             dataType.IsUnknown = true;
             return;
@@ -1651,6 +1912,18 @@ ClassDeclNode* ClassAnalyzer::FindClass(DataType const& dataType) const
         return nullptr;
     if (dataType.ArrayArity > 0)
         return nullptr;
+
+    // ПРОВЕРЯЕМ, НЕ ЯВЛЯЕТСЯ ЛИ ЭТО ENUM
+    // Enum'ы обрабатываются как отдельный случай
+    for (auto* enum_ : Namespace->Members->Enums)
+    {
+        if (dataType.ComplexType.back() == enum_->EnumName)
+        {
+            // Для enum возвращаем null, так как у них нет ClassDeclNode
+            return nullptr;
+        }
+    }
+
     if (dataType.ComplexType.size() == 1)
     {
         for (auto* class_ : Namespace->Members->Classes)
@@ -1712,6 +1985,52 @@ StructDeclNode* ClassAnalyzer::FindStruct(DataType const& dataType) const
             {
                 if (dataType.ComplexType.back() == struct_->StructName)
                     return struct_;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+EnumDeclNode* ClassAnalyzer::FindEnum(DataType const& dataType) const
+{
+    if (dataType.AType != DataType::TypeT::Complex)
+        return nullptr;
+    if (dataType.ArrayArity > 0)
+        return nullptr;
+
+    NamespaceDeclNode* searchNamespace = Namespace;
+
+    // Если тип содержит namespace (например, "enums.DayOfWeek")
+    if (dataType.ComplexType.size() > 1)
+    {
+        const auto& allNamespaces = AllNamespaces->GetSeq();
+        const auto foundNamespace = std::find_if(allNamespaces.begin(), allNamespaces.end(),
+            [&](NamespaceDeclNode const* const namespace_)
+            {
+                return dataType.ComplexType.front() == namespace_->NamespaceName;
+            });
+
+        if (foundNamespace != allNamespaces.end())
+        {
+            searchNamespace = *foundNamespace;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    // Ищем enum в нужном namespace
+    if (searchNamespace)
+    {
+        for (auto* enum_ : searchNamespace->Members->Enums)
+        {
+            // Берем последнюю часть ComplexType (имя enum)
+            std::string enumName = dataType.ComplexType.back();
+            if (enumName == std::string(enum_->EnumName))
+            {
+                return enum_;
             }
         }
     }
@@ -1823,10 +2142,14 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
             const auto intVal = expr->Integer;
             if (intVal >= -32768 && intVal <= 32767)
             {
-                const auto intBytes = ToBytes((IntT)intVal);
+                // const auto intBytes = ToBytes((IntT)intVal);
+                // bytes.push_back((uint8_t)Command::sipush);
+                // bytes.push_back(intBytes[2]);
+                // bytes.push_back(intBytes[3]);
                 bytes.push_back((uint8_t)Command::sipush);
-                bytes.push_back(intBytes[2]);
-                bytes.push_back(intBytes[3]);
+                // Правильно кодируем 2-байтное значение
+                bytes.push_back((intVal >> 8) & 0xFF);
+                bytes.push_back(intVal & 0xFF);
             }
             else
             {
@@ -2037,6 +2360,26 @@ Bytes ToBytes(ExprNode* expr, ClassFile& file)
     {
         Bytes bytes;
         append(bytes, (uint8_t)Command::aconst_null);
+        return bytes;
+    }
+    if (expr->Type == ExprNode::TypeT::Cast)
+    {
+        Bytes bytes;
+
+        // Генерируем код для выражения
+        append(bytes, ToBytes(expr->Child, file));
+
+        // Если приводим к int, и выражение уже int (после преобразования enum),
+        // то ничего не делаем - это no-op
+        DataType castType = ToDataType(expr->StandardTypeChild);
+        if (castType == DataType::IntType && expr->Child->AType == DataType::IntType)
+        {
+            // Ничего не делаем, int к int
+            return bytes;
+        }
+
+        // Для других преобразований можно добавить код здесь
+
         return bytes;
     }
     if (expr->OverloadedOperation)
@@ -2713,6 +3056,7 @@ void ClassAnalyzer::Generate()
     std::string typeName;
     if (CurrentClass) typeName = std::string{ CurrentClass->ClassName };
     else if (CurrentStruct) typeName = std::string{ CurrentStruct->StructName };
+    else if (CurrentEnum)         typeName = std::string{ CurrentEnum->EnumName };
 
     const auto filename = typeName + ".class";
     auto filepath = current_path() / "Output" / Namespace->NamespaceName / filename;
@@ -2744,6 +3088,7 @@ Bytes ClassAnalyzer::ToBytes()
     std::string typeName;
     if (CurrentClass) typeName = CurrentClass->ToDataType().ToTypename();
     else if (CurrentStruct) typeName = CurrentStruct->ToDataType().ToTypename();
+    else if (CurrentEnum)         typeName = CurrentEnum->ToDataType().ToTypename();
 
     const auto classConstantId = File.Constants.FindClass(typeName);
     const auto superClassId = File.Constants.FindClass(JAVA_OBJECT_TYPE.ToTypename());

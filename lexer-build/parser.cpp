@@ -2622,7 +2622,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 363 "C:/Compile_CSharp/CSharp_Compiler/new_parser.y"
-    { Print("Found enum declaration with name:", (yyvsp[(3) - (6)]._identifier)); ;}
+    { Print("Found enum declaration with name:", (yyvsp[(3) - (6)]._identifier)); (yyval._enumDecl) = new EnumDeclNode((yyvsp[(3) - (6)]._identifier), (yyvsp[(5) - (6)]._enumerators)); ;}
     break;
 
   case 85:

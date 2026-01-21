@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Enum.h"
 #include "Expr.h"
 
 struct MethodDeclNode;
@@ -43,6 +44,9 @@ struct Qualified_or_expr final : Node
     MethodDeclNode* ActualMethodCall{};
     FieldDeclNode* ActualField{};
     VarDeclNode* ActualVar{};
+
+    bool IsEnumValue = false;           // Является ли значение enum
+    EnumDeclNode* EnumType = nullptr;
 
     DataType AType{};
 

@@ -360,7 +360,7 @@ enumerators: IDENTIFIER                     { $$ = new IdentifierList(); $$ -> A
             | enumerators ',' IDENTIFIER    { $$ -> Add($3); }
 ;
 
-enum_decl: PUBLIC ENUM IDENTIFIER '{' enumerators '}' { Print("Found enum declaration with name:", $3); }
+enum_decl: PUBLIC ENUM IDENTIFIER '{' enumerators '}' { Print("Found enum declaration with name:", $3); $$ = new EnumDeclNode($3, $5); }
 ;
 
 // ============================================================================

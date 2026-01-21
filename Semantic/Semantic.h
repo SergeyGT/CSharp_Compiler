@@ -99,6 +99,18 @@ struct Semantic
     void AnalyzeNamespace(NamespaceDeclNode* namespace_)
     {
 
+        for (auto* enum_ : namespace_->Members->Enums)
+        {
+            std::cout << "[DEBUG] Analyzing enum: " << enum_->EnumName << std::endl;
+            ClassAnalyzer analyzer(enum_, namespace_, program->Namespaces);
+            analyzer.AnalyzeEnumMemberSignatures();
+            analyzer.AnalyzeEnum(enum_);
+            Errors.insert(analyzer.Errors.begin(), analyzer.Errors.end());
+
+            // Устанавливаем namespace для enum
+            enum_->SetNamespace(std::string(namespace_->NamespaceName));
+        }
+
         // Анализ сигнатур классов
         for (auto* class_ : namespace_->Members->Classes)
         {
@@ -147,6 +159,7 @@ struct Semantic
         }
 
 
+
     } // TODO enums
 
     void Generate() const
@@ -169,6 +182,13 @@ struct Semantic
                     for (auto* struct_ : namespace_->Members->Structs)
                     {
                         ClassAnalyzer analyzer(struct_, namespace_, program->Namespaces);
+                        analyzer.FillTables();
+                        analyzer.Generate();
+                    }
+
+                    for (auto* enum_ : namespace_->Members->Enums)
+                    {
+                        ClassAnalyzer analyzer(enum_, namespace_, program->Namespaces);
                         analyzer.FillTables();
                         analyzer.Generate();
                     }

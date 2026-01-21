@@ -1,5 +1,7 @@
 #include "Qualified_or_expr.h"
 
+#include <iostream>
+
 Qualified_or_expr* Qualified_or_expr::FromBrackets(Qualified_or_expr* previous)
 {
     auto* node = new Qualified_or_expr;
@@ -67,6 +69,11 @@ Qualified_or_expr* Qualified_or_expr::FromInt(const int value)
     node->Type = TypeT::Integer;
     node->Integer = value;
     node->AType.AType = DataType::TypeT::Int;
+    node->AType.ArrayArity = 0;
+    node->AType.IsUnknown = false;
+
+    std::cout << "[DEBUG FromInt] Created node with value: " << value
+              << ", type set to: " << static_cast<int>(node->AType.AType) << std::endl;
     return node;
 }
 
@@ -135,6 +142,13 @@ DataType Qualified_or_expr::ToDataType() const
         DataType data;
         data.AType = DataType::TypeT::Complex;
         data.ComplexType = { std::string{ Identifier } };
+        return data;
+    }
+
+    if (Type == TypeT::Integer)
+    {
+        DataType data;
+        data.AType = DataType::TypeT::Int;
         return data;
     }
 

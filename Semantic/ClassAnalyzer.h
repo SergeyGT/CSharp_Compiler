@@ -182,6 +182,7 @@ struct ClassAnalyzer
     NamespaceDeclNode* Namespace{};
     NamespaceDeclSeq* AllNamespaces{};
     std::vector<MethodDeclNode*> AllMains{};
+    std::pair<EnumDeclNode*, int> FindEnumValue(const std::string& name) const;
     int CurrentScopingLevel = 0;
 
     void IncrementScopingLevel() { CurrentScopingLevel++; }
@@ -268,6 +269,8 @@ struct ClassAnalyzer
     [[nodiscard]] StructDeclNode* FindStruct(DataType const& dataType) const;
 
     void FillTables(FieldDeclNode* field);
+
+    [[nodiscard]] EnumDeclNode* FindEnum(DataType const& dataType) const;
 
     void FillTables(MethodDeclNode* method);
 

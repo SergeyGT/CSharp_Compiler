@@ -55,6 +55,19 @@ ClassDeclNode* Semantic::CreateConsoleClass()
         return method;
     }();
 
+    [[maybe_unused]] auto* writeLineEnumMethod = [&]
+    {
+        // Создаем метод, который принимает любой объект (включая enum)
+        auto* arg = new VarDeclNode(new TypeNode(StandardType::Int), "arg", nullptr);
+        auto* args = MethodArguments::MakeEmpty();
+        args->Add(arg);
+        auto* method = new MethodDeclNode(VisibilityModifier::Public, nullptr, "WriteLine", args, StmtSeqNode::MakeEmpty());
+        method->AReturnType = DataType::VoidType;
+        method->AnalyzeArguments();
+        method->IsStatic = true;
+        consoleMethods.push_back(method);
+        return method;
+    }();
     [[maybe_unused]] auto* writeIntMethod = [&]
     {
         auto* arg = new VarDeclNode(new TypeNode(StandardType::Int), "arg", nullptr);
