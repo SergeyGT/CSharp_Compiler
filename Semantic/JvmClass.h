@@ -97,6 +97,8 @@ struct DataType
             }
             case TypeT::Void:
                 return "V";
+            case TypeT::Null:  // ВАЖНО: добавьте этот case
+                return "Ljava/lang/Object;";
         }
     }
 

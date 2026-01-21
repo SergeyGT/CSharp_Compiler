@@ -1047,6 +1047,11 @@ void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
         DataType rightType;
         if (node->Type == ExprNode::TypeT::Assign) { rightType = node->Right->AType; }
         else { rightType = node->AssignExpr->AType; }
+        if (rightType.AType == DataType::TypeT::Null && leftType.IsReferenceType()) {
+            node->AType = DataType::VoidType;
+            return;
+        }
+
         if (leftType != rightType)
         {
             Errors.push_back("Types '" + ToString(leftType) + "' and '" + ToString(rightType) +
@@ -1472,6 +1477,13 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
             auto isVariableFound = false;
             const auto name = std::string{ access->Identifier };
 
+            if (name == "null") {
+                DataType nullType;
+                nullType.AType = DataType::TypeT::Null;
+                access->AType = nullType;
+                return nullType;
+            }
+
             for (auto* ns : AllNamespaces->GetSeq())
             {
                 if (ns->NamespaceName == name)
@@ -1866,6 +1878,10 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
         case Qualified_or_expr::TypeT::Identifier:
         {
             Bytes bytes;
+            if (expr->AType.AType == DataType::TypeT::Null) {
+                append(bytes, (uint8_t)Command::aconst_null);
+                return bytes;
+            }
             if (expr->ActualVar)
             {
                 auto* const var = expr->ActualVar;
