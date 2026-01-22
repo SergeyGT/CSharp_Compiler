@@ -46,6 +46,7 @@ struct Qualified_or_expr final : Node
     VarDeclNode* ActualVar{};
 
     bool IsEnumValue = false;           // Является ли значение enum
+    bool IsBaseReference = false;
     EnumDeclNode* EnumType = nullptr;
 
     DataType AType{};
@@ -65,6 +66,7 @@ struct Qualified_or_expr final : Node
     static Qualified_or_expr* FromDot(Qualified_or_expr* previous, const char* id);
 
     static Qualified_or_expr* FromDot(Qualified_or_expr* previous, const char* id, ExprSeqNode* arguments);
+    static Qualified_or_expr* FromBase();
 
     static Qualified_or_expr* FromInt(int value);
 

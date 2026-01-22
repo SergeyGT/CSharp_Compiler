@@ -63,6 +63,14 @@ Qualified_or_expr* Qualified_or_expr::FromDot(Qualified_or_expr* previous, const
     return node;
 }
 
+Qualified_or_expr* Qualified_or_expr::FromBase()
+{
+    auto* node = new Qualified_or_expr;
+    node->Type = TypeT::Identifier;
+    node->Identifier = "base";
+    return node;
+}
+
 Qualified_or_expr* Qualified_or_expr::FromInt(const int value)
 {
     auto* node = new Qualified_or_expr;

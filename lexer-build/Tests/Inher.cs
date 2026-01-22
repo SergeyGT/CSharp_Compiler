@@ -2,17 +2,14 @@ namespace Inher
 {
     public class Parent
     {
-		protected int y = 0;
-        public int GetValue() { return 1; }
+        public int GetValue(int x) { return 1; }
     }
     
     public class Child : Parent
-    {
-        public int GetValue() { return 2; }  
-        
-        public int GetParentValue() 
+    { 
+        public int GetNum() 
         { 
-            System.Console.WriteLine(y);
+          return base.GetValue(3); 
         }
     }
     
@@ -21,11 +18,8 @@ namespace Inher
         public static void Main()
         {
             Child child = new Inher.Child();
-            Parent parentView = new Inher.Parent;
-            
-            
-			
-            
+            int x = child.GetNum();
+            System.Console.WriteLine(x);
         }
     }
 }

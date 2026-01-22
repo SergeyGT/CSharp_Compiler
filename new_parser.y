@@ -9,6 +9,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <cstring>
 
 #include "../Tree/Program.h"
 #include "../Tree/Expr.h"
@@ -263,7 +264,11 @@ array_type: standard_type '[' ']'          {     $$ = new StandardArrayType{ sta
            | array_type '[' ']'            {     $1->Arity += 1;     $$ = $1; }
 ;
 
-qualified_or_expr:IDENTIFIER                       { $$ = Qualified_or_expr::FromId($1); }
+qualified_or_expr:IDENTIFIER                       {  if (strcmp($1, "base") == 0) {
+            $$ = Qualified_or_expr::FromBase();
+        } else {
+            $$ = Qualified_or_expr::FromId($1);
+        } }
                  | qualified_or_expr '.' IDENTIFIER { $$ = Qualified_or_expr::FromDot($1, $3); }
 		 | qualified_or_expr '[' ']'     { $$ = Qualified_or_expr::FromBrackets($1); }
 		 | qualified_or_expr '[' expr ']'     { $$ = Qualified_or_expr::FromBrackets($1, $3); }
@@ -292,9 +297,10 @@ type: standard_type              { $$ = new TypeNode(static_cast<StandardType>($
 // ============================================================================
 
 class_decl: PUBLIC CLASS IDENTIFIER '{' class_members_optional '}'                  { $$ = new ClassDeclNode($3, nullptr, $5); }
-          | PUBLIC CLASS IDENTIFIER ':' using_arg '{' class_members_optional '}'    { $$ = new ClassDeclNode($3, $5, $7); }
-          | PUBLIC CLASS IDENTIFIER ':' OBJECT '{' class_members_optional '}'       { $$ = new ClassDeclNode($3, nullptr, $7); }
+          | PUBLIC CLASS IDENTIFIER ':' IDENTIFIER '{' class_members_optional '}'       { $$ = new ClassDeclNode($3, $5, $7); }
 ;
+
+
 
 class_members: method_decl                          { $$ = new TypeMembersNode(); $$ -> AddMethod($1); }
                 | field_decl                        { $$ = new TypeMembersNode(); $$ -> AddField($1); }

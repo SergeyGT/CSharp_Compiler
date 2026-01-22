@@ -148,14 +148,22 @@ IdT ConstantTable::FindFloat(FloatT i)
 
 IdT ConstantTable::FindClass(std::string_view className)
 {
+    std::cout << "[DEBUG CONSTANT] FindClass: " << className << std::endl;
+
     const auto constant = Constant::CreateClass(FindUtf8(className));
     const auto foundIter = std::find(Constants.begin(), Constants.end(), constant);
+
     if (foundIter == Constants.end())
     {
         Constants.push_back(constant);
-        return Constants.end() - Constants.begin();
+        auto id = Constants.end() - Constants.begin();
+        std::cout << "[DEBUG CONSTANT] Added new class constant with id: " << id << std::endl;
+        return id;
     }
-    return foundIter - Constants.begin() + 1;
+
+    auto id = foundIter - Constants.begin() + 1;
+    std::cout << "[DEBUG CONSTANT] Found existing class constant with id: " << id << std::endl;
+    return id;
 }
 
 IdT ConstantTable::FindNaT(std::string_view name, std::string_view type)
@@ -183,15 +191,23 @@ IdT ConstantTable::FindFieldRef(std::string_view className, std::string_view nam
 }
 
 IdT ConstantTable::FindMethodRef(std::string_view className, std::string_view name, std::string_view type)
-{
+{ std::cout << "[DEBUG CONSTANT] FindMethodRef: class=" << className
+              << ", name=" << name << ", type=" << type << std::endl;
+
     const auto constant = Constant::CreateMethodRef(FindNaT(name, type), FindClass(className));
     const auto foundIter = std::find(Constants.begin(), Constants.end(), constant);
+
     if (foundIter == Constants.end())
     {
         Constants.push_back(constant);
-        return Constants.end() - Constants.begin();
+        auto id = Constants.end() - Constants.begin();
+        std::cout << "[DEBUG CONSTANT] Added new method ref with id: " << id << std::endl;
+        return id;
     }
-    return foundIter - Constants.begin() + 1;
+
+    auto id = foundIter - Constants.begin() + 1;
+    std::cout << "[DEBUG CONSTANT] Found existing method ref with id: " << id << std::endl;
+    return id;
 }
 
 
@@ -201,7 +217,19 @@ ClassAnalyzer::ClassAnalyzer(ClassDeclNode* node, NamespaceDeclNode* namespace_,
   , AllNamespaces{ allNamespaces }
 {
 
+    if (!CurrentClass->ParentTypes.empty()) {
+        for (auto& parentType : CurrentClass->ParentTypes) {
+            std::string parentName = std::string(parentType);
 
+            // Если имя родителя не содержит точку (namespace), добавляем текущий namespace
+            if (parentName.find('.') == std::string::npos && Namespace) {
+                std::string fullName = std::string(Namespace->NamespaceName) + "." + parentName;
+                CurrentClass->FullParentTypes.push_back(fullName);
+            } else {
+                CurrentClass->FullParentTypes.push_back(parentName);
+            }
+        }
+    }
     // Проверяем, есть ли конструктор (в Members->Constructors)
     if (CurrentClass->Members->Constructors.empty())
     {
@@ -942,84 +970,149 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
     std::cout << "[DEBUG AnalyzeDotMethodCall] Method: " << std::string(expr->Identifier)
               << ", arguments count: " << expr->Arguments->GetSeq().size() << std::endl;
 
-    AnalyzeQualified_or_expr(expr->Previous);
-    const auto typeForPrevious = CalculateTypeForQualified_or_expr(expr->Previous);
-    auto* foundClass = FindClass(typeForPrevious);
-    auto* foundStruct = FindStruct(typeForPrevious);
-
-    if (!foundClass && !foundStruct)
+   if (expr->Previous && expr->Previous->IsBaseReference)
     {
-        Errors.push_back("No member " + std::string{ expr->Identifier } + " in type " + ToString(typeForPrevious));
-        return;
-    }
+        std::cout << "[DEBUG] Analyzing base method call: " << std::string(expr->Identifier) << std::endl;
 
-    const auto methodName = expr->Identifier;
-
-    // Анализируем аргументы и проверяем типы
-    std::vector<DataType> originalCallTypes;
-    std::vector<DataType> actualCallTypes; // Могут быть преобразованы
-
-    for (auto*& argument : expr->Arguments->GetSeq())
-    {
-        argument = AnalyzeExpr(argument);
-        originalCallTypes.push_back(argument->AType);
-
-        // ПРЕОБРАЗУЕМ enum К int
-        DataType actualType = argument->AType;
-        if (argument->AType.AType == DataType::TypeT::Complex)
+        // Ищем родительский класс
+        if (!CurrentClass || CurrentClass->ParentTypes.empty())
         {
-            // Проверяем, является ли это enum'ом
-            auto* foundEnum = FindEnum(argument->AType);
-            if (foundEnum)
-            {
-                std::cout << "[DEBUG] Converting enum argument to int for method call" << std::endl;
-                actualType = DataType::IntType;
-
-                // СОЗДАЕМ ВЫРАЖЕНИЕ ПРИВЕДЕНИЯ ТИПА
-                auto* castExpr = ExprNode::FromCast(StandardType::Int, argument);
-                castExpr->AType = DataType::IntType;
-                argument = castExpr;
-            }
+            Errors.push_back("Cannot use 'base' in class without parent");
+            return;
         }
-        actualCallTypes.push_back(actualType);
-    }
 
-    std::cout << "[DEBUG AnalyzeDotMethodCall] Original callTypes: " << ToString(originalCallTypes) << std::endl;
-    std::cout << "[DEBUG AnalyzeDotMethodCall] Actual callTypes: " << ToString(actualCallTypes) << std::endl;
+        std::string parentName = std::string(CurrentClass->ParentTypes[0]);
+        DataType parentType;
+        parentType.AType = DataType::TypeT::Complex;
+        parentType.ComplexType = { parentName };
 
-    // Ищем метод в найденном классе или структуре
-    std::vector<MethodDeclNode*> allMethods;
-    if (foundClass) allMethods = foundClass->Members->Methods;
-    else if (foundStruct) allMethods = foundStruct->Members->Methods;
+        auto* foundClass = FindClass(parentType);
+        if (!foundClass)
+        {
+            Errors.push_back("Parent class '" + parentName + "' not found");
+            return;
+        }
 
-    const auto foundMethod = std::find_if(allMethods.begin(), allMethods.end(), [&](auto* method)
-    {
-        bool nameMatches = methodName == method->Identifier();
-        bool typesMatch = actualCallTypes == ToTypes(method->ArgumentDtos);
+        const auto methodName = expr->Identifier;
 
-        std::cout << "[DEBUG] Checking method: " << method->Identifier()
-                  << ", nameMatches=" << nameMatches
-                  << ", typesMatch=" << typesMatch
-                  << ", method args count=" << method->ArgumentDtos.size()
-                  << ", call args count=" << actualCallTypes.size() << std::endl;
+        // Анализируем аргументы
+        std::vector<DataType> callTypes;
+        for (auto*& argument : expr->Arguments->GetSeq())
+        {
+            argument = AnalyzeExpr(argument);
+            callTypes.push_back(argument->AType);
+        }
 
-        return nameMatches && typesMatch;
-    });
+        std::cout << "[DEBUG] Looking for method '" << methodName
+                  << "' in parent class '" << parentName
+                  << "' with types: " << ToString(callTypes) << std::endl;
 
-    if (foundMethod == allMethods.end())
-    {
-        Errors.push_back("Cannot call method with name " + std::string{ methodName } + " with arguments of types " +
-                         ToString(originalCallTypes) + " (after conversion: " + ToString(actualCallTypes) + ")");
-        std::cout << "[DEBUG] Method not found: " << std::string(methodName)
-                  << " in type " << ToString(typeForPrevious) << std::endl;
+        // Ищем метод в родительском классе
+        const auto foundMethod = std::find_if(foundClass->Members->Methods.begin(),
+                                             foundClass->Members->Methods.end(),
+                                             [&](auto* method)
+        {
+            bool nameMatches = methodName == method->Identifier();
+            bool typesMatch = callTypes == ToTypes(method->ArgumentDtos);
+
+            std::cout << "[DEBUG] Checking parent method: " << method->Identifier()
+                      << ", nameMatches=" << nameMatches
+                      << ", typesMatch=" << typesMatch << std::endl;
+
+            return nameMatches && typesMatch;
+        });
+
+        if (foundMethod == foundClass->Members->Methods.end())
+        {
+            Errors.push_back("Cannot call method with name " + std::string{ methodName } +
+                            " in parent class with arguments of types " + ToString(callTypes));
+            return;
+        }
+
+        AnalyzeMethodAccessibility(*foundMethod);
+        expr->ActualMethodCall = *foundMethod;
         return;
     }
+    else {
+        AnalyzeQualified_or_expr(expr->Previous);
+        const auto typeForPrevious = CalculateTypeForQualified_or_expr(expr->Previous);
+        auto* foundClass = FindClass(typeForPrevious);
+        auto* foundStruct = FindStruct(typeForPrevious);
 
-    std::cout << "[DEBUG] Found method: " << (*foundMethod)->Identifier()
-                 << ", return type: " << ToString((*foundMethod)->AReturnType)
-                 << ", IsStatic: " << (*foundMethod)->IsStatic << std::endl;
-    AnalyzeMethodAccessibility(*foundMethod);
-    expr->ActualMethodCall = *foundMethod;
+        if (!foundClass && !foundStruct)
+        {
+            Errors.push_back("No member " + std::string{ expr->Identifier } + " in type " + ToString(typeForPrevious));
+            return;
+        }
+
+        const auto methodName = expr->Identifier;
+
+        // Анализируем аргументы и проверяем типы
+        std::vector<DataType> originalCallTypes;
+        std::vector<DataType> actualCallTypes; // Могут быть преобразованы
+
+        for (auto*& argument : expr->Arguments->GetSeq())
+        {
+            argument = AnalyzeExpr(argument);
+            originalCallTypes.push_back(argument->AType);
+
+            // ПРЕОБРАЗУЕМ enum К int
+            DataType actualType = argument->AType;
+            if (argument->AType.AType == DataType::TypeT::Complex)
+            {
+                // Проверяем, является ли это enum'ом
+                auto* foundEnum = FindEnum(argument->AType);
+                if (foundEnum)
+                {
+                    std::cout << "[DEBUG] Converting enum argument to int for method call" << std::endl;
+                    actualType = DataType::IntType;
+
+                    // СОЗДАЕМ ВЫРАЖЕНИЕ ПРИВЕДЕНИЯ ТИПА
+                    auto* castExpr = ExprNode::FromCast(StandardType::Int, argument);
+                    castExpr->AType = DataType::IntType;
+                    argument = castExpr;
+                }
+            }
+            actualCallTypes.push_back(actualType);
+        }
+
+        std::cout << "[DEBUG AnalyzeDotMethodCall] Original callTypes: " << ToString(originalCallTypes) << std::endl;
+        std::cout << "[DEBUG AnalyzeDotMethodCall] Actual callTypes: " << ToString(actualCallTypes) << std::endl;
+
+        // Ищем метод в найденном классе или структуре
+        std::vector<MethodDeclNode*> allMethods;
+        if (foundClass) allMethods = foundClass->Members->Methods;
+        else if (foundStruct) allMethods = foundStruct->Members->Methods;
+
+        const auto foundMethod = std::find_if(allMethods.begin(), allMethods.end(), [&](auto* method)
+        {
+            bool nameMatches = methodName == method->Identifier();
+            bool typesMatch = actualCallTypes == ToTypes(method->ArgumentDtos);
+
+            std::cout << "[DEBUG] Checking method: " << method->Identifier()
+                      << ", nameMatches=" << nameMatches
+                      << ", typesMatch=" << typesMatch
+                      << ", method args count=" << method->ArgumentDtos.size()
+                      << ", call args count=" << actualCallTypes.size() << std::endl;
+
+            return nameMatches && typesMatch;
+        });
+
+        if (foundMethod == allMethods.end())
+        {
+            Errors.push_back("Cannot call method with name " + std::string{ methodName } + " with arguments of types " +
+                             ToString(originalCallTypes) + " (after conversion: " + ToString(actualCallTypes) + ")");
+            std::cout << "[DEBUG] Method not found: " << std::string(methodName)
+                      << " in type " << ToString(typeForPrevious) << std::endl;
+            return;
+        }
+
+        std::cout << "[DEBUG] Found method: " << (*foundMethod)->Identifier()
+                     << ", return type: " << ToString((*foundMethod)->AReturnType)
+                     << ", IsStatic: " << (*foundMethod)->IsStatic << std::endl;
+        AnalyzeMethodAccessibility(*foundMethod);
+        expr->ActualMethodCall = *foundMethod;
+    }
 }
 
 void ClassAnalyzer::AnalyzeFieldAccessibility(FieldDeclNode* field)
@@ -1441,6 +1534,8 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
 
             auto typeForPrevious = CalculateTypeForQualified_or_expr(access->Previous);
 
+
+
             // Быстрая проверка для System.Console
             if (typeForPrevious.AType == DataType::TypeT::Namespace &&
                 typeForPrevious.NamespaceName == "System" &&
@@ -1660,6 +1755,42 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         {
             auto isVariableFound = false;
             const auto name = std::string{ access->Identifier };
+
+            if (std::string(access->Identifier) == "base")
+            {
+                // 'base' доступен только в нестатическом контексте
+                if (!CurrentMethod || CurrentMethod->IsStatic)
+                {
+                    Errors.push_back("'base' cannot be used in static method");
+                    type.IsUnknown = true;
+                    access->AType = type;
+                    return type;
+                }
+
+                // 'base' должен иметь родительский класс
+                if (!CurrentClass || CurrentClass->ParentTypes.empty())
+                {
+                    Errors.push_back("Cannot use 'base' in class without parent");
+                    type.IsUnknown = true;
+                    access->AType = type;
+                    return type;
+                }
+
+                // Получаем тип родительского класса
+                DataType parentType;
+                parentType.AType = DataType::TypeT::Complex;
+                parentType.ComplexType = {
+                    std::string(CurrentClass->ParentTypes[0])  // Берём первого родителя
+                };
+                ValidateTypename(parentType);
+
+                access->AType = parentType;
+                access->IsBaseReference = true; // Устанавливаем флаг
+
+                std::cout << "[DEBUG] 'base' resolved to type: " << ToString(parentType) << std::endl;
+
+                return parentType;
+            }
 
             if (name == "null") {
                 DataType nullType;
@@ -2275,6 +2406,21 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
 
         case Qualified_or_expr::TypeT::Dot:
         {
+            if (expr->Previous && expr->Previous->IsBaseReference && expr->ActualField)
+            {
+                Bytes bytes;
+                append(bytes, (uint8_t)Command::aload_0);  // this
+
+                append(bytes, (uint8_t)Command::getfield);
+                const auto fieldRefId = file.Constants.FindFieldRef(
+                    // Используем тип родительского класса
+                    expr->ActualField->Class->ToDataType().ToTypename(),
+                    expr->ActualField->VarDecl->Identifier,
+                    expr->ActualField->VarDecl->AType.ToDescriptor()
+                );
+                append(bytes, ToBytes(fieldRefId));
+                return bytes;
+            }
             if (expr->ActualField)
             {
                 Bytes bytes;
@@ -2293,41 +2439,81 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
         }
         case Qualified_or_expr::TypeT::DotMethodCall:
         {
+
             Bytes bytes;
-            // Загружаем объект (предыдущее выражение) на стек
-            append(bytes, ToBytes(expr->Previous, file));
 
-            // Загружаем аргументы на стек
-            for (auto* arg : expr->Arguments->GetSeq())
+            // Проверка для base.Method()
+            if (expr->Previous && expr->Previous->IsBaseReference)
             {
-                append(bytes, ToBytes(arg, file));
+                std::cout << "[DEBUG] Generating bytecode for base.method() call" << std::endl;
+
+                // ВАЖНО: Загружаем this на стек для вызова метода
+                append(bytes, (uint8_t)Command::aload_0);
+
+                // Загружаем аргументы на стек
+                for (auto* arg : expr->Arguments->GetSeq())
+                {
+                    append(bytes, ToBytes(arg, file));
+                }
+
+                const auto* method = expr->ActualMethodCall;
+
+                // Отладочный вывод
+                std::cout << "[DEBUG BYTECODE] Calling parent method via base: "
+                          << method->Identifier()
+                          << ", Class: " << method->Class->ToDataType().ToTypename()
+                          << ", Descriptor: " << method->ToDescriptor() << std::endl;
+
+                const auto methodRefConstant = file.Constants.FindMethodRef(
+                    method->Class->ToDataType().ToTypename(),
+                    method->Identifier(),
+                    method->ToDescriptor()
+                );
+
+                std::cout << "[DEBUG BYTECODE] Method ref constant: " << methodRefConstant << std::endl;
+
+                // ИСПРАВЛЕНО: Используем invokespecial для вызова метода родителя через base
+                append(bytes, (uint8_t)Command::invokespecial);
+                append(bytes, ToBytes(methodRefConstant));
+                return bytes;
             }
+                    else
+                    {
+                        // Существующий код для обычных вызовов...
+                        append(bytes, ToBytes(expr->Previous, file));
 
-            const auto* method = expr->ActualMethodCall;
+                        // Загружаем аргументы на стек
+                        for (auto* arg : expr->Arguments->GetSeq())
+                        {
+                            append(bytes, ToBytes(arg, file));
+                        }
 
-            std::cout << "[DEBUG] Generating DotMethodCall: "
-              << method->Identifier()
-              << ", Class: " << method->Class->ToDataType().ToTypename()
-              << ", Descriptor: " << method->ToDescriptor()
-              << ", IsStatic: " << method->IsStatic << std::endl;
+                        const auto* method = expr->ActualMethodCall;
 
-            const auto methodRefConstant = file.Constants.FindMethodRef(
-                method->Class->ToDataType().ToTypename(),
-                method->Identifier(),
-                method->ToDescriptor()
-            );
+                        std::cout << "[DEBUG] Generating DotMethodCall: "
+                          << method->Identifier()
+                          << ", Class: " << method->Class->ToDataType().ToTypename()
+                          << ", Descriptor: " << method->ToDescriptor()
+                          << ", IsStatic: " << method->IsStatic << std::endl;
 
-            // Выбираем правильную инструкцию вызова
-            if (method->IsStatic)
-            {
-                append(bytes, (uint8_t)Command::invokestatic);
-            }
-            else
-            {
-                append(bytes, (uint8_t)Command::invokevirtual);
-            }
-            append(bytes, ToBytes(methodRefConstant));
-            return bytes;
+                        const auto methodRefConstant = file.Constants.FindMethodRef(
+                            method->Class->ToDataType().ToTypename(),
+                            method->Identifier(),
+                            method->ToDescriptor()
+                        );
+
+                        // Выбираем правильную инструкцию вызова
+                        if (method->IsStatic)
+                        {
+                            append(bytes, (uint8_t)Command::invokestatic);
+                        }
+                        else
+                        {
+                            append(bytes, (uint8_t)Command::invokevirtual);
+                        }
+                        append(bytes, ToBytes(methodRefConstant));
+                        return bytes;
+                    }
         }
         case Qualified_or_expr::TypeT::ArrayLength:
         {
@@ -2811,16 +2997,28 @@ Bytes ToBytes(IfNode* stmt, ClassFile& file)
 Bytes ReturnToBytes(ExprNode* returnExpr, ClassFile& file)
 {
     Bytes bytes;
-    if (returnExpr == nullptr) { append(bytes, (uint8_t)Command::return_); }
-    else if (returnExpr->AType == DataType::IntType || returnExpr->AType == DataType::BoolType)
-    {
-        append(bytes, ToBytes(returnExpr, file));
-        append(bytes, (uint8_t)Command::ireturn);
+
+    if (returnExpr == nullptr) {
+        // Для void методов или return; без выражения
+        append(bytes, (uint8_t)Command::return_);
+        return bytes;
     }
-    else if (returnExpr->AType.IsReferenceType())
-    {
-        append(bytes, ToBytes(returnExpr, file));
+
+    // Генерируем код для выражения
+    append(bytes, ToBytes(returnExpr, file));
+
+    // Добавляем ПРАВИЛЬНУЮ инструкцию возврата
+    if (returnExpr->AType == DataType::IntType ||
+        returnExpr->AType == DataType::BoolType ||
+        returnExpr->AType == DataType::CharType) {
+        append(bytes, (uint8_t)Command::ireturn);
+        }
+    else if (returnExpr->AType.IsReferenceType()) {
         append(bytes, (uint8_t)Command::areturn);
+    }
+    else {
+        // Для других типов или по умолчанию
+        append(bytes, (uint8_t)Command::return_);
     }
 
     return bytes;
@@ -2974,7 +3172,6 @@ Bytes ToBytes(MethodDeclNode* method, ClassFile& classFile)
     append(bytes, ToBytes(stackSize));
 
     const uint16_t localVariablesCount = method->Variables.size()+1;
-
     append(bytes, ToBytes(localVariablesCount));
 
     Bytes codeBytes;
@@ -2984,40 +3181,118 @@ Bytes ToBytes(MethodDeclNode* method, ClassFile& classFile)
               << method->Identifier()
               << " in class: ";
 
+    if (method->Class) {
+        std::cout << method->Class->ClassName;
+    }
+
+    std::cout << std::endl;
+
     if (method->IsConstructor)
     {
         std::cout << "[DEBUG BYTECODE] Generating constructor for class: ";
         if (method->Class) {
             std::cout << method->Class->ClassName;
-        } else {
-            std::cout << "null";
+
+            if (!method->Class->ParentTypes.empty()) {
+                std::cout << " (parent: " << std::string(method->Class->ParentTypes[0]) << ")";
+            }
         }
         std::cout << std::endl;
 
+        // ШАГ 1: Загружаем this на стек
         append(codeBytes, (uint8_t)Command::aload_0);
-        append(codeBytes, (uint8_t)Command::invokespecial);
 
-        // ВАЖНО: убедитесь, что вызывается конструктор Object, а не этого же класса
-        std::string superClassName = JAVA_OBJECT_TYPE.ToTypename();
+        // ШАГ 2: Вызываем конструктор родителя (должен быть ПЕРВЫМ в конструкторе!)
+        std::string superClassName;
 
 
-        const auto javaBaseObjectConstructor = classFile.Constants.FindMethodRef(
+        if (method->Class && !method->Class->FullParentTypes.empty())
+        {
+            // Используем полное имя из FullParentTypes
+            superClassName = method->Class->FullParentTypes[0];
+            std::replace(superClassName.begin(), superClassName.end(), '.', '/');
+        }
+        else if (method->Class && !method->Class->ParentTypes.empty())
+        {
+            // Fallback: собираем полное имя из namespace + имя родителя
+            std::string parentName = std::string(method->Class->ParentTypes[0]);
+            if (method->Class->Namespace) {
+                superClassName = std::string(method->Class->Namespace->NamespaceName)
+                               + "/" + parentName;
+            } else {
+                superClassName = parentName;
+            }
+        }
+        else
+        {
+            // Нет родителя - вызываем конструктор Object
+            superClassName = "java/lang/Object";
+        }
+
+        std::cout << "[DEBUG BYTECODE] Calling super constructor: "
+                  << superClassName << ".<init>()V" << std::endl;
+
+        // Ищем ссылку на конструктор в таблице констант
+        const auto constructorRef = classFile.Constants.FindMethodRef(
             superClassName,
             "<init>",
             "()V"
         );
 
-        std::cout << "[DEBUG BYTECODE] Calling super constructor: "
-                  << superClassName << ".<init>()"
-                  << " (constant id: " << javaBaseObjectConstructor << ")" << std::endl;
+        std::cout << "[DEBUG BYTECODE] Constructor ref id: " << constructorRef
+                  << " for " << superClassName << ".<init>()V" << std::endl;
 
-        append(codeBytes, ToBytes(javaBaseObjectConstructor));
+        if (constructorRef == 0) {
+            std::cerr << "[ERROR] Constructor not found in constant pool for "
+                      << superClassName << std::endl;
+        }
+
+        // Вызываем конструктор родителя
+        append(codeBytes, (uint8_t)Command::invokespecial);
+        append(codeBytes, ToBytes(constructorRef));
+
+        // ШАГ 3: Инициализируем поля (если есть)
+        // if (method->Class) {
+        //     for (auto* field : method->Class->Members->Fields) {
+        //         if (field->InitInConstructor) {
+        //             std::cout << "[DEBUG BYTECODE] Initializing field: "
+        //                       << field->VarDecl->Identifier << std::endl;
+        //             append(codeBytes, ToBytes(field->InitInConstructor, classFile));
+        //         }
+        //     }
+        // }
+
+        // ШАГ 4: Тело конструктора (если есть)
+        for (auto* stmt : method->Body->GetSeq()) {
+            append(codeBytes, ToBytes(stmt, classFile));
+        }
+        append(codeBytes, (uint8_t)Command::return_);
+    }
+    else
+    {
+        // Для обычных методов
+        for (auto* stmt : method->Body->GetSeq()) {
+            append(codeBytes, ToBytes(stmt, classFile));
+        }
     }
 
-    for (auto* stmt : method->Body->GetSeq()) { append(codeBytes, ToBytes(stmt, classFile)); }
+    bool hasReturnInBody = false;
+    for (auto* stmt : method->Body->GetSeq()) {
+        if (stmt->Type == StmtNode::TypeT::Return) {
+            hasReturnInBody = true;
+            break;
+        }
+    }
 
-    append(codeBytes, (uint8_t)Command::return_);
-
+    if (!hasReturnInBody) {
+        if (method->AReturnType == DataType::VoidType) {
+            append(codeBytes, (uint8_t)Command::return_);
+        } else if (method->AReturnType.IsPrimitiveType()) {
+            append(codeBytes, (uint8_t)Command::ireturn);
+        } else {
+            append(codeBytes, (uint8_t)Command::areturn);
+        }
+    }
     append(bytes, ToBytes((uint32_t)codeBytes.size()));
     append(bytes, codeBytes);
 
@@ -3088,10 +3363,36 @@ Bytes ClassAnalyzer::ToBytes()
     std::string typeName;
     if (CurrentClass) typeName = CurrentClass->ToDataType().ToTypename();
     else if (CurrentStruct) typeName = CurrentStruct->ToDataType().ToTypename();
-    else if (CurrentEnum)         typeName = CurrentEnum->ToDataType().ToTypename();
+    else if (CurrentEnum) typeName = CurrentEnum->ToDataType().ToTypename();
 
     const auto classConstantId = File.Constants.FindClass(typeName);
-    const auto superClassId = File.Constants.FindClass(JAVA_OBJECT_TYPE.ToTypename());
+
+    // ИСПРАВЛЕНО: Определяем super_class в зависимости от наследования
+    IdT superClassId;
+    if (CurrentClass && !CurrentClass->FullParentTypes.empty())
+    {
+        // Используем FullParentTypes, который уже содержит полное имя с namespace
+        std::string parentName = CurrentClass->FullParentTypes[0];
+        std::replace(parentName.begin(), parentName.end(), '.', '/');
+        superClassId = File.Constants.FindClass(parentName);
+    }
+    else if (CurrentClass && !CurrentClass->ParentTypes.empty())
+    {
+        // Fallback: собираем полное имя родителя
+        std::string parentName;
+        if (CurrentClass->Namespace) {
+            parentName = std::string(CurrentClass->Namespace->NamespaceName)
+                       + "/" + std::string(CurrentClass->ParentTypes[0]);
+        } else {
+            parentName = std::string(CurrentClass->ParentTypes[0]);
+        }
+        superClassId = File.Constants.FindClass(parentName);
+    }
+    else
+    {
+        // Если нет родителя, используем Object
+        superClassId = File.Constants.FindClass(JAVA_OBJECT_TYPE.ToTypename());
+    }
 
     AccessFlags accessFlags = AccessFlags::Super;
     if (CurrentClass) accessFlags = accessFlags | AccessFlags::Public;

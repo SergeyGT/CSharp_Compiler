@@ -343,6 +343,8 @@ struct ClassDeclNode final : Node
 {
     std::string_view ClassName;
     IdentifierList* ParentType;
+    std::vector<std::string_view> ParentTypes;
+    std::vector<std::string> FullParentTypes;
     TypeMembersNode* Members;
     NamespaceDeclNode* Namespace{};
 
@@ -370,6 +372,13 @@ struct ClassDeclNode final : Node
       , ParentType{ parentType }
       , Members{ members }
     {
+    }
+
+    ClassDeclNode(const std::string_view className, const std::string_view parentType, TypeMembersNode* const members)
+       : ClassName{ className }
+    , Members{ members }
+    {
+        ParentTypes.push_back(parentType);
     }
 
     [[nodiscard]] std::string Name() const noexcept override { return "ClassDecl"; }

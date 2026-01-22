@@ -380,7 +380,6 @@ char buffer[10];
 
 abstract                                { PrintKeyword(yytext); } 
 as                                      { PrintKeyword(yytext); } 
-base                                    { PrintKeyword(yytext); } 
 bool                                    { return BOOL_KW; } 
 break                                   { PrintKeyword(yytext); } 
 byte                                    { PrintKeyword(yytext); } 
