@@ -11,16 +11,21 @@ namespace enums
 		Sunday     
 	}
 
+	public enum Months{
+		January,
+		February
+	}
+
     public class M
     {
         public static void Main()
         {
            DayOfWeek day = DayOfWeek.Tuesday;
-		   if ((int)day == (int)DayOfWeek.Tuesday)
+		   Months months = Months.January;
+		   if ((int)Months.January == (int)DayOfWeek.Monday)
 		{
 			System.Console.WriteLine("Tuesday");
 		}
-
         }
     }
 }

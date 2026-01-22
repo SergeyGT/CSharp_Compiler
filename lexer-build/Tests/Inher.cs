@@ -2,6 +2,7 @@ namespace Inher
 {
     public class Parent
     {
+		protected int y = 0;
         public int GetValue() { return 1; }
     }
     
@@ -11,7 +12,7 @@ namespace Inher
         
         public int GetParentValue() 
         { 
-            return 1;  
+            System.Console.WriteLine(y);
         }
     }
     
@@ -22,9 +23,7 @@ namespace Inher
             Child child = new Inher.Child();
             Parent parentView = new Inher.Parent;
             
-            System.Console.WriteLine(child.GetValue());  // 2
-            System.Console.WriteLine(parentView.GetValue());  // 1
-            System.Console.WriteLine(child.GetParentValue());  // 1
+            
 			
             
         }

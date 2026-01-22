@@ -1,4 +1,4 @@
-namespace ClassObj
+namespace ClasObj
 {
 	public class X {
 		public int num = 5;
@@ -13,25 +13,21 @@ namespace ClassObj
 	public class Y : X{
 		public void GetProt(){
 			System.Console.WriteLine("protected ");
-			System.Console.WriteLine(y);
+			System.Console.WriteLine(20);
 		}
-		// public void GetPrivate(){
-			// System.Console.WriteLine("private ");
-			// System.Console.WriteLine(x);
-		// }
 	}
-	
 	
     public class M
     {
         public static void Main()
         {
-            X cla = new ClassObj.X();
+            X cla = new ClasObj.X();
 			System.Console.WriteLine("public ");
 			System.Console.WriteLine(cla.num);
 			
-			Y y = new ClassObj.Y();
+			Y y = new ClasObj.Y();
 			cla.y;
+			
         }
     }
 	
