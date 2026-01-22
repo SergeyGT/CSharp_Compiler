@@ -1,284 +1,97 @@
 digraph Program {
-148 [label="Program"]
+55 [label="Program"]
 0 [label="UsingDirectives"]
-147 [label="NamespaceDeclSeq"]
-146 [label="NamespaceDecl\nOOP"]
-13 [label="ClassDecl\nAnimal\nInherited from: "]
-11 [label="MethodDecl\nVisibility: public\nName: Walk"]
-10 [label="Stmt Seq"]
-9 [label="Expr statement"]
-8 [label="Qualified_or_expr"]
-7 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
-3 [label=".Console\nCalculated data type: char"]
-2 [label="System\nCalculated data type: char"]
-3 -> 2
-7 -> 3 [label="call expr"]
-5 [label="Qualified_or_expr"]
-4 [label="Animal walk\nCalculated data type: char"]
-5 -> 4
-7 -> 5 [label="argument"]
+54 [label="NamespaceDeclSeq"]
+53 [label="NamespaceDecl\nPoly"]
+11 [label="ClassDecl\nParent\nInherited from: "]
+9 [label="MethodDecl\nVisibility: public\nName: GetValue"]
+1 [label="Type\nint"]
+9 -> 1 [label="Return value type"]
+3 [label="VarDecl\nName = x\nCalculated data type: int"]
+2 [label="Type\nint"]
+3 -> 2 [label="Variable type"]
+9 -> 3 [label="Method argument"]
+8 [label="Stmt Seq"]
+7 [label="Return"]
+6 [label="Qualified_or_expr"]
+5 [label="1\nCalculated data type: int"]
+6 -> 5
+7 -> 6 [label="value"]
 8 -> 7
-9 -> 8
-10 -> 9
-11 -> 10 [label="Method body"]
-13 -> 11 [label="method"]
-146 -> 13
-31 [label="ClassDecl\nDog\nInherited from: "]
-29 [label="MethodDecl\nVisibility: public\nName: Walk"]
-20 [label="Stmt Seq"]
-19 [label="Expr statement"]
-18 [label="Qualified_or_expr"]
-17 [label=".Walk\nCalculated data type: char"]
-16 [label="base\nCalculated data type: char"]
+9 -> 8 [label="Method body"]
+11 -> 9 [label="method"]
+53 -> 11
+25 [label="ClassDecl\nChild\nInherited from: "]
+23 [label="MethodDecl\nVisibility: public\nName: GetNum"]
+13 [label="Type\nint"]
+23 -> 13 [label="Return value type"]
+22 [label="Stmt Seq"]
+21 [label="Return"]
+20 [label="Qualified_or_expr"]
+19 [label="Method call\nMethodName: GetValue\nCalculated data type: char"]
+15 [label="base\nCalculated data type: char"]
+19 -> 15 [label="call expr"]
+17 [label="Qualified_or_expr"]
+16 [label="3\nCalculated data type: int"]
 17 -> 16
-18 -> 17
-19 -> 18
+19 -> 17 [label="argument"]
 20 -> 19
-28 [label="Expr statement"]
-27 [label="Qualified_or_expr"]
-26 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
-22 [label=".Console\nCalculated data type: char"]
-21 [label="System\nCalculated data type: char"]
+21 -> 20 [label="value"]
 22 -> 21
-26 -> 22 [label="call expr"]
-24 [label="Qualified_or_expr"]
-23 [label="Dog walk\nCalculated data type: char"]
-24 -> 23
-26 -> 24 [label="argument"]
-27 -> 26
-28 -> 27
-20 -> 28
-19 -> 28 [label="next stmt"][style="dashed"]
-29 -> 20 [label="Method body"]
-31 -> 29 [label="method"]
-146 -> 31
-44 [label="ClassDecl\nCat\nInherited from: "]
-42 [label="MethodDecl\nVisibility: public\nName: Walk"]
-41 [label="Stmt Seq"]
-40 [label="Expr statement"]
-39 [label="Qualified_or_expr"]
-38 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
-34 [label=".Console\nCalculated data type: char"]
-33 [label="System\nCalculated data type: char"]
+23 -> 22 [label="Method body"]
+25 -> 23 [label="method"]
+53 -> 25
+52 [label="ClassDecl\nTest\nInherited from: "]
+50 [label="MethodDecl\nVisibility: public\nName: Main"]
+35 [label="Stmt Seq"]
+34 [label="STMT"]
+33 [label="VarDeclWithInit\nName = child\nCalculated data type: Child"]
+28 [label="Type"]
+27 [label="Child"]
+28 -> 27 [label="Complex type"]
+33 -> 28 [label="Variable type"]
+32 [label="new\nCalculated data type: Poly.Parent"]
+31 [label="Type"]
+30 [label=".Parent"]
+29 [label="Poly\nCalculated data type: char"]
+30 -> 29
+31 -> 30 [label="Complex type"]
+32 -> 31 [label="type"]
+33 -> 32 [label="Init"]
 34 -> 33
-38 -> 34 [label="call expr"]
-36 [label="Qualified_or_expr"]
-35 [label="Cat walk\nCalculated data type: char"]
-36 -> 35
-38 -> 36 [label="argument"]
+35 -> 34
+41 [label="STMT"]
+40 [label="VarDeclWithInit\nName = x\nCalculated data type: int"]
+36 [label="Type\nint"]
+40 -> 36 [label="Variable type"]
+39 [label="Qualified_or_expr"]
+38 [label=".GetValue\nCalculated data type: char"]
+37 [label="child\nCalculated data type: char"]
+38 -> 37
 39 -> 38
-40 -> 39
+40 -> 39 [label="Init"]
 41 -> 40
-42 -> 41 [label="Method body"]
-44 -> 42 [label="method"]
-146 -> 44
-145 [label="ClassDecl\nM\nInherited from: "]
-143 [label="MethodDecl\nVisibility: public\nName: Main"]
-52 [label="Stmt Seq"]
-51 [label="STMT"]
-50 [label="VarDeclWithInit\nName = animal\nCalculated data type: OOP.Animal"]
-49 [label="new\nCalculated data type: OOP.Animal"]
-48 [label="Type"]
-47 [label=".Animal"]
-46 [label="OOP\nCalculated data type: char"]
-47 -> 46
-48 -> 47 [label="Complex type"]
-49 -> 48 [label="type"]
-50 -> 49 [label="Init"]
-51 -> 50
-52 -> 51
-58 [label="STMT"]
-57 [label="VarDeclWithInit\nName = Dog\nCalculated data type: OOP.Dog"]
-56 [label="new\nCalculated data type: OOP.Dog"]
-55 [label="Type"]
-54 [label=".Dog"]
-53 [label="OOP\nCalculated data type: char"]
+35 -> 41
+34 -> 41 [label="next stmt"][style="dashed"]
+49 [label="Expr statement"]
+48 [label="Qualified_or_expr"]
+47 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
+43 [label=".Console\nCalculated data type: char"]
+42 [label="System\nCalculated data type: char"]
+43 -> 42
+47 -> 43 [label="call expr"]
+45 [label="Qualified_or_expr"]
+44 [label="x\nCalculated data type: char"]
+45 -> 44
+47 -> 45 [label="argument"]
+48 -> 47
+49 -> 48
+35 -> 49
+41 -> 49 [label="next stmt"][style="dashed"]
+50 -> 35 [label="Method body"]
+52 -> 50 [label="method"]
+53 -> 52
 54 -> 53
-55 -> 54 [label="Complex type"]
-56 -> 55 [label="type"]
-57 -> 56 [label="Init"]
-58 -> 57
-52 -> 58
-51 -> 58 [label="next stmt"][style="dashed"]
-64 [label="STMT"]
-63 [label="VarDeclWithInit\nName = Cat\nCalculated data type: OOP.Cat"]
-62 [label="new\nCalculated data type: OOP.Cat"]
-61 [label="Type"]
-60 [label=".Cat"]
-59 [label="OOP\nCalculated data type: char"]
-60 -> 59
-61 -> 60 [label="Complex type"]
-62 -> 61 [label="type"]
-63 -> 62 [label="Init"]
-64 -> 63
-52 -> 64
-58 -> 64 [label="next stmt"][style="dashed"]
-68 [label="Expr statement"]
-67 [label="Qualified_or_expr"]
-66 [label=".Walk\nCalculated data type: char"]
-65 [label="animal\nCalculated data type: char"]
-66 -> 65
-67 -> 66
-68 -> 67
-52 -> 68
-64 -> 68 [label="next stmt"][style="dashed"]
-72 [label="Expr statement"]
-71 [label="Qualified_or_expr"]
-70 [label=".Walk\nCalculated data type: char"]
-69 [label="Dog\nCalculated data type: char"]
-70 -> 69
-71 -> 70
-72 -> 71
-52 -> 72
-68 -> 72 [label="next stmt"][style="dashed"]
-76 [label="Expr statement"]
-75 [label="Qualified_or_expr"]
-74 [label=".Walk\nCalculated data type: char"]
-73 [label="Cat\nCalculated data type: char"]
-74 -> 73
-75 -> 74
-76 -> 75
-52 -> 76
-72 -> 76 [label="next stmt"][style="dashed"]
-87 [label="STMT"]
-86 [label="VarDeclWithInit\nName = animals\nCalculated data type: Animal[]"]
-79 [label="Type"]
-78 [label="Complex Array Type"]
-77 [label="Animal\nCalculated data type: char"]
-78 -> 77
-79 -> 78 [label="Complex type"]
-86 -> 79 [label="Variable type"]
-85 [label="new\nCalculated data type: Animal[]"]
-84 [label="Type"]
-83 [label="Array Indexing"]
-80 [label="Animal\nCalculated data type: char"]
-83 -> 80 [label="array expr"]
-82 [label="Qualified_or_expr"]
-81 [label="3\nCalculated data type: int"]
-82 -> 81
-83 -> 82 [label="element expr"]
-84 -> 83 [label="Complex type"]
-85 -> 84 [label="type"]
-86 -> 85 [label="Init"]
-87 -> 86
-52 -> 87
-76 -> 87 [label="next stmt"][style="dashed"]
-96 [label="Expr statement"]
-95 [label="=\nCalculated data type: char"]
-92 [label="Qualified_or_expr"]
-91 [label="Array Indexing\nCalculated data type: char"]
-88 [label="animals\nCalculated data type: char"]
-91 -> 88 [label="array expr"]
-90 [label="Qualified_or_expr"]
-89 [label="0\nCalculated data type: int"]
-90 -> 89
-91 -> 90 [label="element expr"]
-92 -> 91
-94 [label="Qualified_or_expr"]
-93 [label="animal\nCalculated data type: char"]
-94 -> 93
-95 -> 92 [label="left operand"]
-95 -> 94 [label="right operand"]
-96 -> 95
-52 -> 96
-87 -> 96 [label="next stmt"][style="dashed"]
-105 [label="Expr statement"]
-104 [label="=\nCalculated data type: char"]
-101 [label="Qualified_or_expr"]
-100 [label="Array Indexing\nCalculated data type: char"]
-97 [label="animals\nCalculated data type: char"]
-100 -> 97 [label="array expr"]
-99 [label="Qualified_or_expr"]
-98 [label="1\nCalculated data type: int"]
-99 -> 98
-100 -> 99 [label="element expr"]
-101 -> 100
-103 [label="Qualified_or_expr"]
-102 [label="Dog\nCalculated data type: char"]
-103 -> 102
-104 -> 101 [label="left operand"]
-104 -> 103 [label="right operand"]
-105 -> 104
-52 -> 105
-96 -> 105 [label="next stmt"][style="dashed"]
-114 [label="Expr statement"]
-113 [label="=\nCalculated data type: char"]
-110 [label="Qualified_or_expr"]
-109 [label="Array Indexing\nCalculated data type: char"]
-106 [label="animals\nCalculated data type: char"]
-109 -> 106 [label="array expr"]
-108 [label="Qualified_or_expr"]
-107 [label="2\nCalculated data type: int"]
-108 -> 107
-109 -> 108 [label="element expr"]
-110 -> 109
-112 [label="Qualified_or_expr"]
-111 [label="Cat\nCalculated data type: char"]
-112 -> 111
-113 -> 110 [label="left operand"]
-113 -> 112 [label="right operand"]
-114 -> 113
-52 -> 114
-105 -> 114 [label="next stmt"][style="dashed"]
-142 [label="STMT"]
-141 [label="For"]
-118 [label="VarDeclWithInit\nName = i\nCalculated data type: int"]
-115 [label="Type\nint"]
-118 -> 115 [label="Variable type"]
-117 [label="Qualified_or_expr"]
-116 [label="0\nCalculated data type: int"]
-117 -> 116
-118 -> 117 [label="Init"]
-141 -> 118 [label="Loop variable"]
-123 [label="<\nCalculated data type: char"]
-120 [label="Qualified_or_expr"]
-119 [label="i\nCalculated data type: char"]
-120 -> 119
-122 [label="Qualified_or_expr"]
-121 [label="3\nCalculated data type: int"]
-122 -> 121
-123 -> 120 [label="left operand"]
-123 -> 122 [label="right operand"]
-141 -> 123 [label="Condition"]
-131 [label="=\nCalculated data type: char"]
-125 [label="Qualified_or_expr"]
-124 [label="i\nCalculated data type: char"]
-125 -> 124
-130 [label="+\nCalculated data type: char"]
-127 [label="Qualified_or_expr"]
-126 [label="i\nCalculated data type: char"]
-127 -> 126
-129 [label="Qualified_or_expr"]
-128 [label="1\nCalculated data type: int"]
-129 -> 128
-130 -> 127 [label="left operand"]
-130 -> 129 [label="right operand"]
-131 -> 125 [label="left operand"]
-131 -> 130 [label="right operand"]
-141 -> 131 [label="IterExpr"]
-140 [label="Block Statement"]
-138 [label="Expr statement"]
-137 [label="Qualified_or_expr"]
-136 [label=".Walk\nCalculated data type: char"]
-135 [label="Array Indexing\nCalculated data type: char"]
-132 [label="animals\nCalculated data type: char"]
-135 -> 132 [label="array expr"]
-134 [label="Qualified_or_expr"]
-133 [label="i\nCalculated data type: char"]
-134 -> 133
-135 -> 134 [label="element expr"]
-136 -> 135
-137 -> 136
-138 -> 137
-140 -> 138
-141 -> 140 [label="Body"]
-142 -> 141
-52 -> 142
-114 -> 142 [label="next stmt"][style="dashed"]
-143 -> 52 [label="Method body"]
-145 -> 143 [label="method"]
-146 -> 145
-147 -> 146
-148 -> 0
-148 -> 147
+55 -> 0
+55 -> 54
 }

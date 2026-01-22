@@ -237,7 +237,7 @@ struct ClassAnalyzer
     [[nodiscard]] ExprNode* AnalyzeExpr(ExprNode* expr);
 
     void AnalyzeQualified_or_expr(Qualified_or_expr* expr);
-
+    bool IsSubtype(const DataType& subtype, const DataType& supertype) const;
     void AnalyzeEnum(EnumDeclNode* value);
     void AnalyzeEnumMemberSignatures();
     void FillTables(EnumDeclNode* enumNode);

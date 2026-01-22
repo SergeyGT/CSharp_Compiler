@@ -3,7 +3,7 @@ namespace OOP
     public class Animal
     {
         public void Walk(){
-			System.Console.WriteLine("Animal walk");
+			System.Console.WriteLine("Animal's walk");
 		}
     }
     
@@ -39,6 +39,7 @@ namespace OOP
 			animals[0] = animal;
 			animals[1] = Dog;
 			animals[2] = Cat;
+			System.Console.WriteLine("-----------------");
 			for(int i = 0; i < 3; i=i+1){
 				animals[i].Walk();
 			}

@@ -4,6 +4,7 @@
 #include <iterator>
 #include <algorithm>
 #include <iostream>
+#include <ranges>
 #include <set>
 using namespace std::string_literals;
 
@@ -1140,6 +1141,75 @@ void ClassAnalyzer::AnalyzeMethodAccessibility(MethodDeclNode* method)
 
 auto IsIndexType(const DataType& data) -> bool { return data.AType == DataType::TypeT::Int && data.ArrayArity == 0; }
 
+bool ClassAnalyzer::IsSubtype(const DataType& subtype, const DataType& supertype) const
+{
+    // Если типы равны, это подтип
+    if (subtype == supertype) {
+        return true;
+    }
+
+    // Если subtype является null, он может быть присвоен любому ссылочному типу
+    if (subtype.AType == DataType::TypeT::Null && supertype.IsReferenceType()) {
+        return true;
+    }
+
+    // Если оба типа Complex, проверяем наследование
+    if (subtype.AType == DataType::TypeT::Complex &&
+        supertype.AType == DataType::TypeT::Complex) {
+
+        // Находим класс subtype
+        ClassDeclNode* childClass = FindClass(subtype);
+        if (!childClass) {
+            return false;
+        }
+
+        // Находим класс supertype
+        ClassDeclNode* parentClass = FindClass(supertype);
+        if (!parentClass) {
+            return false;
+        }
+
+        // Проверяем прямого родителя
+        if (!childClass->ParentTypes.empty()) {
+            std::string parentName;
+            if (childClass->Namespace) {
+                parentName = std::string(childClass->Namespace->NamespaceName)
+                           + "." + std::string(childClass->ParentTypes[0]);
+            } else {
+                parentName = std::string(childClass->ParentTypes[0]);
+            }
+
+            std::string supertypeName;
+            if (supertype.ComplexType.size() > 1) {
+                supertypeName = supertype.ComplexType[0] + "." + supertype.ComplexType[1];
+            } else {
+                supertypeName = std::string(Namespace->NamespaceName) + "." + supertype.ComplexType[0];
+            }
+
+            if (parentName == supertypeName) {
+                return true;
+            }
+        }
+
+        // Проверяем FullParentTypes
+        for (const auto& fullParent : childClass->FullParentTypes) {
+            std::string fullParentName = fullParent;
+            std::string supertypeName;
+
+            if (supertype.ComplexType.size() > 1) {
+                supertypeName = supertype.ComplexType[0] + "." + supertype.ComplexType[1];
+            } else {
+                supertypeName = std::string(Namespace->NamespaceName) + "." + supertype.ComplexType[0];
+            }
+
+            if (fullParentName == supertypeName) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
 
 void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
 {
@@ -1170,10 +1240,11 @@ void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
         auto thisType = dataTypeForArray;
         thisType.ArrayArity -= 1;
 
-        if (thisType != node->AssignExpr->AType)
+        // ИСПРАВЛЕНО: Используем IsSubtype вместо прямого сравнения
+        if (!IsSubtype(node->AssignExpr->AType, thisType) && node->AssignExpr->AType != thisType)
         {
-            Errors.push_back("Cannot assign value of type " + ToString(node->AssignExpr->AType) + " to value of type " +
-                             ToString(thisType));
+            Errors.push_back("Cannot assign value of type " + ToString(node->AssignExpr->AType) +
+                            " to array element of type " + ToString(thisType));
             return;
         }
 
@@ -1224,6 +1295,8 @@ void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
 
     if (node->Type == ExprNode::TypeT::ArrayNewWithArguments)
     {
+        const auto& elements = node->ExprSeq->GetSeq();
+        
         if (const auto& elements = node->ExprSeq->GetSeq();
             !elements.empty())
         {
@@ -1249,6 +1322,14 @@ void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
                 Errors.push_back("Cannot initialize array with array-like syntax the type " + ToString(dataType));
                 return;
             }
+
+            // ДОБАВЬТЕ: Проверка совместимости типов при инициализации массива
+            for (auto* element : elements) {
+                if (!IsSubtype(element->AType, dataType) && element->AType != dataType) {
+                    Errors.push_back("Cannot assign element of type '" + ToString(element->AType) +
+                                    "' to array of type '" + ToString(dataType) + "'");
+                }
+            }
         }
     }
 
@@ -1267,8 +1348,8 @@ void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
     const DataType boolType = { DataType::TypeT::Bool, {}, {}, {} };
 
     if (node->Type == ExprNode::TypeT::Assign
-        || node->Type == ExprNode::TypeT::AssignOnArrayElement
-        || node->Type == ExprNode::TypeT::AssignOnField)
+    || node->Type == ExprNode::TypeT::AssignOnArrayElement
+    || node->Type == ExprNode::TypeT::AssignOnField)
     {
         CalculateTypesForExpr(node->Left);
         CalculateTypesForExpr(node->Right);
@@ -1284,26 +1365,19 @@ void ClassAnalyzer::CalculateTypesForExpr(ExprNode* node)
             return;
         }
 
+        // ИСПРАВЛЕНО: Добавляем проверку наследования
         if (leftType != rightType)
         {
-            Errors.push_back("Types '" + ToString(leftType) + "' and '" + ToString(rightType) +
-                             "' are not compatible with operation " + ToString(node->Type));
+            // Проверяем, является ли rightType подтипом leftType
+            bool isSubtype = IsSubtype(rightType, leftType);
+
+            if (!isSubtype)
+            {
+                Errors.push_back("Cannot assign value of type '" + ToString(rightType) +
+                                "' to value of type '" + ToString(leftType) + "'");
+            }
         }
         else { node->AType = DataType::VoidType; }
-
-        if (node->Type == ExprNode::TypeT::AssignOnField && node->Field->IsFinal)
-        {
-            Errors.push_back("You cannot assign to final field named " + std::string{ node->Field->VarDecl->Identifier }
-                             + " of class " + node->Field->Class->ToDataType().ToTypename());
-        }
-
-        if (node->Type == ExprNode::TypeT::Assign)
-        {
-            const auto noVariable = !node->Left->Access->ActualVar;
-            const auto noField = !node->Left->Access->ActualField;
-            if (noField && noVariable)
-                Errors.push_back("Cannot assign");
-        }
 
         return;
     }
