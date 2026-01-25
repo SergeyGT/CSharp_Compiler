@@ -940,9 +940,6 @@ void ClassAnalyzer::AnalyzeSimpleMethodCall(Qualified_or_expr* expr)
         std::cout << "[DEBUG SimpleMethodCall] Method not found: " << std::string(methodName)
                   << " with types " << ToString(callTypes) << std::endl;
 
-        // Может быть, это вызов статического метода из другого класса?
-        // Например, System.Console.Write внутри метода?
-        // Тогда это должно быть DotMethodCall, а не SimpleMethodCall!
 
         Errors.push_back("Cannot call method with name " + std::string{ methodName } +
                         " with arguments of types " + ToString(callTypes));
@@ -1098,8 +1095,13 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
 
         // Ищем метод в найденном классе или структуре
         std::vector<MethodDeclNode*> allMethods;
-        if (foundClass) allMethods = foundClass->Members->Methods;
-        else if (foundStruct) allMethods = foundStruct->Members->Methods;
+        if (foundClass) {
+            // СОБИРАЕМ ВСЕ МЕТОДЫ ИЗ ТЕКУЩЕГО КЛАССА И ВСЕХ РОДИТЕЛЕЙ
+            allMethods = GetAllMethodsFromClassHierarchy(foundClass);
+        }
+        else if (foundStruct) {
+            allMethods = foundStruct->Members->Methods; // Структуры не наследуются
+        }
 
         const auto foundMethod = std::find_if(allMethods.begin(), allMethods.end(), [&](auto* method)
         {
@@ -1131,6 +1133,40 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
         expr->ActualMethodCall = *foundMethod;
     }
 }
+
+std::vector<MethodDeclNode*> ClassAnalyzer::GetAllMethodsFromClassHierarchy(ClassDeclNode* classNode) const
+{
+    std::vector<MethodDeclNode*> allMethods;
+
+    // Рекурсивно собираем методы из всей иерархии наследования
+    ClassDeclNode* currentClass = classNode;
+    while (currentClass)
+    {
+        // Добавляем методы текущего класса
+        allMethods.insert(allMethods.end(),
+                         currentClass->Members->Methods.begin(),
+                         currentClass->Members->Methods.end());
+
+        // Переходим к родительскому классу
+        if (currentClass->ParentTypes.empty())
+        {
+            currentClass = nullptr;
+        }
+        else
+        {
+            // Находим родительский класс
+            std::string parentName = std::string(currentClass->ParentTypes[0]);
+            DataType parentType;
+            parentType.AType = DataType::TypeT::Complex;
+            parentType.ComplexType = { parentName };
+
+            currentClass = FindClass(parentType);
+        }
+    }
+
+    return allMethods;
+}
+
 
 void ClassAnalyzer::AnalyzeFieldAccessibility(FieldDeclNode* field)
 {
@@ -2539,43 +2575,65 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
             return bytes;
         }
         case Qualified_or_expr::TypeT::Identifier:
-        {
-            Bytes bytes;
-            if (expr->AType.AType == DataType::TypeT::Null) {
-                append(bytes, (uint8_t)Command::aconst_null);
-                return bytes;
-            }
-            if (expr->ActualVar)
-            {
-                auto* const var = expr->ActualVar;
-                if (var->AType.IsPrimitiveType())
-                {
-                    append(bytes, (uint8_t)Command::iload);
-                    append(bytes, (uint8_t)var->PositionInMethod);
-                }
-                if (var->AType.IsReferenceType())
-                {
-                    append(bytes, (uint8_t)Command::aload);
-                    append(bytes, (uint8_t)var->PositionInMethod);
-                }
-                return bytes;
-            }
-            if (expr->ActualField)
-            {
-                auto* const field = expr->ActualField;
-                Bytes objectBytes;
-                append(objectBytes, (uint8_t)Command::aload_0);
-                append(bytes, objectBytes);
-                append(bytes, (uint8_t)Command::getfield);
+{
+    Bytes bytes;
+    if (expr->AType.AType == DataType::TypeT::Null) {
+        append(bytes, (uint8_t)Command::aconst_null);
+        return bytes;
+    }
 
-                const auto fieldRefId = file.Constants.FindFieldRef(field->Class->ToDataType().ToTypename(),
-                                                                    field->VarDecl->Identifier,
-                                                                    field->VarDecl->AType.ToDescriptor());
-                append(bytes, ToBytes(fieldRefId));
-                return bytes;
-            }
-            throw std::runtime_error{ "could not load " + std::string{ expr->Identifier } };
+    // ИСПРАВЛЕНО: Проверка на тип класса (для статических вызовов)
+    if (expr->AType.AType == DataType::TypeT::Complex &&
+        expr->ActualVar == nullptr &&
+        expr->ActualField == nullptr &&
+        !expr->IsVariable)  // ДОБАВЬТЕ ЭТО УСЛОВИЕ
+    {
+        // Это идентификатор типа (например, Child), а не переменная
+        // Для статических методов объект не загружается на стек
+        std::cout << "[DEBUG BYTECODE] Identifier is class type: "
+                  << expr->Identifier << ", no bytecode to generate" << std::endl;
+        return bytes; // Пустой байт-код
+    }
+
+    if (expr->ActualVar)
+    {
+        auto* const var = expr->ActualVar;
+        if (var->AType.IsPrimitiveType())
+        {
+            append(bytes, (uint8_t)Command::iload);
+            append(bytes, (uint8_t)var->PositionInMethod);
         }
+        if (var->AType.IsReferenceType())
+        {
+            append(bytes, (uint8_t)Command::aload);
+            append(bytes, (uint8_t)var->PositionInMethod);
+        }
+        return bytes;
+    }
+    if (expr->ActualField)
+    {
+        auto* const field = expr->ActualField;
+        Bytes objectBytes;
+        append(objectBytes, (uint8_t)Command::aload_0);
+        append(bytes, objectBytes);
+        append(bytes, (uint8_t)Command::getfield);
+
+        const auto fieldRefId = file.Constants.FindFieldRef(field->Class->ToDataType().ToTypename(),
+                                                            field->VarDecl->Identifier,
+                                                            field->VarDecl->AType.ToDescriptor());
+        append(bytes, ToBytes(fieldRefId));
+        return bytes;
+    }
+
+    // ДОБАВЬТЕ: дополнительная информация для отладки
+    std::cout << "[DEBUG BYTECODE ERROR] Identifier: " << expr->Identifier
+              << ", Type: " << ToString(expr->AType)
+              << ", IsVariable: " << expr->IsVariable
+              << ", ActualVar: " << (expr->ActualVar ? "yes" : "no")
+              << ", ActualField: " << (expr->ActualField ? "yes" : "no") << std::endl;
+
+    throw std::runtime_error{ "could not load " + std::string{ expr->Identifier } };
+}
         case Qualified_or_expr::TypeT::SimpleMethodCall:
         {
             Bytes bytes;
@@ -2647,84 +2705,93 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
             break;
         }
         case Qualified_or_expr::TypeT::DotMethodCall:
+{
+    Bytes bytes;
+
+    // Проверка для base.Method()
+    if (expr->Previous && expr->Previous->IsBaseReference)
+    {
+        std::cout << "[DEBUG] Generating bytecode for base.method() call" << std::endl;
+
+        // ВАЖНО: Загружаем this на стек для вызова метода
+        append(bytes, (uint8_t)Command::aload_0);
+
+        // Загружаем аргументы на стек
+        for (auto* arg : expr->Arguments->GetSeq())
         {
-
-
-            Bytes bytes;
-
-            // Проверка для base.Method()
-            if (expr->Previous && expr->Previous->IsBaseReference)
-            {
-                std::cout << "[DEBUG] Generating bytecode for base.method() call" << std::endl;
-
-                // ВАЖНО: Загружаем this на стек для вызова метода
-                append(bytes, (uint8_t)Command::aload_0);
-
-                // Загружаем аргументы на стек
-                for (auto* arg : expr->Arguments->GetSeq())
-                {
-                    append(bytes, ToBytes(arg, file));
-                }
-
-                const auto* method = expr->ActualMethodCall;
-
-                // Отладочный вывод
-                std::cout << "[DEBUG BYTECODE] Calling parent method via base: "
-                          << method->Identifier()
-                          << ", Class: " << method->Class->ToDataType().ToTypename()
-                          << ", Descriptor: " << method->ToDescriptor() << std::endl;
-
-                const auto methodRefConstant = file.Constants.FindMethodRef(
-                    method->Class->ToDataType().ToTypename(),
-                    method->Identifier(),
-                    method->ToDescriptor()
-                );
-
-                std::cout << "[DEBUG BYTECODE] Method ref constant: " << methodRefConstant << std::endl;
-
-                // ИСПРАВЛЕНО: Используем invokespecial для вызова метода родителя через base
-                append(bytes, (uint8_t)Command::invokespecial);
-                append(bytes, ToBytes(methodRefConstant));
-                return bytes;
-            }
-                    else
-                    {
-                        // Существующий код для обычных вызовов...
-                        append(bytes, ToBytes(expr->Previous, file));
-
-                        // Загружаем аргументы на стек
-                        for (auto* arg : expr->Arguments->GetSeq())
-                        {
-                            append(bytes, ToBytes(arg, file));
-                        }
-
-                        const auto* method = expr->ActualMethodCall;
-
-                        std::cout << "[DEBUG] Generating DotMethodCall: "
-                          << method->Identifier()
-                          << ", Class: " << method->Class->ToDataType().ToTypename()
-                          << ", Descriptor: " << method->ToDescriptor()
-                          << ", IsStatic: " << method->IsStatic << std::endl;
-
-                        const auto methodRefConstant = file.Constants.FindMethodRef(
-                            method->Class->ToDataType().ToTypename(),
-                            method->Identifier(),
-                            method->ToDescriptor()
-                        );
-
-                        // Выбираем правильную инструкцию вызова
-                        if (method->IsStatic)
-                        {
-                            append(bytes, (uint8_t)Command::invokestatic);
-                        }
-                        else
-                        {
-                            append(bytes, (uint8_t)Command::invokevirtual);
-                        }
-                        append(bytes, ToBytes(methodRefConstant));
-                        return bytes;
-                    }
+            append(bytes, ToBytes(arg, file));
         }
+
+        const auto* method = expr->ActualMethodCall;
+
+        // Отладочный вывод
+        std::cout << "[DEBUG BYTECODE] Calling parent method via base: "
+                  << method->Identifier()
+                  << ", Class: " << method->Class->ToDataType().ToTypename()
+                  << ", Descriptor: " << method->ToDescriptor() << std::endl;
+
+        const auto methodRefConstant = file.Constants.FindMethodRef(
+            method->Class->ToDataType().ToTypename(),
+            method->Identifier(),
+            method->ToDescriptor()
+        );
+
+        std::cout << "[DEBUG BYTECODE] Method ref constant: " << methodRefConstant << std::endl;
+
+        // ИСПРАВЛЕНО: Используем invokespecial для вызова метода родителя через base
+        append(bytes, (uint8_t)Command::invokespecial);
+        append(bytes, ToBytes(methodRefConstant));
+        return bytes;
+    }
+    else
+    {
+        // ИСПРАВЛЕНО: Для статических методов НЕ загружаем объект на стек
+        const auto* method = expr->ActualMethodCall;
+
+        if (!method)
+        {
+            throw std::runtime_error{ "No actual method found for DotMethodCall" };
+        }
+
+        std::cout << "[DEBUG] Generating DotMethodCall: "
+                  << method->Identifier()
+                  << ", Class: " << method->Class->ToDataType().ToTypename()
+                  << ", Descriptor: " << method->ToDescriptor()
+                  << ", IsStatic: " << method->IsStatic << std::endl;
+
+        // ВАЖНО: Загружаем объект на стек ТОЛЬКО для нестатических методов
+        if (method && !method->IsStatic)
+        {
+            // Для НЕстатических методов загружаем объект
+            append(bytes, ToBytes(expr->Previous, file));
+        }
+        // Для статических методов пропускаем загрузку объекта
+
+        // Загружаем аргументы на стек
+        for (auto* arg : expr->Arguments->GetSeq())
+        {
+            append(bytes, ToBytes(arg, file));
+        }
+
+        const auto methodRefConstant = file.Constants.FindMethodRef(
+            method->Class->ToDataType().ToTypename(),
+            method->Identifier(),
+            method->ToDescriptor()
+        );
+
+        // Выбираем правильную инструкцию вызова
+        if (method->IsStatic)
+        {
+            append(bytes, (uint8_t)Command::invokestatic);
+        }
+        else
+        {
+            append(bytes, (uint8_t)Command::invokevirtual);
+        }
+        append(bytes, ToBytes(methodRefConstant));
+        return bytes;
+    }
+}
         case Qualified_or_expr::TypeT::ArrayLength:
         {
             Bytes bytes;

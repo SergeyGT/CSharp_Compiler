@@ -250,6 +250,8 @@ struct ClassAnalyzer
 
     void AnalyzeDotMethodCall(Qualified_or_expr* expr);
 
+    std::vector<MethodDeclNode *> GetAllMethodsFromClassHierarchy(ClassDeclNode *classNode) const;
+
     void AnalyzeFieldAccessibility(FieldDeclNode* field);
 
     void AnalyzeMethodAccessibility(MethodDeclNode* method);

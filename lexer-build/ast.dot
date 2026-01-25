@@ -1,71 +1,66 @@
 digraph Program {
-38 [label="Program"]
+39 [label="Program"]
 0 [label="UsingDirectives"]
-37 [label="NamespaceDeclSeq"]
-36 [label="NamespaceDecl\nTest2"]
-27 [label="ClassDecl\nProgram\nInherited from: "]
-25 [label="MethodDecl\nVisibility: public\nName: Main"]
-10 [label="Stmt Seq"]
-9 [label="STMT"]
-8 [label="VarDeclWithInit\nName = System\nCalculated data type: Cl1"]
-3 [label="Type"]
-2 [label="Cl1"]
-3 -> 2 [label="Complex type"]
-8 -> 3 [label="Variable type"]
-7 [label="new\nCalculated data type: Test2.Cl1"]
-6 [label="Type"]
-5 [label=".Cl1"]
-4 [label="Test2\nCalculated data type: char"]
-5 -> 4
-6 -> 5 [label="Complex type"]
-7 -> 6 [label="type"]
-8 -> 7 [label="Init"]
-9 -> 8
-10 -> 9
-16 [label="STMT"]
-15 [label="VarDeclWithInit\nName = y\nCalculated data type: int"]
-11 [label="Type\nint"]
-15 -> 11 [label="Variable type"]
-14 [label="Qualified_or_expr"]
-13 [label=".Console\nCalculated data type: char"]
-12 [label="System\nCalculated data type: char"]
-13 -> 12
-14 -> 13
-15 -> 14 [label="Init"]
-16 -> 15
-10 -> 16
-9 -> 16 [label="next stmt"][style="dashed"]
-24 [label="Expr statement"]
-23 [label="Qualified_or_expr"]
-22 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
-18 [label=".Console\nCalculated data type: char"]
-17 [label="System\nCalculated data type: char"]
-18 -> 17
-22 -> 18 [label="call expr"]
-20 [label="Qualified_or_expr"]
-19 [label="Hello\nCalculated data type: char"]
-20 -> 19
-22 -> 20 [label="argument"]
-23 -> 22
+38 [label="NamespaceDeclSeq"]
+37 [label="NamespaceDecl\nPoly"]
+11 [label="ClassDecl\nParent\nInherited from: "]
+9 [label="MethodDecl\nVisibility: public\nName: GetValue"]
+1 [label="Type\nint"]
+9 -> 1 [label="Return value type"]
+3 [label="VarDecl\nName = x\nCalculated data type: int"]
+2 [label="Type\nint"]
+3 -> 2 [label="Variable type"]
+9 -> 3 [label="Method argument"]
+8 [label="Stmt Seq"]
+7 [label="Return"]
+6 [label="Qualified_or_expr"]
+5 [label="1\nCalculated data type: int"]
+6 -> 5
+7 -> 6 [label="value"]
+8 -> 7
+9 -> 8 [label="Method body"]
+11 -> 9 [label="method"]
+37 -> 11
+14 [label="ClassDecl\nChild\nInherited from: "]
+37 -> 14
+36 [label="ClassDecl\nTest\nInherited from: "]
+34 [label="MethodDecl\nVisibility: public\nName: Main"]
+25 [label="Stmt Seq"]
+24 [label="STMT"]
+23 [label="VarDeclWithInit\nName = x\nCalculated data type: int"]
+16 [label="Type\nint"]
+23 -> 16 [label="Variable type"]
+22 [label="Qualified_or_expr"]
+21 [label="Method call\nMethodName: GetValue\nCalculated data type: char"]
+17 [label="Child\nCalculated data type: char"]
+21 -> 17 [label="call expr"]
+19 [label="Qualified_or_expr"]
+18 [label="5\nCalculated data type: int"]
+19 -> 18
+21 -> 19 [label="argument"]
+22 -> 21
+23 -> 22 [label="Init"]
 24 -> 23
-10 -> 24
-16 -> 24 [label="next stmt"][style="dashed"]
-25 -> 10 [label="Method body"]
-27 -> 25 [label="method"]
-36 -> 27
-35 [label="ClassDecl\nCl1\nInherited from: "]
-33 [label="FieldDeclNode\nVisibility: public"]
-32 [label="VarDeclWithInit\nName = Console\nCalculated data type: int"]
-29 [label="Type\nint"]
-32 -> 29 [label="Variable type"]
-31 [label="Qualified_or_expr"]
-30 [label="5\nCalculated data type: int"]
-31 -> 30
-32 -> 31 [label="Init"]
-33 -> 32 [label="Field Variable"]
-35 -> 33 [label="field"]
-36 -> 35
+25 -> 24
+33 [label="Expr statement"]
+32 [label="Qualified_or_expr"]
+31 [label="Method call\nMethodName: WriteLine\nCalculated data type: char"]
+27 [label=".Console\nCalculated data type: char"]
+26 [label="System\nCalculated data type: char"]
+27 -> 26
+31 -> 27 [label="call expr"]
+29 [label="Qualified_or_expr"]
+28 [label="x\nCalculated data type: char"]
+29 -> 28
+31 -> 29 [label="argument"]
+32 -> 31
+33 -> 32
+25 -> 33
+24 -> 33 [label="next stmt"][style="dashed"]
+34 -> 25 [label="Method body"]
+36 -> 34 [label="method"]
 37 -> 36
-38 -> 0
 38 -> 37
+39 -> 0
+39 -> 38
 }

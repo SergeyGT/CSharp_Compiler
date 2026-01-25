@@ -14,7 +14,7 @@ namespace Poly
     {
         public static void Main()
         {
-            int x = Child.GetValue();
+            int x = Child.GetValue(5);
             System.Console.WriteLine(x);
         }
     }
