@@ -47,6 +47,7 @@ struct Qualified_or_expr final : Node
 
     bool IsEnumValue = false;           // Является ли значение enum
     bool IsBaseReference = false;
+    bool IsVariable = false;
     EnumDeclNode* EnumType = nullptr;
 
     DataType AType{};

@@ -509,12 +509,15 @@ void ClassAnalyzer::AnalyzeMethod(MethodDeclNode* method)
         //CurrentMethod->Variables.push_back(new VarDeclNode(nullptr, "", nullptr));
     }
 
-    const auto canBeStatic = CurrentMethod->IsOperatorOverload || CurrentMethod->Identifier() == "main";
-
-    if (CurrentMethod->IsStatic && !canBeStatic)
+    // Разрешаем статические методы в целом
+    if (CurrentMethod->IsStatic && CurrentMethod->Identifier() == "Main")
     {
-        Errors.emplace_back("Only Main method with no arguments and operator overloads can be static");
-        return;
+        // Проверка для Main метода
+        if (!CurrentMethod->ArgumentDtos.empty())
+        {
+            Errors.emplace_back("Main method must have no arguments");
+            return;
+        }
     }
 
     if (!CurrentMethod->IsStatic)
@@ -1037,6 +1040,19 @@ void ClassAnalyzer::AnalyzeDotMethodCall(Qualified_or_expr* expr)
     else {
         AnalyzeQualified_or_expr(expr->Previous);
         const auto typeForPrevious = CalculateTypeForQualified_or_expr(expr->Previous);
+        bool isVariable = false;
+        if (expr->Previous && expr->Previous->Type == Qualified_or_expr::TypeT::Identifier) {
+            // Проверяем, является ли это переменной
+            if (CurrentMethod) {
+                std::string prevName = std::string(expr->Previous->Identifier);
+                auto* var = CurrentMethod->FindVariableByName(prevName, CurrentScopingLevel);
+                if (var) {
+                    isVariable = true;
+                    std::cout << "[DEBUG] Found variable: " << prevName
+                              << " of type: " << ToString(var->AType) << std::endl;
+                }
+            }
+        }
         auto* foundClass = FindClass(typeForPrevious);
         auto* foundStruct = FindStruct(typeForPrevious);
 
@@ -1830,7 +1846,7 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
             auto isVariableFound = false;
             const auto name = std::string{ access->Identifier };
 
-            if (std::string(access->Identifier) == "base")
+            if (std::string(access->Identifier) ==   "base")
             {
                 // 'base' доступен только в нестатическом контексте
                 if (!CurrentMethod || CurrentMethod->IsStatic)
@@ -1942,12 +1958,18 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
             // Ищем в локальных переменных метода
             if (CurrentMethod)
             {
+                // Сначала ищем переменные в текущей области видимости
                 if (auto* var = CurrentMethod->FindVariableByName(name, CurrentScopingLevel); var)
                 {
                     type = var->AType;
                     access->AType = type;
                     isVariableFound = true;
                     access->ActualVar = var;
+                    access->IsVariable = true;  // ВАЖНО: добавляем флаг, что это переменная
+
+                    std::cout << "[DEBUG] Found variable " << name
+                              << " of type " << ToString(type) << std::endl;
+                    return type;
                 }
             }
 
@@ -1989,6 +2011,15 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
             }
 
 
+            for (auto* class_ : Namespace->Members->Classes)
+            {
+                if (class_->ClassName == access->Identifier)
+                {
+                    // Это класс
+                    access->AType = class_->ToDataType();
+                    return access->AType;
+                }
+            }
             if (!isVariableFound && !access->ActualField) {
                 // Ищем во всех enum в текущем namespace
                 for (auto* enum_ : Namespace->Members->Enums)

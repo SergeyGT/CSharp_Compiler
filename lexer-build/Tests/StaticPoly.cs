@@ -7,18 +7,14 @@ namespace Poly
     
     public class Child : Parent
     { 
-        public int GetNum() 
-        { 
-          return base.GetValue(3); 
-        }
+       
     }
     
     public class Test
     {
         public static void Main()
         {
-            Child child = new Poly.Parent();
-            int x = child.GetValue();
+            int x = Child.GetValue();
             System.Console.WriteLine(x);
         }
     }
