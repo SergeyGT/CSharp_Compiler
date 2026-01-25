@@ -1824,6 +1824,7 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         }
         case Qualified_or_expr::TypeT::DotMethodCall:
         {
+
             if (access->ActualMethodCall)
             {
                 type = access->ActualMethodCall->AReturnType;
@@ -1843,207 +1844,310 @@ DataType ClassAnalyzer::CalculateTypeForQualified_or_expr(Qualified_or_expr* acc
         }
         case Qualified_or_expr::TypeT::Identifier:
         {
-            auto isVariableFound = false;
-            const auto name = std::string{ access->Identifier };
+        auto isVariableFound = false;
+        const auto name = std::string{ access->Identifier };
 
-            if (std::string(access->Identifier) ==   "base")
+        // 0. Проверяем специальные ключевые слова
+        if (name == "base")
+        {
+            // 'base' доступен только в нестатическом контексте
+            if (!CurrentMethod || CurrentMethod->IsStatic)
             {
-                // 'base' доступен только в нестатическом контексте
-                if (!CurrentMethod || CurrentMethod->IsStatic)
-                {
-                    Errors.push_back("'base' cannot be used in static method");
-                    type.IsUnknown = true;
-                    access->AType = type;
-                    return type;
-                }
-
-                // 'base' должен иметь родительский класс
-                if (!CurrentClass || CurrentClass->ParentTypes.empty())
-                {
-                    Errors.push_back("Cannot use 'base' in class without parent");
-                    type.IsUnknown = true;
-                    access->AType = type;
-                    return type;
-                }
-
-                // Получаем тип родительского класса
-                DataType parentType;
-                parentType.AType = DataType::TypeT::Complex;
-                parentType.ComplexType = {
-                    std::string(CurrentClass->ParentTypes[0])  // Берём первого родителя
-                };
-                ValidateTypename(parentType);
-
-                access->AType = parentType;
-                access->IsBaseReference = true; // Устанавливаем флаг
-
-                std::cout << "[DEBUG] 'base' resolved to type: " << ToString(parentType) << std::endl;
-
-                return parentType;
-            }
-
-            if (name == "null") {
-                DataType nullType;
-                nullType.AType = DataType::TypeT::Null;
-                access->AType = nullType;
-                return nullType;
-            }
-
-            // 1. Проверяем, является ли это именем типа enum
-            for (auto* enum_ : Namespace->Members->Enums)
-            {
-                if (std::string(enum_->EnumName) == name)
-                {
-                    // Это тип enum
-                    DataType enumType;
-                    enumType.AType = DataType::TypeT::Complex;
-                    enumType.ComplexType.push_back(std::string(Namespace->NamespaceName));
-                    enumType.ComplexType.push_back(std::string(enum_->EnumName));
-                    access->AType = enumType;
-                    return enumType;
-                }
-            }
-
-            // 2. Проверяем, является ли это значением enum
-            for (auto* enum_ : Namespace->Members->Enums)
-            {
-                if (!enum_->Enumerators) continue;
-
-                int value = 0;
-                bool found = false;
-                for (const auto& enumerator : enum_->Enumerators->Identifiers)
-                {
-                    if (enumerator == access->Identifier)
-                    {
-                        found = true;
-                        break;
-                    }
-                    value++;
-                }
-
-                if (found)
-                {
-                    std::cout << "[DEBUG] Converting enum value to int: "
-                              << name << " = " << value << std::endl;
-
-                    // ВАЖНО: Нужно корректно создать новый узел
-                    auto* newAccess = Qualified_or_expr::FromInt(value);
-                    newAccess->AType = DataType::IntType;
-
-                    // Вместо удаления и замены, лучше вернуть новый Expression Node
-                    auto* newExpr = ExprNode::FromQualified_or_expr(newAccess);
-                    newExpr->AType = DataType::IntType;
-
-                    // Но поскольку мы в CalculateTypeForQualified_or_expr, просто устанавливаем тип
-                    access->Type = Qualified_or_expr::TypeT::Integer;
-                    access->Integer = value;
-                    access->AType = DataType::IntType;
-                    return DataType::IntType;
-                }
-            }
-            for (auto* ns : AllNamespaces->GetSeq())
-            {
-                if (ns->NamespaceName == name)
-                {
-                    // Это пространство имён!
-                    // Создаём специальный тип для пространства имён
-                    DataType namespaceType;
-                    namespaceType.AType = DataType::TypeT::Namespace;
-                    namespaceType.NamespaceName = name;
-                    access->AType = namespaceType;
-                    return namespaceType;
-                }
-            }
-
-            // Ищем в локальных переменных метода
-            if (CurrentMethod)
-            {
-                // Сначала ищем переменные в текущей области видимости
-                if (auto* var = CurrentMethod->FindVariableByName(name, CurrentScopingLevel); var)
-                {
-                    type = var->AType;
-                    access->AType = type;
-                    isVariableFound = true;
-                    access->ActualVar = var;
-                    access->IsVariable = true;  // ВАЖНО: добавляем флаг, что это переменная
-
-                    std::cout << "[DEBUG] Found variable " << name
-                              << " of type " << ToString(type) << std::endl;
-                    return type;
-                }
-            }
-
-            // Ищем в полях класса или структуры
-            const auto currentMethodExistsAndNotStatic = CurrentMethod && !CurrentMethod->IsStatic;
-            const bool currentMethodDoesntExist = !CurrentMethod;
-
-            if (!isVariableFound && (currentMethodDoesntExist || currentMethodExistsAndNotStatic))
-            {
-                if (CurrentClass)
-                {
-                    if (auto* var = CurrentClass->FindFieldByName(name); var)
-                    {
-                        AnalyzeFieldAccessibility(var);
-                        type = var->VarDecl->AType;
-                        access->AType = type;
-                        isVariableFound = true;
-                        access->ActualField = var;
-                    }
-                }
-                else if (CurrentStruct)
-                {
-                    // Для структур ищем поля
-                    auto& fields = CurrentStruct->Members->Fields;
-                    const auto foundField = std::find_if(fields.begin(), fields.end(), [&](FieldDeclNode* field)
-                    {
-                        return field->VarDecl->Identifier == name;
-                    });
-
-                    if (foundField != fields.end())
-                    {
-                        AnalyzeFieldAccessibility(*foundField);
-                        type = (*foundField)->VarDecl->AType;
-                        access->AType = type;
-                        isVariableFound = true;
-                        access->ActualField = *foundField;
-                    }
-                }
-            }
-
-
-            for (auto* class_ : Namespace->Members->Classes)
-            {
-                if (class_->ClassName == access->Identifier)
-                {
-                    // Это класс
-                    access->AType = class_->ToDataType();
-                    return access->AType;
-                }
-            }
-            if (!isVariableFound && !access->ActualField) {
-                // Ищем во всех enum в текущем namespace
-                for (auto* enum_ : Namespace->Members->Enums)
-                {
-                    for (const auto& enumerator : enum_->Enumerators->Identifiers)
-                    {
-                        if (enumerator == access->Identifier)
-                        {
-                            // Нашли значение enum
-                            access->AType = DataType::IntType; // Значения enum имеют тип int
-                            return DataType::IntType;
-                        }
-                    }
-                }
-            }
-            if (isVariableFound)
-            {
+                Errors.push_back("'base' cannot be used in static method");
+                type.IsUnknown = true;
                 access->AType = type;
                 return type;
             }
 
-            Errors.push_back("Variable with name \"" + name + "\" is not found");
-            break;
+            // 'base' должен иметь родительский класс
+            if (!CurrentClass || CurrentClass->ParentTypes.empty())
+            {
+                Errors.push_back("Cannot use 'base' in class without parent");
+                type.IsUnknown = true;
+                access->AType = type;
+                return type;
+            }
+
+            // Получаем тип родительского класса
+            DataType parentType;
+            parentType.AType = DataType::TypeT::Complex;
+            parentType.ComplexType = {
+                std::string(CurrentClass->ParentTypes[0])  // Берём первого родителя
+            };
+            ValidateTypename(parentType);
+
+            access->AType = parentType;
+            access->IsBaseReference = true; // Устанавливаем флаг
+
+            std::cout << "[DEBUG] 'base' resolved to type: " << ToString(parentType) << std::endl;
+            return parentType;
         }
+
+        if (name == "null") {
+            DataType nullType;
+            nullType.AType = DataType::TypeT::Null;
+            access->AType = nullType;
+            return nullType;
+        }
+
+        // 1. Сначала ищем переменные в текущем методе (самый высокий приоритет)
+        if (CurrentMethod)
+        {
+            if (auto* var = CurrentMethod->FindVariableByName(name, CurrentScopingLevel); var)
+            {
+                type = var->AType;
+                access->AType = type;
+                isVariableFound = true;
+                access->ActualVar = var;
+                access->IsVariable = true;
+
+                std::cout << "[DEBUG RESOLVE] Found LOCAL VARIABLE '" << name
+                          << "' of type " << ToString(type)
+                          << " at scope level " << CurrentScopingLevel << std::endl;
+                return type;
+            }
+        }
+
+        // 2. Ищем поля класса (если мы в нестатическом контексте)
+        const bool isInNonStaticContext = CurrentMethod && !CurrentMethod->IsStatic;
+        if (!isVariableFound && isInNonStaticContext)
+        {
+            if (CurrentClass)
+            {
+                if (auto* field = CurrentClass->FindFieldByName(name); field)
+                {
+                    AnalyzeFieldAccessibility(field);
+                    type = field->VarDecl->AType;
+                    access->AType = type;
+                    isVariableFound = true;
+                    access->ActualField = field;
+
+                    std::cout << "[DEBUG RESOLVE] Found FIELD '" << name
+                              << "' of type " << ToString(type) << std::endl;
+                    return type;
+                }
+            }
+            else if (CurrentStruct)
+            {
+                // Для структур
+                auto& fields = CurrentStruct->Members->Fields;
+                const auto foundField = std::find_if(fields.begin(), fields.end(),
+                    [&](FieldDeclNode* field) {
+                        return field->VarDecl->Identifier == name;
+                    });
+
+                if (foundField != fields.end())
+                {
+                    AnalyzeFieldAccessibility(*foundField);
+                    type = (*foundField)->VarDecl->AType;
+                    access->AType = type;
+                    isVariableFound = true;
+                    access->ActualField = *foundField;
+
+                    std::cout << "[DEBUG RESOLVE] Found STRUCT FIELD '" << name
+                              << "' of type " << ToString(type) << std::endl;
+                    return type;
+                }
+            }
+        }
+
+        // 3. Проверяем, является ли это именем типа enum в текущем namespace
+        for (auto* enum_ : Namespace->Members->Enums)
+        {
+            if (std::string(enum_->EnumName) == name)
+            {
+                // Это тип enum
+                DataType enumType;
+                enumType.AType = DataType::TypeT::Complex;
+                enumType.ComplexType.push_back(std::string(Namespace->NamespaceName));
+                enumType.ComplexType.push_back(std::string(enum_->EnumName));
+                access->AType = enumType;
+
+                std::cout << "[DEBUG RESOLVE] Found ENUM TYPE '" << name
+                          << "' in current namespace" << std::endl;
+                return enumType;
+            }
+        }
+
+        // 4. Проверяем, является ли это значением enum
+        for (auto* enum_ : Namespace->Members->Enums)
+        {
+            if (!enum_->Enumerators) continue;
+
+            int value = 0;
+            bool foundEnumValue = false;
+            for (const auto& enumerator : enum_->Enumerators->Identifiers)
+            {
+                if (enumerator == access->Identifier)
+                {
+                    foundEnumValue = true;
+                    break;
+                }
+                value++;
+            }
+
+            if (foundEnumValue)
+            {
+                std::cout << "[DEBUG RESOLVE] Converting ENUM VALUE '" << name
+                          << "' to integer: " << value << std::endl;
+
+                // Преобразуем текущий узел в Integer
+                access->Type = Qualified_or_expr::TypeT::Integer;
+                access->Integer = value;
+                access->AType = DataType::IntType;
+                return DataType::IntType;
+            }
+        }
+
+        // 5. Проверяем, является ли это именем класса в текущем namespace
+        for (auto* class_ : Namespace->Members->Classes)
+        {
+            if (class_->ClassName == access->Identifier)
+            {
+                // Это класс
+                access->AType = class_->ToDataType();
+
+                std::cout << "[DEBUG RESOLVE] Found CLASS '" << name
+                          << "' in current namespace" << std::endl;
+                return access->AType;
+            }
+        }
+
+        // 6. Проверяем, является ли это именем структуры в текущем namespace
+        for (auto* struct_ : Namespace->Members->Structs)
+        {
+            if (struct_->StructName == access->Identifier)
+            {
+                // Это структура
+                access->AType = struct_->ToDataType();
+
+                std::cout << "[DEBUG RESOLVE] Found STRUCT '" << name
+                          << "' in current namespace" << std::endl;
+                return access->AType;
+            }
+        }
+
+        // 7. Проверяем, является ли это пространством имен (последний приоритет)
+        // Но сначала нужно убедиться, что это не конфликтует с существующей переменной
+        if (CurrentMethod)
+        {
+            // Двойная проверка на переменную (на всякий случай)
+            for (auto* var : CurrentMethod->Variables)
+            {
+                if (var->Identifier == name && var->ScopingLevel <= CurrentScopingLevel)
+                {
+                    // ФУХ! Есть переменная, которую мы пропустили
+                    type = var->AType;
+                    access->AType = type;
+                    isVariableFound = true;
+                    access->ActualVar = var;
+                    access->IsVariable = true;
+
+                    std::cout << "[DEBUG RESOLVE FIXED] Found MISSED VARIABLE '" << name
+                              << "' of type " << ToString(type) << std::endl;
+                    return type;
+                }
+            }
+        }
+
+        // Теперь проверяем namespace
+        for (auto* ns : AllNamespaces->GetSeq())
+        {
+            if (ns->NamespaceName == name)
+            {
+                // Это пространство имён
+
+                // Но если есть локальная переменная с таким именем, это ошибка
+                bool hasLocalVariable = false;
+                if (CurrentMethod)
+                {
+                    for (auto* var : CurrentMethod->Variables)
+                    {
+                        if (var->Identifier == name && var->ScopingLevel <= CurrentScopingLevel)
+                        {
+                            hasLocalVariable = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasLocalVariable)
+                {
+                    // КОНФЛИКТ: переменная скрывает namespace
+                    Errors.push_back("Name conflict: variable '" + name +
+                                    "' hides namespace '" + name + "'");
+                    type.IsUnknown = true;
+                    access->AType = type;
+
+                    std::cout << "[DEBUG RESOLVE ERROR] Variable '" << name
+                              << "' hides namespace" << std::endl;
+                    return type;
+                }
+
+                // Создаём тип для пространства имён
+                DataType namespaceType;
+                namespaceType.AType = DataType::TypeT::Namespace;
+                namespaceType.NamespaceName = name;
+                access->AType = namespaceType;
+
+                std::cout << "[DEBUG RESOLVE] Found NAMESPACE: " << name << std::endl;
+                return namespaceType;
+            }
+        }
+
+        // 8. Если не нашли ничего из вышеперечисленного
+        if (!isVariableFound && !access->ActualField)
+        {
+            // Создаем понятное сообщение об ошибке
+            std::string errorMsg = "Identifier '" + name + "' is not found.";
+
+            // Проверяем, есть ли похожие имена
+            std::vector<std::string> suggestions;
+
+            if (CurrentMethod)
+            {
+                // Предлагаем локальные переменные
+                for (auto* var : CurrentMethod->Variables)
+                {
+                    if (var->ScopingLevel <= CurrentScopingLevel)
+                    {
+                        suggestions.push_back(std::string(var->Identifier) + " (variable)");
+                    }
+                }
+            }
+
+            // Предлагаем классы в текущем namespace
+            for (auto* class_ : Namespace->Members->Classes)
+            {
+                suggestions.push_back(std::string(class_->ClassName) + " (class)");
+            }
+
+            // Предлагаем namespace
+            for (auto* ns : AllNamespaces->GetSeq())
+            {
+                suggestions.push_back(std::string(ns->NamespaceName) + " (namespace)");
+            }
+
+            if (!suggestions.empty())
+            {
+                errorMsg += " Did you mean one of these? ";
+                for (size_t i = 0; i < std::min(suggestions.size(), size_t(3)); ++i)
+                {
+                    if (i > 0) errorMsg += ", ";
+                    errorMsg += suggestions[i];
+                }
+            }
+
+            Errors.push_back(errorMsg);
+            type.IsUnknown = true;
+            access->AType = type;
+
+            std::cout << "[DEBUG RESOLVE ERROR] Identifier '" << name
+                      << "' not found in any context" << std::endl;
+        }
+
+        return type;
+    }
         case Qualified_or_expr::TypeT::Expr:
         {
             CalculateTypesForExpr(access->Child);
@@ -2544,6 +2648,7 @@ Bytes ToBytes(Qualified_or_expr* expr, ClassFile& file)
         }
         case Qualified_or_expr::TypeT::DotMethodCall:
         {
+
 
             Bytes bytes;
 

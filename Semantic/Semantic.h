@@ -70,6 +70,34 @@ struct Semantic
             Errors.insert("Cannot run a program without an entry point");
         }
 
+        CheckNameConflicts();
+        std::set<std::string> namespaceNames;
+        for (auto* ns : program->Namespaces->GetSeq())
+        {
+            namespaceNames.insert(std::string(ns->NamespaceName));
+        }
+
+        // Проверяем все классы на наличие переменных с именами namespace
+        for (auto* ns : program->Namespaces->GetSeq())
+        {
+            for (auto* class_ : ns->Members->Classes)
+            {
+                for (auto* method : class_->Members->Methods)
+                {
+                    for (auto* var : method->Variables)
+                    {
+                        std::string varName = std::string(var->Identifier);
+                        if (namespaceNames.find(varName) != namespaceNames.end())
+                        {
+                            std::cerr << "[ERROR] Variable '" << varName
+                                      << "' in method '" << method->Identifier()
+                                      << "' conflicts with namespace name" << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+
         std::cout << "[DEBUG] Total errors: " << Errors.size() << std::endl;
         std::cout << "[DEBUG] ===== END Semantic::Analyze() =====" << std::endl;
     }
@@ -80,6 +108,39 @@ struct Semantic
 
     static ClassDeclNode* CreateStringClass();
 
+
+    void CheckNameConflicts()
+    {
+        std::set<std::string> allTypeNames;
+
+        for (auto* ns : program->Namespaces->GetSeq())
+        {
+            // Проверяем классы
+            for (auto* class_ : ns->Members->Classes)
+            {
+                std::string fullName = std::string(ns->NamespaceName) + "." + std::string(class_->ClassName);
+
+                if (allTypeNames.find(fullName) != allTypeNames.end())
+                {
+                    std::cerr << "[ERROR] Duplicate type name: " << fullName << std::endl;
+                    // Добавьте ошибку в ваш список ошибок
+                }
+                allTypeNames.insert(fullName);
+            }
+
+            // Проверяем структуры
+            for (auto* struct_ : ns->Members->Structs)
+            {
+                std::string fullName = std::string(ns->NamespaceName) + "." + std::string(struct_->StructName);
+
+                if (allTypeNames.find(fullName) != allTypeNames.end())
+                {
+                    std::cerr << "[ERROR] Duplicate type name: " << fullName << std::endl;
+                }
+                allTypeNames.insert(fullName);
+            }
+        }
+    }
 
     void CheckSystemNamespace()
     {
